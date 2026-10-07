@@ -1,0 +1,1928 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <!--
+    Content-Security-Policy: طبقة دفاع إضافية (defense in depth) وليست بديلاً عن تعقيم المدخلات.
+
+    حالة التقدّم في إزالة الاعتماد على unsafe-inline (آخر تحديث 2026-09-04):
+    - onclick المضمّن مباشرة في هذا الملف (index.html): تم تحويله بالكامل (كان 178، الآن 0) إلى
+      نظام تفويض أحداث موحّد عبر data-action/data-args (راجع js/core/dom-actions.js). العنصرين
+      معالجة أحداث الإدخال والتغيير تتم عبر تفويض مركزي في js/core/dom-actions.js.
+    - onclick المُولَّد ديناميكياً داخل قوالب JS (باقي المشروع): 102 موضع لا يزال قائماً، موزّعة
+      أساساً على js/monitor-shell.js (32) وjs/app/student-roster.js (13) وjs/attendance-system.js (13)
+      وjs/v24-teacher-analytics.js (8) وjs/app/auth-audit.js (7) وباقي على ملفات features/*.
+      تحويلها يتطلب استبدال onclick="fn('${x}')" داخل template literals بـ
+      data-action="fn" data-args='${JSON.stringify([x])}' — نفس النمط المطبَّق فعلاً كمثال كامل
+      في js/attn-conflicts-review.js. تم إلغاء الحاجة إلى unsafe-inline في script-src
+      حتى تكتمل بقية هذه المواضع (وليس افتراضاً نظرياً كما كانت الحال سابقاً).
+    - style="..." المضمّن: تم تحويل نمط display:none المتكرر (43 موضع) إلى class="hidden" في
+      css/base.css. تبقّى نحو 255 موضع style="..." أغلبها تنسيقات مرة واحدة (font-size/color/margin
+      متفرقة) — تحويلها بالكامل لكلاسات CSS يحتاج مراجعة أوسع خارج نطاق هذه الجولة، لذلك 'unsafe-inline'
+      في style-src ما زالت ضرورية أيضاً.
+
+    حتى مع هذا القيد المتبقي، هذه السياسة ما زالت تمنع: تحميل أي سكربت/تنسيق من نطاق غير مصرَّح به،
+    التضمين داخل iframe من موقع آخر (clickjacking)، أي اتصال شبكي لغير Supabase/الذات، وأي عناصر
+    plugin/object قديمة.
+  -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src 'self' https://fonts.gstatic.com;
+    img-src 'self' data: blob:;
+    connect-src 'self' https://gxeqnmrakbrtychnfmvg.supabase.co wss://gxeqnmrakbrtychnfmvg.supabase.co;
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+  ">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام رصد درجات أعمال السنة - Pro</title>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/monitor-shell.css">
+  <link rel="stylesheet" href="css/attendance.css">
+  <link rel="stylesheet" href="css/teacher-daily-attendance.css">
+  <link rel="stylesheet" href="css/v20-ux.css">
+  <link rel="stylesheet" href="css/v21-analytics.css">
+  <link rel="stylesheet" href="css/v22-security.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0b5e42">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="رصد">
+</head>
+<body class="auth-open">
+
+
+<!-- ===== واجهة مدير المرحلة (المراقب) ===== -->
+<div id="monShell" class="mon-shell hidden">
+  <header class="mon-topbar">
+    <div class="mon-topbar-row">
+      <div class="mon-brand-inline">
+        <div class="mon-brand-icon">🏫</div>
+        <div>
+          <h1 id="monBrandTitle">لوحة المراقب</h1>
+          <p id="monBrandSub">رقابة ومتابعة المرحلة · عرض فقط</p>
+        </div>
+      </div>
+      <div class="mon-top-meta">
+        <span class="mon-chip" id="monTermChip">—</span>
+        <span class="mon-chip" id="monStageChip">—</span>
+        <span class="mon-chip" id="monSchoolName">—</span>
+      </div>
+      <div class="mon-user-inline">
+        <div class="mon-avatar">👤</div>
+        <div>
+          <strong id="monUserName">مدير المرحلة</strong>
+          <span id="monUserRole">رقابة ومتابعة — عرض فقط</span>
+        </div>
+      </div>
+    </div>
+    <nav class="mon-nav" id="monNav">
+      <button type="button" data-mon-tab="dashboard" class="active" data-action="monNavigate" data-args='["dashboard"]'><span class="ic">🏠</span><span class="lbl-full">الرئيسية</span></button>
+      <button type="button" data-mon-tab="students" data-action="monNavigate" data-args='["students"]'><span class="ic">👨‍🎓</span><span class="lbl-full">الطلاب</span></button>
+      <button type="button" data-mon-tab="teachers" data-action="monNavigate" data-args='["teachers"]'><span class="ic">🧑‍🏫</span><span class="lbl-full">المعلمون</span></button>
+      <button type="button" data-mon-tab="grades" data-action="monNavigate" data-args='["grades"]'><span class="ic">📝</span><span class="lbl-full">الدرجات</span></button>
+      <button type="button" data-mon-tab="attendance" data-action="monNavigate" data-args='["attendance"]'><span class="ic">📅</span><span class="lbl-full">الحضور</span></button>
+      <button type="button" data-mon-tab="stats" data-action="monNavigate" data-args='["stats"]' title="التقارير والإحصائيات وطباعة كشف أعمال السنة"><span class="ic">📊</span><span class="lbl-full">التقارير</span></button>
+      <button type="button" data-mon-tab="printcenter" data-action="monNavigate" data-args='["printcenter"]'><span class="ic">🖨️</span><span class="lbl-full">مركز الطباعة</span></button>
+      <button type="button" class="mon-pin-btn" data-action="changeMyStageAdminPin" data-args='[]' title="تغيير كلمة السر"><span class="ic">🔑</span><span class="lbl-full">كلمة السر</span></button>
+      <button type="button" class="mon-logout-btn" data-action="logout" data-args='[]'><span class="ic">🚪</span><span class="lbl-full">خروج</span></button>
+    </nav>
+  </header>
+  <div class="mon-content-shift">
+    <div id="monMainSlot"></div>
+  </div>
+</div>
+
+<div id="v23SupabasePanel">
+  <h3>☁️ اتصال Supabase</h3>
+  <div class="v22-sec-grid">
+    <div><b>المشروع</b><br><span class="v22-badge v22-ok">متصل بالإعدادات الجديدة</span></div>
+    <div><b>المفتاح</b><br><span class="v22-badge v22-ok">Publishable Key</span></div>
+  </div>
+  <!-- ملاحظة مطوّر: النظام يعتمد على مصادقة PIN من جهة العميل بدل Supabase Auth حقيقي،
+       لذلك كل المستخدمين يشتركون في نفس صلاحيات anon من منظور قاعدة البيانات. RLS الحالي
+       يمنع الوصول الخارجي لكن لا يفصل صلاحيات معلم عن مدير مرحلة على مستوى قاعدة البيانات
+       نفسها. الترقية المستقبلية الموصى بها: تفعيل Supabase Auth + عمود stage_id لكل مستخدم. -->
+</div>
+
+<div id="v22SecurityCenter" class="v22-sec-card hidden">
+  <h3>🔐 مركز الأمان والعمليات</h3>
+  <div class="v22-sec-grid">
+    <div><b>المصادقة</b><br><span id="v22AuthStatus" class="v22-badge v22-warn">مراجعة مطلوبة</span></div>
+    <div><b>المزامنة</b><br><span id="v22SyncStatus" class="v22-badge v22-ok">تعمل محلياً</span></div>
+    <div><b>التعارضات</b><br><span id="v22ConflictCount" class="v22-badge v22-ok">0</span></div>
+    <div><b>آخر نسخة احتياطية</b><br><span id="v22BackupStatus">لم يتم التحقق</span></div>
+  </div>
+  <div style="margin-top:10px">
+    <button type="button" data-action="v22ExportSecuritySnapshot" data-args='[]'>💾 تصدير لقطة أمان</button>
+    <button type="button" data-action="v22CheckSecurity" data-args='[]'>🔎 فحص الأمان</button>
+  </div>
+  <div id="v22SecurityMessage" style="margin-top:10px;font-size:13px"></div>
+</div>
+
+
+  <div id="connStatusBadge" style="position:fixed; top:10px; right:10px; z-index:9999; padding:7px 16px; border-radius:20px; font-size:12px; font-weight:700; color:#fff; background:#64748b; box-shadow:0 2px 8px rgba(0,0,0,.2); max-width:280px; text-align:center;">⚪ جارِ التحقق من الاتصال...</div>
+
+  <!-- ==================== AUTH OVERLAY ==================== -->
+  <div id="authOverlay" class="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-switch" role="tablist" aria-label="اختر نوع الحساب">
+        <button class="btn btn-primary" id="authTabAdminBtn" data-action="showAuthMode" data-args='["admin"]' type="button">🔑<br>رئيس الكنترول</button>
+        <button class="btn btn-outline" id="authTabStageAdminBtn" data-action="showAuthMode" data-args='["stageadmin"]' type="button">💻<br>مسؤول الحاسب</button>
+        <button class="btn btn-outline" id="authTabTeacherBtn" data-action="showAuthMode" data-args='["teacher"]' type="button">👤<br>معلم</button>
+        <button class="btn btn-outline" id="authTabMonitorBtn" data-action="showAuthMode" data-args='["monitor"]' type="button">🏫<br>مدير المرحلة</button>
+      </div>
+
+      <div class="hidden" id="authAdminSetupPane">
+        <h3>🆕 إعداد أولي — أول تشغيل للنظام</h3>
+        <p style="font-size:13px;color:#64748b">لا توجد كلمة سر مضبوطة لرئيس الكنترول بعد. اختر كلمة سر خاصة بك الآن (8 خانات على الأقل). لن تُحفظ إلا نسخة مشفّرة (hash) منها فقط.</p>
+        <div class="form-group mb-16">
+          <label>كلمة السر الجديدة</label>
+          <input type="password" id="adminSetupPass1" placeholder="••••••••">
+        </div>
+        <div class="form-group mb-16">
+          <label>تأكيد كلمة السر</label>
+          <input type="password" id="adminSetupPass2" placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary" data-action="submitAdminSetup" data-args='[]'>✅ حفظ وتفعيل الحساب</button>
+        <div id="adminSetupMsg" class="mt-16" style="font-size:13px; color:#b91c1c;"></div>
+      </div>
+
+      <div id="authAdminPane">
+        <h3>دخول رئيس الكنترول</h3>
+        <div class="form-group mb-16">
+          <label>البريد الإلكتروني (الدخول السحابي)</label>
+          <input type="email" id="adminEmailInput" placeholder="a.shafaie@hotmail.com" autocomplete="username">
+        </div>
+        <div class="form-group mb-16">
+          <label>كلمة المرور / الرقم السري</label>
+          <input type="password" id="adminPinInput" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <p style="font-size:12px;color:#64748b;margin-bottom:12px;line-height:1.7;">أدخل البريد وكلمة مرور Supabase للدخول السحابي. الرقم السري المحلي احتياطي إن لم يُدخل بريد.</p>
+        <button class="btn btn-primary" data-action="submitAdminAuth" data-args='[]'>دخول</button>
+        <div id="adminAuthMsg" class="mt-16" style="font-size:13px; color:#b91c1c;"></div>
+      </div>
+
+      <div class="hidden" id="authStageAdminPane">
+        <h3>دخول مسؤول الحاسب</h3>
+        <div class="form-group mb-16">
+          <label>اختر اسمك</label>
+          <select id="stageAdminLoginSelect"><option value="">-- اختر اسمك --</option></select>
+        </div>
+        <div class="form-group mb-16">
+          <label>الرقم السري / كلمة المرور السحابية</label>
+          <input type="password" id="stageAdminPinInput" placeholder="••••">
+        </div>
+        <p style="font-size:12px;color:#64748b;margin-bottom:10px;">إن وُجد حساب سحابي لمسؤول الحاسب يُجرَّب أولاً، ثم الرقم السري المحلي.</p>
+        <button class="btn btn-primary" data-action="submitStageAdminAuth" data-args='[]'>دخول</button>
+        <div id="stageAdminAuthMsg" class="mt-16" style="font-size:13px; color:#b91c1c;"></div>
+      </div>
+
+      <div class="hidden" id="authMonitorPane">
+        <h3>دخول مدير المرحلة</h3>
+        <div class="form-group mb-16">
+          <label>اختر اسمك</label>
+          <select id="monitorLoginSelect"><option value="">-- اختر اسمك --</option></select>
+        </div>
+        <div class="form-group mb-16">
+          <label>الرقم السري</label>
+          <input type="password" id="monitorPinInput" placeholder="••••">
+        </div>
+        <p style="font-size:12px;color:#64748b;margin-bottom:10px;">حساب للمتابعة والعرض والطباعة فقط — بدون رصد أو تعديل بيانات.</p>
+        <button class="btn btn-primary" data-action="submitMonitorAuth" data-args='[]'>دخول</button>
+        <div id="monitorAuthMsg" class="mt-16" style="font-size:13px; color:#b91c1c;"></div>
+      </div>
+
+      <div class="hidden" id="authTeacherPane">
+        <h3>دخول المعلم</h3>
+        <div class="form-group mb-16">
+          <label>المرحلة والقسم</label>
+          <select id="teacherLoginStageSelect" data-event-type="change" data-event-action="onTeacherLoginStageChange"><option value="">-- اختر المرحلة والقسم --</option></select>
+        </div>
+        <div class="form-group mb-16">
+          <label>اختر اسمك</label>
+          <select id="teacherLoginSelect" disabled><option value="">-- اختر المرحلة والقسم أولاً --</option></select>
+        </div>
+        <div class="form-group mb-16">
+          <label>الرقم السري / كلمة المرور السحابية</label>
+          <input type="password" id="teacherPinInput" placeholder="••••">
+        </div>
+        <p style="font-size:12px;color:#64748b;margin-bottom:10px;">إن وُجد حساب سحابي للمعلم يُجرَّب أولاً، ثم الرقم السري المحلي.</p>
+        <button class="btn btn-primary" data-action="submitTeacherAuth" data-args='[]'>دخول</button>
+        <div id="teacherAuthMsg" class="mt-16" style="font-size:13px; color:#b91c1c;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="card" style="background:linear-gradient(135deg,#0f172a,#1e3a5f); color:#fff; border-radius:16px;">
+      <h1 style="color:#fff; border:none; padding:0;">📊 نظام رصد درجات أعمال السنة - Pro</h1>
+      <p style="color:#94a3b8; font-size:14px;">محرك استيراد ذكي يدعم .xlsx / .xls / .xlsm - يكتشف الأعمدة والمواد تلقائياً ويصدّر نفس ملف الإكسل بعد التعديل</p>
+      <div id="schoolInfoDisplay" style="margin-top:10px; font-size:13px; color:#e2e8f0; line-height:1.9;"></div>
+    </div>
+
+    <div class="account-bar">
+      <span id="accountStatus"></span><span id="autosaveStatus" class="autosave-status autosave-saved">🟢 جاهز</span>
+      <div id="stageSwitchWrap" style="display:none; align-items:center; gap:8px;">
+        <label style="font-size:13px; font-weight:600; color:#334155;">🏛️ المرحلة الحالية:</label>
+        <select id="stageSwitchSelect" data-event-type="change" data-event-action="switchStage" style="padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1;"></select>
+      </div>
+      <button class="btn btn-outline btn-sm hidden" id="changeMyPinBtn" data-action="changeMyStageAdminPin" data-args='[]'>🔑 تغيير كلمة السر</button>
+      <button class="btn btn-outline btn-sm" id="darkModeToggleBtn" data-action="toggleDarkMode" data-args='[]'>🌙 الوضع الليلي</button>
+      <button class="btn btn-outline btn-sm" data-action="logout" data-args='[]'>🚪 تسجيل خروج</button>
+    </div>
+
+    <div class="tab-bar" id="tabBar">
+      <button class="tab active" data-tab="dashboard">🏠 لوحة التحكم</button>
+      <button class="tab hidden" data-tab="stagesmgmt">🏛️ إدارة المراحل</button>
+      <button class="tab hidden" data-tab="masterroster">🗂️ قاعدة بيانات الطلاب</button>
+      <button class="tab" data-tab="upload">📤 رفع الملف</button>
+      <button class="tab" data-tab="students">👨‍🎓 الطلاب</button>
+      <button class="tab" data-tab="subjects">📚 المواد</button>
+      <button class="tab" data-tab="grades">📝 إدخال الدرجات</button>
+      <button class="tab" data-tab="attendance">📅 الغياب والمواظبة</button>
+      <button class="tab" data-tab="stats">📈 الإحصائيات</button>
+      <button class="tab" data-tab="printcenter">🖨️ مركز الطباعة</button>
+      <button class="tab" data-tab="teachers">🧑‍🏫 المعلمون</button>
+      <button class="tab" data-tab="schoolinfo">⚙️ بيانات المدرسة</button>
+      <button class="tab hidden" data-tab="security">🛡️ الأمان والنسخ</button>
+    </div>
+
+    <!-- ==================== V19 DASHBOARD ==================== -->
+    <div id="dashboard" class="tab-content active">
+      <!-- شريط ترحيب + بحث مضغوط -->
+      <div class="dashboard-hero">
+        <div class="dash-hero-left">
+          <h2 id="dashboardGreeting">👋 أهلاً بك</h2>
+          <p id="dashboardSubtitle">ملخص سريع لما تم وما يحتاج متابعة</p>
+        </div>
+        <div class="dash-search-wrap" id="dashSearchSlot">
+          <input id="v20GlobalSearchInline" type="text" placeholder="🔎 ابحث عن طالب أو معلم أو مادة..." autocomplete="off">
+          <kbd>Ctrl K</kbd>
+          <div id="v20SearchResultsInline" class="v20-search-results"></div>
+        </div>
+      </div>
+
+      <!-- مؤشرات عامة (تُخفى لمدير المرحلة لصالح البطاقات التفاعلية) -->
+      <div class="kpi-grid" id="defaultKpiGrid">
+        <div class="kpi-card"><div class="kpi-label" id="kpiLabelStudents">👨‍🎓 الطلاب</div><div class="kpi-value" id="dashStudents">0</div><div class="kpi-note" id="kpiNoteStudents">في المرحلة الحالية</div></div>
+        <div class="kpi-card"><div class="kpi-label" id="kpiLabelTeachers">🧑‍🏫 المعلمون</div><div class="kpi-value" id="dashTeachers">0</div><div class="kpi-note" id="kpiNoteTeachers">المعلمون المسجلون</div></div>
+        <div class="kpi-card">
+          <div class="kpi-label">📝 اكتمال الرصد</div>
+          <div class="kpi-value" id="dashGrades">0%</div>
+          <div class="kpi-note" id="dashGradesNote">نسبة الاكتمال</div>
+          <div class="mini-progress"><span id="dashProgressBar" style="width:0%"></span></div>
+          <span class="hidden" id="dashProgressText">0%</span>
+        </div>
+        <div class="kpi-card"><div class="kpi-label" id="kpiLabelIssues">⚠️ يحتاج مراجعة</div><div class="kpi-value" id="dashIssues">0</div><div class="kpi-note" id="kpiNoteIssues">نواقص أو تنبيهات</div></div>
+      </div>
+
+      <!-- بطاقات تفاعلية لمدير المرحلة (ورئيس الكنترول/مسؤول الحاسب عند إدارة مرحلة) -->
+      <div id="monitorDashCards" class="mdc-wrap hidden">
+        <div class="mdc-filter-bar">
+          <select id="mdcFilterClass" data-event-type="change" data-event-action="renderMonitorDashCards">
+            <option value="">كل الفصول</option>
+          </select>
+          <select id="mdcFilterSubject" data-event-type="change" data-event-action="renderMonitorDashCards">
+            <option value="">كل المواد</option>
+          </select>
+          <select id="mdcFilterTeacher" data-event-type="change" data-event-action="renderMonitorDashCards">
+            <option value="">كل المعلمين</option>
+          </select>
+          <button type="button" class="btn btn-outline btn-sm" data-action="renderMonitorDashCards" data-args='[]'>🔄</button>
+        </div>
+        <div class="mdc-grid" id="mdcGrid"></div>
+        <div id="mdcDetail" class="mdc-detail hidden">
+          <div class="mdc-detail-head">
+            <h3 id="mdcDetailTitle">التفاصيل</h3>
+            <div class="mdc-detail-actions">
+              <button type="button" class="btn btn-outline btn-sm" data-action="exportMdcDetail" data-args='["excel"]'>📥 Excel</button>
+              <button type="button" class="btn btn-outline btn-sm" data-action="exportMdcDetail" data-args='["print"]'>🖨️ طباعة</button>
+              <button type="button" class="btn btn-outline btn-sm" data-action="closeMdcDetail" data-args='[]'>✕</button>
+            </div>
+          </div>
+          <div id="mdcDetailBody" class="mdc-detail-body"></div>
+        </div>
+      </div>
+
+      <!-- إجراءات سريعة مضغوطة + قائمة المزيد -->
+      <div class="dash-actions-bar" id="quickActionsGrid">
+        <button type="button" class="qa-btn primary" data-action="activateTab" data-args='["grades"]'>📝 إدخال الدرجات</button>
+        <button type="button" class="qa-btn" data-action="activateTab" data-args='["upload"]'>📤 رفع Excel</button>
+        <button type="button" class="qa-btn" data-action="activateTab" data-args='["stats"]'>📊 التقارير</button>
+        <button type="button" class="qa-btn" data-action="activateTab" data-args='["teachers"]'>🧑‍🏫 المعلمون</button>
+        <div class="dash-more-wrap">
+          <button type="button" class="qa-btn" id="dashMoreBtn" data-action="toggleDashMoreMenu" data-args='[]' data-with-event>المزيد ▾</button>
+          <div class="dash-more-menu" id="dashMoreMenu">
+            <button type="button" data-action="gotoTabAndCloseMenu" data-args='["students"]'>👨‍🎓 الطلاب</button>
+            <button type="button" id="dashMoreSchoolInfoBtn" data-action="gotoTabAndCloseMenu" data-args='["schoolinfo"]'>⚙️ بيانات المدرسة</button>
+            <button type="button" data-action="gotoTabAndCloseMenu" data-args='["security"]'>🛡️ النسخ والمراجعة</button>
+            <button type="button" data-action="gotoTabAndCloseMenu" data-args='["subjects"]'>📚 المواد</button>
+            <button type="button" data-action="gotoTabAndCloseMenu" data-args='["attendance"]'>📅 الغياب والمواظبة</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- تنبيهات + مهام جنباً إلى جنب -->
+      <div class="dash-main-grid">
+        <div class="dash-panel">
+          <h3>🔔 يحتاج إلى انتباهك</h3>
+          <div class="panel-body" id="dashAlerts"><div class="alert-item ok">🟢 لا توجد تنبيهات حالياً.</div></div>
+        </div>
+        <div class="dash-panel">
+          <h3>🎯 مهامك الآن</h3>
+          <div class="panel-body" id="v20Tasks"><div class="v20-empty">جاري التحميل...</div></div>
+        </div>
+      </div>
+
+      <!-- تفاصيل مطوية: حالة الفريق + تحليلات المعلم -->
+      <details class="dash-details" id="dashDetailsPanel">
+        <summary>📊 عرض تفاصيل الفريق والتحليلات</summary>
+        <div class="dash-details-body" id="dashDetailsBody">
+          <div id="v20TeamSummary" style="margin-bottom:10px"></div>
+          <div id="v20TeacherProgress" class="v20-list"></div>
+          <div id="v24TeacherMount"></div>
+        </div>
+      </details>
+      <!-- حاوية مخفية لتوافق الكود القديم الذي يبحث عن v20Alerts -->
+      <div class="hidden" id="v20Alerts"></div>
+      <div class="hidden" id="v20SmartBlock"></div>
+    </div>
+
+    <!-- ==================== STAGES MANAGEMENT (super admin only) ==================== -->
+    <div id="tab-stagesmgmt" class="tab-content">
+      <!-- ملخص سريع -->
+      <div class="kpi-grid stages-kpi" id="stagesKpiRow">
+        <div class="kpi-card"><div class="kpi-label">🏛️ المراحل</div><div class="kpi-value" id="kpiStagesCount">0</div><div class="kpi-note">عربي + لغات</div></div>
+        <div class="kpi-card"><div class="kpi-label">🧑‍💼 مديرو المراحل</div><div class="kpi-value" id="kpiStageAdminsCount">0</div><div class="kpi-note">حسابات نشطة</div></div>
+        <div class="kpi-card"><div class="kpi-label">👨‍🎓 إجمالي الطلاب</div><div class="kpi-value" id="kpiStagesStudents">0</div><div class="kpi-note">عبر كل المراحل</div></div>
+        <div class="kpi-card"><div class="kpi-label">📍 المرحلة الحالية</div><div class="kpi-value" id="kpiCurrentStage" style="font-size:15px;line-height:1.35">—</div><div class="kpi-note">قيد الإدارة الآن</div></div>
+      </div>
+
+      <!-- تنظيف السحابة (رئيس الكنترول) -->
+      <div class="card" id="cloudCleanupCard" style="border:1px solid #fca5a5; background:linear-gradient(180deg,#fff,#fef2f2); margin-bottom:16px;">
+        <h2 style="margin:0 0 8px; border:none; padding:0; color:#991b1b;">☁️ تنظيف السحابة (Supabase)</h2>
+        <p style="color:#64748b; font-size:13.5px; line-height:1.85; margin:0 0 12px;">
+          يحذف من السحابة ما لم يعد مستخدماً محلياً:
+          <strong>صفوف المراحل اليتيمة</strong> في جدول <code>grade_system_state</code>،
+          و<strong>ملفات Excel</strong> اليتيمة في Storage (<code>workbook-originals</code>).
+          لا يمس المراحل الحالية ولا بيانات الطلاب النشطة.
+        </p>
+        <div class="flex flex-wrap gap-12 items-center">
+          <button type="button" class="btn btn-danger" id="cloudCleanupBtn" data-action="cleanupCloudStorage" data-args='[]'>🧹 تنظيف السحابة الآن</button>
+          <button type="button" class="btn btn-outline btn-sm" data-action="previewCloudCleanup" data-args='[]'>🔎 معاينة ما سيُحذف</button>
+        </div>
+        <div id="cloudCleanupMsg" style="margin-top:12px; font-size:13px; line-height:1.8; white-space:pre-wrap;"></div>
+      </div>
+
+      <!-- تبويبان داخليان -->
+      <div class="stages-inner-pills" id="stagesInnerPills">
+        <button type="button" class="stages-pill active" data-stages-tab="stages" data-action="switchStagesInnerTab" data-args='["stages"]'>🏛️ المراحل</button>
+        <button type="button" class="stages-pill" data-stages-tab="admins" data-action="switchStagesInnerTab" data-args='["admins"]'>💻 مسؤولو الحاسب</button>
+        <button type="button" class="stages-pill" data-stages-tab="monitors" data-action="switchStagesInnerTab" data-args='["monitors"]'>👁️ مديرو المرحلة (مراقبون)</button>
+      </div>
+
+      <!-- ===== قسم المراحل ===== -->
+      <div class="stages-inner-panel active" id="stagesPanel-stages">
+        <div class="card">
+          <div class="stages-panel-head">
+            <div>
+              <h2 style="margin:0">قائمة المراحل الثابتة</h2>
+              <p class="stages-hint">ثماني كيانات أساسية ثابتة: رياض أطفال / ابتدائي / إعدادى / ثانوي × (عربي + لغات). لا يمكن إضافة مراحل جديدة.</p>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" data-action="cleanupDuplicateStages" data-args='[]' title="دمج بيانات المراحل القديمة داخل الثمانية ثم حذف المكررات">🧹 تنظيف المكررات</button>
+          </div>
+
+          <details class="stages-form-details hidden" id="stageFormDetails">
+            <summary class="hidden">نموذج المرحلة</summary>
+            <div class="stages-form-body">
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>اسم المرحلة</label>
+                  <input type="text" id="newStageName" placeholder="مثال: المرحلة الابتدائية">
+                </div>
+                <div class="form-group">
+                  <label>القسم</label>
+                  <div style="display:flex; gap:20px; align-items:center; padding:10px 0;">
+                    <label style="font-weight:400; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                      <input type="radio" name="newStageSection" id="newStageSectionArabic" value="arabic"> القسم العربي
+                    </label>
+                    <label style="font-weight:400; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                      <input type="radio" name="newStageSection" id="newStageSectionLanguages" value="languages"> قسم اللغات
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" id="editingStageId" value="">
+              <div class="flex gap-12 flex-wrap mt-16">
+                <button class="btn btn-primary" id="stageSubmitBtn" data-action="addOrUpdateStage" data-args='[]'>➕ إضافة مرحلة</button>
+                <button class="btn btn-outline hidden" id="stageCancelEditBtn" data-action="cancelStageEdit" data-args='[]'>❌ إلغاء</button>
+              </div>
+              <div id="stageFormMsg" class="mt-16" style="font-size:13px;"></div>
+            </div>
+          </details>
+
+          <div class="table-wrap mt-12">
+            <table>
+              <thead><tr><th>#</th><th>المرحلة والقسم</th><th>الطلاب</th><th>المعلمون</th><th>المديرون</th><th>إجراء</th></tr></thead>
+              <tbody id="stagesTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== قسم مديري المراحل ===== -->
+      <div class="stages-inner-panel" id="stagesPanel-admins">
+        <div class="card">
+          <div class="stages-panel-head">
+            <div>
+              <h2 style="margin:0">مسؤولو الحاسب</h2>
+              <p class="stages-hint">تشغيل وإدارة المرحلة (طلاب، معلمون، رصد، إعدادات) — صلاحيات تشغيلية واسعة ضمن المراحل المسندة. مختلف عن «مدير المرحلة» الذي يعرض فقط.</p>
+            </div>
+            <div class="flex gap-12 flex-wrap">
+              <button type="button" class="btn btn-outline btn-sm" data-action="printAllStageAdminCards" data-args='[]'>🖨️ طباعة الكل</button>
+              <button type="button" class="btn btn-primary btn-sm" data-action="openStageAdminForm" data-args='[]'>➕ إضافة مسؤول حاسب</button>
+            </div>
+          </div>
+
+          <details class="stages-form-details" id="stageAdminFormDetails">
+            <summary class="hidden">نموذج المدير</summary>
+            <div class="stages-form-body">
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>اسم مسؤول الحاسب</label>
+                  <input type="text" id="newStageAdminName" placeholder="مثال: أ. سارة محمود">
+                </div>
+                <div class="form-group">
+                  <label>المراحل المسندة إليه</label>
+                  <div id="newStageAdminStagesBox" style="border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; max-height:140px; overflow:auto; background:#fff;">
+                    <span style="color:#94a3b8; font-size:13px;">لا توجد مراحل بعد</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group mt-16">
+                <label>الأقسام المسموح بها</label>
+                <div style="display:flex; gap:20px; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; background:#fff;">
+                  <label style="display:flex; align-items:center; gap:6px; font-weight:400; font-size:14px;">
+                    <input type="checkbox" id="newStageAdminSectionArabic" value="arabic" checked> القسم العربي
+                  </label>
+                  <label style="display:flex; align-items:center; gap:6px; font-weight:400; font-size:14px;">
+                    <input type="checkbox" id="newStageAdminSectionLanguages" value="languages" checked> قسم اللغات
+                  </label>
+                </div>
+              </div>
+              <div class="form-group mt-16">
+                <label>صلاحيات التشغيل (يحددها رئيس الكنترول لكل مسؤول حاسب)</label>
+                <div id="newStageAdminPermsBox" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;background:#f8fafc;">
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;"><input type="checkbox" id="saPermSubjects" checked> 📚 المواد والمكونات</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;"><input type="checkbox" id="saPermStudents" checked> 👨‍🎓 الطلاب</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;"><input type="checkbox" id="saPermTeachers" checked> 🧑‍🏫 المعلمون</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;"><input type="checkbox" id="saPermImportExport" checked> 📤 استيراد/تصدير</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;"><input type="checkbox" id="saPermLocks" checked> 🔒 أقفال</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;color:#94a3b8;" title="تبويب بيانات المدرسة أصبح حصراً على رئيس الكنترول في كل أنحاء النظام، ولا يمكن منحه لمسؤول الحاسب."><input type="checkbox" id="saPermSchoolInfo" disabled> 🏫 بيانات المدرسة (حصراً لرئيس الكنترول)</label>
+                </div>
+              </div>
+              <input type="hidden" id="editingStageAdminId" value="">
+              <p style="color:#64748b; font-size:13px; margin-top:10px;">🔐 يُولَّد رقم سري من 8 خانات تلقائياً عند الإضافة.</p>
+              <div class="flex gap-12 flex-wrap mt-16">
+                <button class="btn btn-primary" id="stageAdminSubmitBtn" data-action="addOrUpdateStageAdmin" data-args='[]'>➕ إضافة مسؤول حاسب</button>
+                <button class="btn btn-outline hidden" id="stageAdminCancelEditBtn" data-action="cancelStageAdminEdit" data-args='[]'>❌ إلغاء</button>
+              </div>
+              <div id="stageAdminFormMsg" class="mt-16" style="font-size:13px;"></div>
+            </div>
+          </details>
+
+          <div class="table-wrap mt-12">
+            <table>
+              <thead><tr><th>#</th><th>الاسم</th><th>المراحل والأقسام</th><th>الرقم السري</th><th>إجراء</th></tr></thead>
+              <tbody id="stageAdminsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== قسم مديري المرحلة (عرض فقط) ===== -->
+      <div class="stages-inner-panel" id="stagesPanel-monitors">
+        <div class="card">
+          <div class="stages-panel-head">
+            <div>
+              <h2 style="margin:0">مديرو المرحلة</h2>
+              <p class="stages-hint">متابعة وعرض وطباعة فقط — بدون رصد أو تعديل. يحدّدهم رئيس الكنترول.</p>
+            </div>
+            <div class="flex gap-12 flex-wrap">
+              <button type="button" class="btn btn-outline btn-sm" data-action="printAllStageMonitorCards" data-args='[]'>🖨️ طباعة بطاقات المديرين</button>
+              <button type="button" class="btn btn-primary btn-sm" data-action="openStageMonitorForm" data-args='[]'>➕ إضافة مدير مرحلة</button>
+              <button type="button" class="btn btn-outline btn-sm" data-action="exportSystemDirectoryExcel" data-args='[]'>📥 تصدير دليل الحسابات Excel</button>
+              <button type="button" class="btn btn-outline btn-sm" data-action="exportSystemDirectorySQL" data-args='[]'>📄 تصدير SQL لإنشاء الحسابات</button>
+            </div>
+          </div>
+          <details class="stages-form-details" id="stageMonitorFormDetails">
+            <summary class="hidden">نموذج مدير المرحلة</summary>
+            <div class="stages-form-body">
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>اسم مدير المرحلة</label>
+                  <input type="text" id="newStageMonitorName" placeholder="مثال: أ. محمود ناظر الابتدائي">
+                </div>
+                <div class="form-group">
+                  <label>المراحل التي يتابعها</label>
+                  <div id="newStageMonitorStagesBox" style="border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; max-height:140px; overflow:auto; background:#fff;">
+                    <span style="color:#94a3b8; font-size:13px;">لا توجد مراحل بعد</span>
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" id="editingStageMonitorId" value="">
+              <div class="flex gap-12 flex-wrap mt-16 items-center">
+                <button type="button" class="btn btn-primary btn-sm" data-action="addOrUpdateStageMonitor" data-args='[]'>💾 حفظ</button>
+                <button type="button" class="btn btn-outline btn-sm" data-action="cancelStageMonitorEdit" data-args='[]'>إلغاء</button>
+                <span id="stageMonitorFormMsg" style="font-size:13px;"></span>
+              </div>
+            </div>
+          </details>
+          <div class="table-wrap mt-12">
+            <table>
+              <thead><tr><th>#</th><th>الاسم</th><th>المراحل</th><th>الرقم السري</th><th>إجراء</th></tr></thead>
+              <tbody id="stageMonitorsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MASTER STUDENT ROSTER (رئيس الكنترول فقط) ==================== -->
+    <div id="tab-masterroster" class="tab-content">
+      <div class="card">
+        <h2>🗂️ قاعدة بيانات الطلاب الرسمية (مكتب الإحصاء)</h2>
+        <p style="color:#64748b; margin-bottom:12px;">
+          ارفع ملف الإكسيل الرسمي الشامل لكل طلاب المدرسة (بشيتاته الثمانية: رياض/ابتدائي/إعدادي/ثانوي × عربي/لغات).
+          هذه الخطوة اختصاص رئيس الكنترول فقط. سيقارن النظام الملف ببيانات كل مرحلة الحالية، ويعرض لك التغييرات
+          (إضافة، حذف، نقل داخلي، تعديل بيانات) لمراجعتها قبل أي تنفيذ فعلي — لن يُحذف أو يُضاف أي طالب من غير تأكيدك.
+        </p>
+        <div class="warning-box" style="margin-bottom:16px;">
+          📌 اسم كل شيت في الملف لازم ينتهي بكلمة "عربى" أو "لغات" (مثل "ابتدائى عربى")، وجزء الاسم قبلها لازم يطابق
+          بالحرف اسم المرحلة كما أنشأتها في تبويب "إدارة المراحل". أي شيت اسمه مش مطابق لأي مرحلة موجودة هيظهر كتحذير
+          منفصل ولن يتم التعامل معه، بدل ما يتجاهله النظام بصمت.
+        </div>
+        <input class="hidden" type="file" id="masterRosterFileInput" accept=".xlsx,.xls,.xlsm" data-event-type="change" data-event-action="handleMasterRosterFile" data-event-with-event>
+        <button class="btn btn-primary" data-action="triggerFileInput" data-args='["masterRosterFileInput"]'>📤 اختيار ملف القاعدة الشامل</button>
+        <span id="masterRosterFileName" style="margin-right:10px; color:#64748b; font-size:13px;"></span>
+        <div id="masterRosterStatus" class="mt-16" style="font-size:14px;"></div>
+        <div id="masterRosterReview" class="mt-16 hidden"></div>
+      </div>
+
+      <div class="card mt-16">
+        <h2>✏️ بحث وتعديل بيانات طالب</h2>
+        <p style="color:#64748b; margin-bottom:12px;">
+          ابحث عن أي طالب في أي مرحلة بالاسم أو الرقم القومي، وعدّل اسمه أو رقمه القومي أو صفه مباشرة — يُستخدم لتصحيح
+          الأخطاء المكتشفة بعد رفع ملفات الدرجات (مثل رقم قومي غير موجود بالقاعدة) بعد التأكد من الورقيات الرسمية.
+        </p>
+        <input type="text" id="masterStudentSearchInput" placeholder="🔍 ابحث بالاسم أو الرقم القومي (كامل أو جزء منه)..." style="width:100%;" data-event-type="input" data-event-action="renderMasterStudentSearch" data-event-arg="value">
+        <div class="flex gap-12 mt-16">
+          <button class="btn btn-outline btn-sm" data-action="scanRosterConflicts" data-args='[]'>🔍 فحص تعارضات الرقم القومي (بعد رفع درجات جديدة)</button>
+        </div>
+        <div class="table-wrap mt-16">
+          <table>
+            <thead><tr><th>الرقم القومي</th><th>الاسم</th><th>الصف</th><th>المرحلة</th><th>حالة</th><th>إجراء</th></tr></thead>
+            <tbody id="masterStudentSearchBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== UPLOAD ==================== -->
+    <div id="tab-upload" class="tab-content">
+      <div class="card" style="padding-bottom:8px;">
+        <div class="up-page-head">
+          <div>
+            <h2>📤 رفع ملف Excel</h2>
+            <p>هذا التبويب يبني بيانات النظام: الطلاب والدرجات والمواد. أكمل الخطوات بالترتيب لتقليل الأخطاء. يدعم .xlsx / .xls / .xlsm مع اكتشاف تلقائي للأعمدة والمواد.</p>
+          </div>
+        </div>
+
+        <!-- ① الاستيراد -->
+        <div class="up-nav-btns" id="upNavBtns">
+          <button type="button" class="up-nav-btn is-import is-active is-open" data-up-target="upSecImport" data-action="toggleUploadSection" data-args='["upSecImport"]' data-with-element>
+            <span class="up-nav-main"><span class="up-nav-num">1</span><span><strong>الاستيراد</strong><small>رفع ومعالجة الملف</small></span></span>
+            <span class="up-nav-arrow">▼</span>
+          </button>
+          <button type="button" class="up-nav-btn is-export" data-up-target="upSecExport" data-action="toggleUploadSection" data-args='["upSecExport"]' data-with-element>
+            <span class="up-nav-main"><span class="up-nav-num">2</span><span><strong>التصدير</strong><small>تنزيل الكشوف والملفات</small></span></span>
+            <span class="up-nav-arrow">▼</span>
+          </button>
+          <button type="button" class="up-nav-btn is-admin" data-up-target="upSecAdmin" data-action="toggleUploadSection" data-args='["upSecAdmin"]' data-with-element>
+            <span class="up-nav-main"><span class="up-nav-num">3</span><span><strong>الإدارة</strong><small>نسخ احتياطي وحذف</small></span></span>
+            <span class="up-nav-arrow">▼</span>
+          </button>
+        </div>
+
+        <section class="up-section is-import is-open" id="upSecImport" aria-label="استيراد الملف">
+          <button type="button" class="up-section-head" data-action="toggleUploadSection" data-args='["upSecImport"]' aria-expanded="true">
+            <div class="up-icon">📥</div>
+            <div class="up-head-text">
+              <h3>① إعداد الاستيراد ورفع الملف</h3>
+              <p class="up-sub">حدّد النطاق أولاً (قسم / مرحلة / صف / فصل / شهر) ثم ارفع الملف. رفع صف معيّن لا يمس بيانات الصفوف الأخرى.</p>
+            </div>
+            <span class="up-chevron" aria-hidden="true">▼</span>
+          </button>
+          <div class="up-section-panel">
+          <div class="up-section-body">
+            <div class="up-field-grid">
+              <div class="up-field">
+                <label class="up-required">القسم</label>
+                <select id="importSection">
+                  <option value="">-- اختر القسم --</option>
+                  <option value="arabic">عربي</option>
+                  <option value="languages">لغات</option>
+                </select>
+              </div>
+              <div class="up-field">
+                <label class="up-required">المرحلة</label>
+                <select id="importStage" data-event-type="change" data-event-action="onImportStageChange">
+                  <option value="">-- اختر المرحلة --</option>
+                  <option value="kg">رياض أطفال</option>
+                  <option value="primary">ابتدائي</option>
+                  <option value="prep">إعدادى</option>
+                  <option value="secondary">ثانوي</option>
+                </select>
+              </div>
+              <div class="up-field">
+                <label class="up-required">الصف</label>
+                <select id="importGrade">
+                  <option value="">-- اختر المرحلة أولاً --</option>
+                </select>
+              </div>
+            </div>
+            <div class="up-field-grid cols-2">
+              <div class="up-field">
+                <label class="up-required">هذا الملف يمثل درجات</label>
+                <select id="importTermSelect" data-event-type="change" data-event-action="populateMonthSelects">
+                  <option value="first">الفصل الدراسي الأول</option>
+                  <option value="second">الفصل الدراسي الثاني</option>
+                </select>
+              </div>
+              <div class="up-field">
+                <label class="up-required">الشهر</label>
+                <select id="importMonthSelect">
+                  <option value="1">الشهر الأول</option>
+                  <option value="2">الشهر الثاني</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="upload-area" id="uploadArea" data-action="triggerFileInput" data-args='["fileInput"]'>
+              <span class="icon">📁</span>
+              <p style="font-weight:700;color:#1e3a5f;">اسحب ملف Excel هنا أو اضغط للاختيار</p>
+              <span style="font-size:13px; color:#64748b;">بعد الاختيار اضغط «معالجة الملف» بالأسفل</span>
+              <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm" />
+            </div>
+
+            <div class="up-field-grid cols-2 hidden" id="sheetRow">
+              <div class="up-field">
+                <label>اختر الورقة (Sheet)</label>
+                <select id="sheetSelect" data-event-type="change" data-event-action="onSheetChange"></select>
+              </div>
+            </div>
+
+            <div class="progress-wrap"><div class="bar" id="progressBar"></div></div>
+            <div class="up-actions" style="margin-top:12px;">
+              <button class="btn btn-primary" id="processBtn" data-action="processMainFile" data-args='[]' disabled>📤 معالجة الملف</button>
+              <span class="up-hint" style="margin:0;">لن تُحفظ أي بيانات قبل الضغط على معالجة الملف.</span>
+            </div>
+
+            <div class="up-status-panel">
+              <div id="uploadStatus" style="font-size:14px; color:#64748b;"></div>
+              <div id="uploadMessages" class="mt-16"></div>
+              <div id="fileSummary" class="mt-16" style="font-size:14px;"></div>
+            </div>
+          </div>
+          <div class="up-section-foot">
+            💡 نصيحة لتقليل الأخطاء: تأكد أن ملف الإكسيل يخص <strong>نفس القسم والصف والشهر</strong> المختارين أعلاه قبل المعالجة.
+          </div>
+          </div>
+        </section>
+
+        <!-- ② التصدير -->
+        <section class="up-section is-export" id="upSecExport" aria-label="التصدير والتنزيل">
+          <button type="button" class="up-section-head" data-action="toggleUploadSection" data-args='["upSecExport"]' aria-expanded="false">
+            <div class="up-icon">📤</div>
+            <div class="up-head-text">
+              <h3>② التصدير والتنزيل</h3>
+              <p class="up-sub">تنزيل الملفات بعد الرصد بنفس شكل الملف الأصلي أو لكشوف الكنترول والشهور.</p>
+            </div>
+            <span class="up-chevron" aria-hidden="true">▼</span>
+          </button>
+          <div class="up-section-panel">
+          <div class="up-section-body">
+            <div class="up-field" style="max-width:340px; margin-bottom:12px;">
+              <label>الصف (لنسخ الملف الأصلي المحدَّثة / كشوف الكنترول)</label>
+              <select id="exportGradeSelect"></select>
+            </div>
+            <p class="up-hint" style="margin-top:0;" title="يُحدَّد تلقائياً من الدرجة العظمى المسجَّلة لمكوّن 'الدرجة الشهرية' لكل مادة: 10⇐مجموع / 20⇐متوسط (ابتدائي)، 15⇐مجموع / 30⇐متوسط (إعدادي/ثانوي) - دون أي اختيار يدوي">
+              🧮 درجة الاختبارات الشهرية تُحسب تلقائياً (مجموع أو متوسط الشهور) حسب الدرجة العظمى لكل مادة.
+            </p>
+
+            <div class="up-export-box">
+              <div class="up-group-title">📥 شكل الملف الأصلي <span class="tag">للتعديل أو الأرشفة</span></div>
+              <div class="up-actions">
+                <button class="btn btn-success btn-sm" data-action="exportToExcel" data-args='["first"]' data-with-event>الفصل الدراسي الأول</button>
+                <button class="btn btn-success btn-sm" data-action="exportToExcel" data-args='["second"]' data-with-event>الفصل الدراسي الثاني</button>
+                <button class="btn btn-success btn-sm" data-action="exportCombinedYearExcel" data-args='[]' data-with-event>الفصلين معاً (سنوي)</button>
+                <button class="btn btn-success btn-sm" data-action="exportAllGradesOriginalFormat" data-args='[]' data-with-event title="يصدّر تلقائياً ملف كل صف محفوظ (شكله الأصلي) لكلا الفصلين">📦 كل الصفوف دفعة واحدة</button>
+              </div>
+            </div>
+
+            <div class="up-export-box control">
+              <div class="up-group-title">📊 كشوف أعمال السنة (نظام الكنترول) <span class="tag">مجاميع مختصرة</span></div>
+              <div class="up-actions">
+                <button class="btn btn-primary btn-sm" data-action="exportTermControlExcel" data-args='["first"]' data-with-event title="كشف أعمال السنة للفصل الأول">📥 إكسيل الفصل الأول</button>
+                <button class="btn btn-primary btn-sm" data-action="exportTermControlExcel" data-args='["second"]' data-with-event title="كشف أعمال السنة للفصل الثاني">📥 إكسيل الفصل الثاني</button>
+                <button class="btn btn-outline btn-sm" data-action="printTermTotalsSheet" data-args='["first"]' title="طباعة كشف متتالٍ بمجموع المكونات — 40 طالباً في الصفحة">🖨️ طباعة الفصل الأول</button>
+                <button class="btn btn-outline btn-sm" data-action="printTermTotalsSheet" data-args='["second"]' title="طباعة كشف متتالٍ بمجموع المكونات — 40 طالباً في الصفحة">🖨️ طباعة الفصل الثاني</button>
+              </div>
+              <p class="up-hint" style="margin-top:8px;">الطباعة: مسلسل + رقم الجلوس + الاسم + مجموع كل مادة (مثل 40 ابتدائي / 70 إعدادي وثانوي) · 40 طالباً كحد أقصى لكل صفحة · توقيع وكيل المرحلة ومدير المرحلة · متاح لرئيس الكنترول ومسؤول الحاسب ومدير المرحلة.</p>
+            </div>
+
+            <div class="up-export-box monthly">
+              <div class="up-group-title">📆 تصدير شهري (نفس أعمدة الملف الأصلي)</div>
+              <div class="up-field" style="max-width:320px; margin-bottom:10px;">
+                <label title="يُطبَّق فقط على درجة مكوّن الدرجة الشهرية عند التصدير">الدرجة الشهرية المصدَّرة</label>
+                <select id="monthlyDivideModeSelect" data-event-type="change" data-event-action="setMonthlyDivideMode" data-event-arg="value">
+                  <option value="asis">الدرجة المرصودة كما هي</option>
+                  <option value="half">الدرجة المرصودة ÷ 2</option>
+                </select>
+              </div>
+              <div class="up-actions" id="monthlyExportButtons"></div>
+            </div>
+          </div>
+          </div>
+        </section>
+
+        <!-- ③ الإدارة -->
+        <section class="up-section is-admin" id="upSecAdmin" aria-label="النسخ الاحتياطي وإدارة البيانات">
+          <button type="button" class="up-section-head" data-action="toggleUploadSection" data-args='["upSecAdmin"]' aria-expanded="false">
+            <div class="up-icon">🛡️</div>
+            <div class="up-head-text">
+              <h3>③ النسخ الاحتياطي وإدارة البيانات</h3>
+              <p class="up-sub">احفظ نسخة قبل أي مسح. عمليات الحذف نهائية ولا تُلغى تلقائياً.</p>
+            </div>
+            <span class="up-chevron" aria-hidden="true">▼</span>
+          </button>
+          <div class="up-section-panel">
+          <div class="up-section-body">
+            <div class="up-backup-row">
+              <strong style="color:#92400e;">💾 النسخ الاحتياطي</strong>
+              <span style="font-size:13px;color:#64748b;">أدوات النسخ الاحتياطي الكاملة متاحة في تبويب «🛡️ الأمان والنسخ والمراجعة».</span>
+              <button class="btn btn-outline btn-sm" data-action="activateTab" data-args='["security"]'>فتح تبويب الأمان</button>
+            </div>
+
+            <div class="up-danger-zone">
+              <h4>⚠️ منطقة خطرة — حذف البيانات</h4>
+              <p>استخدم الحذف فقط بعد التأكد. «حذف الصف المختار» يمس صفاً واحداً من قائمة التصدير أعلاه، بينما «مسح المرحلة» يحذف كل شيء في المرحلة الحالية.</p>
+              <div class="up-actions">
+                <button class="btn btn-danger btn-sm" data-action="deleteGradeData" data-args='[]' title="يحذف بيانات الصف المختار فقط (طلابه ودرجاته وملفه) دون باقي الصفوف">🗑️ حذف بيانات الصف المختار فقط</button>
+                <button class="btn btn-danger btn-sm" data-action="clearAllData" data-args='[]'>🗑️ مسح كل بيانات المرحلة</button>
+              </div>
+            </div>
+          </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ==================== STUDENTS ==================== -->
+    <div id="tab-students" class="tab-content">
+      <div class="card">
+        <h2>👨‍🎓 قائمة الطلاب</h2>
+        <div class="filter-bar">
+          <select id="studentClassFilter" data-event-type="change" data-event-action="filterStudents"><option value="">جميع الفصول</option></select>
+          <select id="studentGenderFilter" data-event-type="change" data-event-action="filterStudents">
+            <option value="">الكل</option><option value="F">طالبات</option><option value="M">طلاب</option>
+          </select>
+          <input type="text" id="studentSearch" placeholder="🔍 بحث بالاسم أو رقم الجلوس أو الرقم القومي..." data-event-type="input" data-event-action="filterStudents" style="flex:1; min-width:200px;" />
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>الرقم القومي</th><th>رقم الجلوس</th><th>اسم الطالب</th><th>النوع</th><th>الفصل</th><th>اللغة الثانية</th></tr></thead>
+            <tbody id="studentsTableBody"></tbody>
+          </table>
+        </div>
+        <div id="studentsCount" class="mt-16" style="font-size:14px; color:#64748b;"></div>
+        <datalist id="secondLangDatalist"></datalist>
+      </div>
+    </div>
+
+    <!-- ==================== SUBJECTS ==================== -->
+    <div id="tab-subjects" class="tab-content">
+      <div class="card">
+        <h2>📚 المواد والمكونات</h2>
+        <p style="color:#64748b; margin-bottom:12px;">هذا هو التعريف الرسمي الثابت للمواد ومكوناتها (يُبنى تلقائياً من أول رفعة إكسيل لكل مادة، وبعدها يبقى ثابتاً ويُعدَّل من هنا فقط - رفع ملفات لاحقة لن يغيّر هذا الهيكل). لكل مكوّن: الاسم، الدرجة العظمى، وهل هو "الدرجة الشهرية" التي تُصدَّر لنظام النتائج. ولكل مادة: اسم مختصر اختياري للتصدير لنظام الكنترول.</p>
+        <div class="flex gap-12 mb-16">
+          <button class="btn btn-primary btn-sm" data-action="addSubjectManual" data-args='[]'>➕ إضافة مادة جديدة</button>
+        </div>
+        <div id="subjectsContainer"></div>
+        <div id="subjectsCount" class="mt-16" style="font-size:14px; color:#64748b;"></div>
+      </div>
+    </div>
+
+    <!-- ==================== GRADES ==================== -->
+    <div id="tab-grades" class="tab-content">
+      <div class="card">
+        <h2>📝 إدخال الدرجات</h2>
+        <div id="absenceConflictPanel" style="margin:10px 0;padding:12px 14px;border:1px solid #fecaca;background:#fff7f7;border-radius:12px;display:none"></div>
+
+        <!-- محدد الفصل الدراسي والشهر - بارز وواضح -->
+        <div class="term-month-selector">
+          <div class="form-group">
+            <label>📅 الفصل الدراسي</label>
+            <select id="gradeTermSelect" data-event-type="change" data-event-action="handleGradeTermChange">
+              <option value="first">الفصل الدراسي الأول</option>
+              <option value="second">الفصل الدراسي الثاني</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>📆 الفترة / الشهر</label>
+            <select id="gradeMonthSelect" data-event-type="change" data-event-action="handleGradePeriodChange">
+              <option value="1">الشهر الأول</option>
+              <option value="2">الشهر الثاني</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>📅 الأسبوع</label>
+            <select id="gradeWeekSelect" data-event-type="change" data-event-action="loadGradesUI">
+              <option value="1">الأسبوع الأول</option>
+              <option value="2">الأسبوع الثاني</option>
+              <option value="3">الأسبوع الثالث</option>
+              <option value="4">الأسبوع الرابع</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 0 1 auto;">
+            <label>&nbsp;</label>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <span class="grade-term-badge" id="gradeTermBadge">الفصل الأول</span>
+              <span class="grade-month-badge" id="gradeMonthBadge">الشهر الأول</span>
+              <span class="grade-month-badge" id="gradeWeekBadge" style="background:#0b5e42">الأسبوع الأول</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="globalLockPanel" style="display:none; background:#fff7ed; border:1px solid #fdba74; margin-bottom:16px; padding:14px 18px;">
+          <div class="flex justify-between items-center flex-wrap gap-12">
+            <div>
+              <div style="font-weight:700; color:#9a3412; font-size:15px;">🔐 التحكم الشامل في إدخال الدرجات (لجميع الفصول والمواد والمعلمين)</div>
+              <div style="font-size:13px; color:#78350f; margin-top:4px;">عند القفل، لن يستطيع أي معلم إدخال أو تعديل أي درجة في أي فصل أو مادة، بغض النظر عن قفل الفصل الفردي أدناه. يبقى بإمكانك أنت كمدير التعديل دائماً.</div>
+            </div>
+            <div class="flex items-center gap-12">
+              <span class="badge" id="globalLockStatusBadge">🔓 مفتوح للجميع</span>
+              <button class="btn btn-danger btn-sm" id="globalLockToggleBtn" data-action="toggleGlobalLock" data-args='[]'>🔒 قفل إدخال الدرجات لجميع الفصول</button>
+            </div>
+          </div>
+
+          <div class="mt-16" style="border-top:1px dashed #fdba74; padding-top:14px;">
+            <div style="font-weight:700; color:#9a3412; font-size:14px; margin-bottom:4px;">🗓️ مركز التحكم في فتح/قفل الشهور (حسب سير العمل)</div>
+            <div style="font-size:13px; color:#78350f; margin-bottom:10px;">تحكم كامل في كل فصل دراسي وكل شهر على حدة: افتح الشهر الحالي فقط لإدخال الدرجات، ثم اقفله بعد انتهاء المعلمين منه وافتح التالي - أو اقفل/افتح الفصل الدراسي بالكامل بضغطة واحدة.</div>
+            <div id="lockCenterGrid"></div>
+          </div>
+        </div>
+
+        <div class="card" id="systemClosurePanel" style="display:none; background:linear-gradient(180deg,#fff,#fef2f2); border:1px solid #fecaca; margin-bottom:16px; padding:16px 18px;">
+          <div style="font-weight:800; color:#991b1b; font-size:16px; margin-bottom:6px;">🔒 الإغلاق العام للنظام (لكل المستخدمين)</div>
+          <p style="color:#7f1d1d; font-size:13px; line-height:1.8; margin:0 0 12px;">
+            يختلف عن قفل الدرجات: هنا يُمنع المعلمون <strong>ومديرو المراحل</strong> من استخدام النظام بالكامل بعد تسجيل الدخول، مع رسالة منك.
+            المدير العام فقط يستمر في العمل.
+          </p>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label style="display:flex;align-items:center;gap:8px;font-weight:800;color:#991b1b;cursor:pointer;">
+              <input type="checkbox" id="systemClosureEnabled" style="width:18px;height:18px;"> تفعيل الإغلاق العام الآن
+            </label>
+          </div>
+          <div class="form-group">
+            <label style="font-weight:700;">الرسالة بعد تسجيل الدخول</label>
+            <textarea id="systemClosureMessage" rows="3" style="width:100%;padding:10px 12px;border:1px solid #fca5a5;border-radius:10px;font:inherit;resize:vertical;background:#fff;" placeholder="مثال: النظام مغلق الآن لانتهاء أعمال الرصد."></textarea>
+          </div>
+          <div class="sys-closure-presets" style="margin:10px 0;">
+            <button type="button" class="btn btn-outline btn-sm" data-action="setSystemClosurePreset" data-args='["النظام مغلق الآن لانتهاء أعمال الرصد."]'>انتهاء الرصد</button>
+            <button type="button" class="btn btn-outline btn-sm" data-action="setSystemClosurePreset" data-args='["النظام مغلق مؤقتاً لإجراء تحديثات. نعود قريباً."]'>تحديثات</button>
+            <button type="button" class="btn btn-outline btn-sm" data-action="setSystemClosurePreset" data-args='["النظام مغلق حالياً بقرار الإدارة. يُرجى المحاولة لاحقاً."]'>قرار إداري</button>
+          </div>
+          <div class="flex gap-12 flex-wrap items-center">
+            <button type="button" class="btn btn-danger" id="systemClosureSaveBtn" data-action="saveSystemClosure" data-args='[]'>💾 حفظ حالة الإغلاق</button>
+            <button type="button" class="btn btn-success" id="systemClosureOpenBtn" data-action="openSystemNow" data-args='[]'>🔓 فتح النظام فوراً</button>
+            <span id="systemClosureStatusBadge" class="badge" style="background:#e2e8f0;color:#334155;">الحالة: غير معروفة</span>
+          </div>
+          <div id="systemClosureMsg" class="mt-16" style="font-size:13px;"></div>
+        </div>
+
+        <div class="filter-bar">
+          <select id="gradeSubjectSelect" data-event-type="change" data-event-action="onGradeSubjectSelectChange"><option value="">-- اختر مادة --</option></select>
+          <select id="gradeClassSelect" data-event-type="change" data-event-action="onGradeClassSelectChange"><option value="">-- اختر فصل --</option></select>
+          <input type="text" id="gradeSearch" placeholder="🔍 بحث عن طالب..." data-event-type="input" data-event-action="onGradeSearchInput" />
+          <button class="btn btn-primary" data-action="loadGradesUI" data-args='[]'>📊 عرض</button>
+          <button class="btn btn-success" data-action="showFinalResults" data-args='[]'>🏁 النتيجة النهائية للفصل</button>
+        </div>
+
+        <div id="gradeEntryArea" style="display:none; margin-top:16px;">
+          <div class="flex flex-wrap gap-12 items-center mb-16 justify-between">
+            <div class="flex flex-wrap gap-12 items-center">
+              <span class="badge badge-subject">📘 <span id="gradeSubjectDisplay"></span></span>
+              <span class="badge" style="background:#e2e8f0; color:#1e293b;">🏫 <span id="gradeClassDisplay"></span></span>
+            </div>
+            <div class="flex flex-wrap gap-12 items-center">
+              <button class="btn btn-outline btn-sm" data-action="bulkFillFullMarks" data-args='[]' title="يرصد الدرجة النهائية (الدرجة العظمى) تلقائياً لكل طلاب هذا الفصل في كل مكونات المادة ما عدا 'الدرجة الشهرية'، دون المساس بأي درجة مُدخَلة مسبقاً - لتسهيل الرصد على الحالة الشائعة ثم تعديل الاستثناءات القليلة يدوياً">✅ رصد الدرجة النهائية لكل الطلاب (ما عدا الدرجة الشهرية)</button>
+              <button class="btn btn-success btn-sm" data-action="bulkFillMonthlyExamMarks" data-args='[]' title="يرصد الدرجة العظمى تلقائياً في مكوّن الاختبار/الامتحان/التقييم الشهري فقط لكل طلاب الفصل، دون المساس بأي درجة مُدخَلة مسبقاً">🧮 رصد الدرجة النهائية — اختبار/تقييم الشهر</button>
+              <button class="btn btn-danger btn-sm" data-action="bulkClearClassGrades" data-args='[]' title="يمسح كل الدرجات المسجلة لهذه المادة ولهذا الفصل ولهذا الشهر فقط لكل الطلاب (مثلاً للتراجع عن رصد جماعي غير صحيح)">🧹 مسح كل درجات هذا الفصل (هذه المادة/الشهر)</button>
+              <button class="btn btn-outline btn-sm" id="lockBtn" data-action="toggleLock" data-args='[]'>🔒 قفل هذا الفصل</button>
+            </div>
+          </div>
+          <div id="lockedNote" class="locked-note hidden">🔒 هذا الفصل مقفول للتعديل حالياً. اضغط "فتح القفل" لتعديل الدرجات.</div>
+          <div style="font-size:12.5px; color:#64748b; margin-bottom:8px;">⌨️ تنقل سريع بلوحة المفاتيح بدون الفأرة: <strong>↓/Enter</strong> للطالب التالي بنفس الخانة، <strong>↑</strong> للطالب السابق، <strong>→/←</strong> للخانة التالية/السابقة لنفس الطالب.</div>
+          <div id="gradesInvalidBanner" class="error-box" style="display:none; margin-bottom:10px; font-weight:700;"></div>
+          <div class="table-wrap grades-table-wrap">
+            <table class="grades-table">
+              <thead><tr id="gradesHeaderRow"><th>#</th><th>الرقم القومي</th><th>رقم الجلوس</th><th>اسم الطالب</th></tr></thead>
+              <tbody id="gradesTableBody"></tbody>
+            </table>
+          </div>
+          <div class="flex gap-12 flex-wrap mt-16">
+            <button class="btn btn-success" data-action="saveAllGrades" data-args='[]'>💾 حفظ جميع الدرجات</button>
+            <button class="btn btn-outline" data-action="printGradeSheet" data-args='[]'>🖨️ طباعة كشف الدرجات (A4)</button>
+            <button class="btn btn-outline" data-action="printDetailedGradeSheet" data-args='[]' title="يطبع كشفاً تفصيلياً يفرد الدرجة المرصودة على أربعة أسابيع بحيث يكون متوسطها مساوياً للدرجة الأصلية، مع تواريخ الأسابيع المحددة من بيانات المدرسة">🖨️ طباعة كشف رصد درجات تفصيلي (A4)</button>
+            <button class="btn btn-outline" data-action="toggleMissingGradesReport" data-args='[]' title="يعرض قائمة كاملة بكل الخانات التي لم تُرصد بعد لهذه المادة/الفصل عبر كل شهور الفصل الدراسي - يمكنك مراجعتها في أي وقت دون الحاجة لمحاولة الطباعة أولاً">📋 تقرير الدرجات الناقصة (كل شهور الفصل)</button>
+            <button class="btn btn-outline" data-action="toggleGradesTabPerformancePanel" data-args='[]' title="يعرض توزيع مستويات الطلاب ومتوسط الأداء الشهري لنفس المادة/الفصل المختارين أعلاه - متاح هنا لأن المعلم لا يصل لتبويب الإحصائيات">📊 أداء هذا الفصل</button>
+          </div>
+          <div id="gradesStatus" class="mt-16" style="font-size:14px; color:#64748b;"></div>
+          <div id="missingGradesReportArea" style="display:none; margin-top:12px;"></div>
+          <div id="gradesTabPerformancePanel" style="display:none; margin-top:12px;"></div>
+        </div>
+
+        <div class="card" style="margin-top:16px; background:#f8fafc;">
+          <div style="font-weight:700; color:#334155; margin-bottom:8px;">🖨️ طباعة متوسطات الفصل الدراسي (نهاية الفصل)</div>
+          <p style="color:#64748b; font-size:13px; margin-bottom:10px;">يطبع كشفاً بشكل رسمي: للمكوّنات العادية ش1/ش2/ش3/متوسط (توزيع المتوسط)، وللتقييم الشهري/الامتحانات ش1/ش2/متوسط فقط (امتحانان). اختر الفصل الدراسي من الفلتر أعلاه. ورقة واحدة طولية A4.</p>
+          <div class="flex gap-12 flex-wrap items-center">
+            <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#334155;" title="فعّالة فقط إذا كان الفصل الدراسي المختار مُفعَّلاً به شهر ثالث - تجبر الحساب على أول شهرين فقط بدلاً من الثلاثة">
+              <input type="checkbox" id="printTwoMonthsOnly"> طباعة بشهرين فقط حتى لو الشهر الثالث مفعّل
+            </label>
+            <button class="btn btn-outline" data-action="printTermAverageSheet" data-args='[]'>🖨️ طباعة متوسطات الفصل الدراسي (A4)</button>
+          </div>
+        </div>
+
+        <div id="finalResultsArea" style="display:none; margin-top:24px;">
+          <h2>🏁 النتيجة النهائية للفصل الدراسي</h2>
+          <p style="color:#64748b; margin-bottom:12px;">يتم جمع درجات مكونات "الامتحانات" مباشرة بين شهور الفصل الدراسي (شهرين أو ثلاثة)، بينما يتم حساب متوسط باقي المكونات بناءً على عدد الشهور التي تم إدخال درجات لها فعلياً. الجدول أدناه يوضح درجة كل مكون في كل شهر على حدة بجانب النتيجة النهائية المحسوبة.</p>
+          <div id="finalResultsInfoBar" class="flex gap-12 flex-wrap items-center mb-16"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr id="finalResultsGroupRow"></tr>
+                <tr id="finalResultsHeaderRow"></tr>
+              </thead>
+              <tbody id="finalResultsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== STATS ==================== -->
+    <div id="tab-stats" class="tab-content">
+      <div class="card" id="termTotalsPrintCard" style="border:1px solid #bbf7d0;background:linear-gradient(180deg,#f0fdf4,#fff)">
+        <h2 style="border:none;padding:0;margin:0 0 8px;color:#166534">🖨️ طباعة كشف أعمال السنة (مجاميع المواد) — من التقارير</h2>
+        <p style="margin:0 0 12px;font-size:13px;color:#64748b;line-height:1.7">كشف متتالٍ: مسلسل · رقم الجلوس · الاسم · مجموع كل مادة · 40 طالباً في الصفحة · توقيع وكيل ومدير المرحلة. متاح لرئيس الكنترول ومسؤول الحاسب <strong>ومدير المرحلة</strong>.</p>
+        <div class="filter-bar" style="background:#fff;margin-bottom:10px">
+          <label style="font-weight:700;font-size:13px;color:#334155">الصف</label>
+          <select id="termTotalsGradeSelect" style="min-width:220px"></select>
+        </div>
+        <div class="flex flex-wrap gap-12">
+          <button type="button" class="btn btn-primary btn-sm" data-action="printTermTotalsSheet" data-args='["first"]'>🖨️ طباعة الفصل الأول</button>
+          <button type="button" class="btn btn-primary btn-sm" data-action="printTermTotalsSheet" data-args='["second"]'>🖨️ طباعة الفصل الثاني</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>📈 إحصائيات عامة</h2>
+        <div class="filter-bar">
+          <select id="statsTermSelect" data-event-type="change" data-event-action="loadStatsUI">
+            <option value="first">الفصل الأول</option><option value="second">الفصل الثاني</option>
+          </select>
+        </div>
+        <div class="grid-4" id="statsCards"></div>
+        <h2 class="mt-16">📊 أداء الفصل (توزيع المستويات ومتوسط الأداء الشهري)</h2>
+        <div class="filter-bar">
+          <select id="statsClassSelect" data-event-type="change" data-event-action="onStatsClassChange"><option value="">-- اختر فصلاً --</option></select>
+          <select id="statsSubjectSelect" data-event-type="change" data-event-action="renderPerformanceCharts"><option value="">-- اختر مادة --</option></select>
+        </div>
+        <div id="statsTierLegend"></div>
+        <div id="performanceChartsArea" style="font-size:13px; color:#94a3b8;">اختر فصلاً ومادة أعلاه لعرض مخططات الأداء.</div>
+        <h2 class="mt-16">توزيع الطلاب حسب اللغة الثانية</h2>
+        <div id="langDistribution" class="flex flex-wrap gap-12" style="margin-bottom:16px;"></div>
+        <h2 class="mt-16">نسبة اكتمال الدرجات لكل مادة</h2>
+        <div id="subjectCompletion"></div>
+        <h2 class="mt-16">طلاب لم تُرصد لهم أي درجة بعد</h2>
+        <div id="missingStudents" style="font-size:14px; color:#64748b;"></div>
+      </div>
+
+<div id="v21AnalyticsBlock" class="v21-wrap hidden">
+  <div class="v21-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div><h3 style="margin-bottom:4px">🧠 لوحة التحليل الذكي</h3><div style="font-size:12px;color:#64748b">مؤشرات سريعة ثم تفاصيل حسب القسم المختار — بدون تكدس رأسي.</div></div>
+      <button class="btn btn-outline btn-sm" data-action="renderV21Analytics" data-args='[]'>🔄 تحديث</button>
+    </div>
+    <div id="v21Kpis" class="v21-kpis" style="margin-top:12px"></div>
+    <div id="v21Insights" style="margin-top:12px"></div>
+  </div>
+
+  <div class="v21-card" style="margin-top:12px;padding-top:12px">
+    <div class="v21-pills" id="v21Pills" role="tablist">
+      <button type="button" class="v21-pill active" data-v21-tab="teachers" data-action="switchV21Tab" data-args='["teachers"]'>👨‍🏫 متابعة المعلمين</button>
+      <button type="button" class="v21-pill" data-v21-tab="classes" data-action="switchV21Tab" data-args='["classes"]'>🏫 مقارنة الفصول</button>
+      <button type="button" class="v21-pill" data-v21-tab="students" data-action="switchV21Tab" data-args='["students"]'>👨‍🎓 يحتاجون مراجعة</button>
+      <button type="button" class="v21-pill" data-v21-tab="subjects" data-action="switchV21Tab" data-args='["subjects"]'>📚 أداء المواد</button>
+    </div>
+    <div class="v21-tab-panels">
+      <div class="v21-tab-panel active" id="v21Panel-teachers"><div id="v21TeacherAnalytics"></div></div>
+      <div class="v21-tab-panel" id="v21Panel-classes"><div id="v21ClassAnalytics"></div></div>
+      <div class="v21-tab-panel" id="v21Panel-students"><div id="v21StudentAnalytics"></div></div>
+      <div class="v21-tab-panel" id="v21Panel-subjects"><div id="v21SubjectAnalytics"></div></div>
+    </div>
+  </div>
+</div>
+
+    </div>
+
+
+    <!-- ==================== TEACHERS (admin only) ==================== -->
+    <div id="tab-teachers" class="tab-content">
+      <div class="card">
+        <h2>🧑‍🏫 إدارة المعلمين</h2>
+        <div id="teachersTabStageFilterWrap" class="filter-bar" style="display:none; align-items:center; gap:16px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <label style="font-size:13px; font-weight:600; color:#334155;">🏛️ التعامل مع مرحلة:</label>
+            <select id="teachersTabStageSelect" data-event-type="change" data-event-action="switchStageFromTeachersTab" style="padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1;"></select>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <label style="font-size:13px; font-weight:600; color:#334155;">🗂️ عرض قسم:</label>
+            <select id="teachersTabSectionFilter" data-event-type="change" data-event-action="loadTeachersUI" style="padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1;">
+              <option value="">كل الأقسام</option>
+              <option value="arabic">عربي فقط</option>
+              <option value="languages">لغات فقط</option>
+            </select>
+          </div>
+        </div>
+        <p style="color:#64748b; margin-bottom:12px;">أضف كل معلم مع تخصيصه، ورقم سري خاص به. يمكن لنفس المعلم أن يُسنَد له أكثر من مادة، وأن تختلف الفصول من مادة لأخرى (مثال: يدرّس مادة واحدة لفصل، ومادتين لفصل آخر): اختر المادة والفصول ثم اضغط "➕ إضافة هذا التخصيص" وكرر ذلك لكل مادة قبل حفظ المعلم. المعلم بعد الدخول لن يرى أو يعدّل إلا المواد والفصول المُسنَدة له فعلياً. لمادة "اللغة الثانية" تحديداً: حدد أيضاً نوع اللغة الأجنبية (فرنسي/الماني...) لكل تخصيص، فلن يستطيع رصد أو تعديل درجات هذه المادة إلا لطلابه الذين تطابق لغتهم الثانية المسجَّلة نوعَ لغته بالضبط داخل فصوله. يمكنك لاحقاً تعديل بيانات أي معلم (الاسم أو أي من تخصيصاته) بالضغط على "✏️ تعديل" في الجدول أدناه.</p>
+        <div class="warning-box">⚠️ ملاحظة أمان: هذا تحكم عملي يمنع الاطلاع العرضي على بيانات المواد/الفصول الأخرى داخل الاستخدام العادي للبرنامج. لأن البرنامج يعمل بالكامل داخل المتصفح بدون خادم، فإن أي شخص لديه خبرة تقنية بأدوات المطوّر (Developer Tools) يستطيع نظرياً تجاوز هذا الحماية أو الوصول للبيانات المخزّنة على نفس الجهاز. لا تعتمد عليه لبيانات شديدة الحساسية.</div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>اسم المعلم</label>
+            <input type="text" id="newTeacherName" placeholder="مثال: أ. محمد أحمد">
+          </div>
+          <div class="form-group">
+            <label>عدد الحصص الأسبوعية المخصصة</label>
+            <input type="number" id="newTeacherPeriods" min="0" max="50" step="1" placeholder="مثال: 12" title="يُستخدم في لوحة المراقب ويُمنح 100 نقطة جودة لكل حصة كرصيد ابتدائي">
+            <p style="color:#64748b; font-size:12px; margin-top:6px; margin-bottom:0;">💡 كل حصة = <b>100 نقطة جودة</b> رصيد ابتدائي يظهر لمدير المرحلة بجانب تقييم الإعجاب.</p>
+          </div>
+        </div>
+        <div class="form-group mt-16">
+          <label>المادة المخصصة</label>
+          <select id="newTeacherSubject" data-event-type="change" data-event-action="handleNewTeacherSubjectChange"><option value="">-- اختر مادة --</option></select>
+        </div>
+        <div class="form-group mt-16 hidden" id="newTeacherLangTypeWrap">
+          <label>نوع اللغة الأجنبية التي يدرّسها</label>
+          <select id="newTeacherLangType" data-event-type="change" data-event-action="handleNewTeacherLangChange"><option value="">-- اختر اللغة --</option></select>
+          <input type="text" id="newTeacherLangTypeCustom" placeholder="اكتب اسم اللغة كما هو مسجَّل بالضبط في بيانات الطلاب" style="display:none; margin-top:8px;" data-event-type="input" data-event-action="updateTeacherMatchPreview">
+          <p style="color:#64748b; font-size:12px; margin-top:6px;">يظهر هذا الحقل فقط عند اختيار مادة لغة ثانية. اختر اللغة من القائمة (مستخرجة تلقائياً من بيانات الطلاب المسجَّلة)، أو اختر "إدخال يدوي" إذا لم تكن اللغة مدرجة بعد. لن يستطيع هذا المعلم رصد أو تعديل درجات هذه المادة إلا لطلاب فصوله الذين تطابق لغتهم الثانية المسجَّلة هذه القيمة (مطابقة متسامحة مع فروق المسافات/الهمزات).</p>
+        </div>
+        <div class="form-group mt-16">
+          <label>الفصول التي يُدرّسها بهذه المادة تحديداً</label>
+          <div class="checkbox-list" id="newTeacherClasses"></div>
+        </div>
+        <div id="teacherMatchPreview" class="mt-16 hidden"></div>
+        <div class="flex gap-12 flex-wrap mt-16">
+          <button type="button" class="btn btn-outline" data-action="addAssignmentToDraft" data-args='[]'>➕ إضافة هذا التخصيص إلى قائمة تخصيصات المعلم</button>
+        </div>
+        <p style="color:#64748b; font-size:12px; margin-top:6px;">إذا كان هذا المعلم يُدرّس أكثر من مادة (مثلاً مادة واحدة لفصل، ومادتين لفصل آخر)، اختر المادة والفصول أعلاه ثم اضغط الزر أعلاه، وكرر ذلك لكل مادة/مجموعة فصول قبل حفظ المعلم بالزر أسفل الصفحة.</p>
+        <div class="mt-16 hidden" id="teacherAssignmentsDraftWrap">
+          <label style="font-size:14px; font-weight:600; color:#334155;">تخصيصات هذا المعلم المضافة حتى الآن:</label>
+          <div id="teacherAssignmentsDraftList" class="mt-16"></div>
+        </div>
+        <input type="hidden" id="editingTeacherId" value="">
+        <p style="color:#64748b; font-size:13px; margin-top:10px;">🔐 سيتم توليد رقم سري عشوائي مكوّن من 8 خانات تلقائياً لكل معلم عند الإضافة، ويمكنك طباعته أو إعادة توليده لاحقاً في أي وقت.</p>
+        <div class="flex gap-12 flex-wrap mt-16">
+          <button class="btn btn-primary" id="teacherSubmitBtn" data-action="addOrUpdateTeacher" data-args='[]'>➕ إضافة معلم</button>
+          <button class="btn btn-outline hidden" id="teacherCancelEditBtn" data-action="cancelTeacherEdit" data-args='[]'>❌ إلغاء التعديل</button>
+          <button class="btn btn-outline btn-sm" data-action="printAllTeacherCards" data-args='[]'>🖨️ طباعة بطاقات جميع المعلمين (4 بطاقات/صفحة)</button>
+          <button class="btn btn-success btn-sm" data-action="exportTeachersExcel" data-args='[]' data-with-event>📊 تصدير بيانات المعلمين (Excel)</button>
+        </div>
+        <div id="teacherFormMsg" class="mt-16" style="font-size:13px;"></div>
+
+        <div class="mt-16" style="border:2px dashed #94a3b8; border-radius:12px; padding:16px 20px; background:#f8fafc;">
+          <div style="font-weight:700; color:#0f172a; margin-bottom:8px;">📥 رفع ملف Excel لإضافة/تحديث المعلمين</div>
+          <p style="color:#64748b; font-size:13px; margin-bottom:10px;">استخدم نفس تنسيق ملف التصدير (زر "📊 تصدير بيانات المعلمين"): كل فصل في عمود مستقل يوضع فيه أي علامة (مثل ✔) للفصول التي يدرّسها المعلم في هذا الصف تحديداً. إذا كان المعلم يدرّس أكثر من مادة، أو نفس المادة لكن بفصول/لغة مختلفة، ضع له أكثر من صف بنفس عمودَي "المعرف" و"الاسم" (اترك "المعرف" فارغاً إذا كان معلماً جديداً)، وكل صف يمثل تخصيصاً واحداً (مادة واحدة + فصولها). إذا كان عمود "المعرف" يطابق معلماً موجوداً، سيتم استبدال كل تخصيصاته بالتخصيصات الجديدة من كل صفوفه في هذا الملف، وإذا كان فارغاً سيُضاف معلم جديد بكل الصفوف التي تحمل نفس اسمه متتالية. تأكد أن اسم المادة وأسماء الفصول مطابقة تماماً للمسجلة في النظام. عمود "نوع اللغة" مطلوب فقط في الصف الذي تكون مادته هي مادة اللغة الثانية، ويجب أن يطابق القيمة المسجَّلة لدى الطلاب تماماً.</p>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>المرحلة التي سيتم تسكين هؤلاء المعلمين بها</label>
+              <select id="teacherImportStageSelect"><option value="">-- اختر مرحلة --</option></select>
+            </div>
+            <div class="form-group">
+              <label>القسم الذي سيتم تسكين هؤلاء المعلمين به</label>
+              <select id="teacherImportSectionSelect"><option value="">-- اختر قسم --</option></select>
+            </div>
+          </div>
+          <p style="color:#64748b; font-size:12px; margin-top:-6px; margin-bottom:10px;">⚠️ يحدَّد هذا الملف مرحلة وقسماً واحداً فقط في كل مرة: كل معلمي هذا الملف سيُسكَّنون في المرحلة والقسم المختارين أعلاه، بمعزل عن باقي المراحل والأقسام. إذا كان لديك معلمون لأكثر من مرحلة أو قسم، ارفع لكل مرحلة/قسم ملفاً منفصلاً.</p>
+          <div class="flex gap-12 items-center flex-wrap">
+            <input type="file" id="teacherImportFile" accept=".xlsx,.xls">
+            <button class="btn btn-primary btn-sm" data-action="handleTeacherImportClick" data-args='[]'>📥 رفع وتحديث المعلمين</button>
+          </div>
+          <div id="teacherImportMsg" class="mt-16" style="font-size:13px;"></div>
+        </div>
+
+        <div class="table-wrap mt-16">
+          <table class="teachers-table">
+            <thead><tr><th>#</th><th>الاسم</th><th>المواد والفصول</th><th>الرقم السري</th><th>إجراء</th></tr></thead>
+            <tbody id="teachersTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SCHOOL INFO (admin only) ==================== -->
+
+    <div id="tab-attendance" class="tab-content">
+      <div class="card">
+        <h2>📅 الغياب والمواظبة اليومية</h2>
+        <p style="color:#64748b; margin-bottom:14px; line-height:1.8;">
+          سجّل الغياب اليومي حسب أيام حصص المادة. درجة المواظبة تُحسب من الحضور الفعلي
+          (العذر «ع» يُحسب حضوراً). التقريب لأقرب نصف درجة. ترحيل الدرجة إلى كشف الدرجات من صلاحيات رئيس الكنترول فقط.
+        </p>
+
+        <div class="term-month-selector">
+          <div class="form-group">
+            <label>📅 الفصل الدراسي</label>
+            <select id="attTermSelect" data-event-type="change" data-event-action="onAttendanceFilterChange">
+              <option value="first">الفصل الدراسي الأول</option>
+              <option value="second">الفصل الدراسي الثاني</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>📆 الشهر</label>
+            <select id="attMonthSelect" data-event-type="change" data-event-action="onAttendanceFilterChange"></select>
+          </div>
+          <div class="form-group">
+            <label>📚 المادة</label>
+            <select id="attSubjectSelect" data-event-type="change" data-event-action="onAttendanceFilterChange"></select>
+          </div>
+          <div class="form-group">
+            <label>🏫 الفصل</label>
+            <select id="attClassSelect" data-event-type="change" data-event-action="onAttendanceFilterChange"></select>
+          </div>
+        </div>
+
+        <div class="card" id="attScheduleCard" style="background:#f8fafc; margin-bottom:14px;">
+          <h3 style="margin:0 0 10px; font-size:15px;">🗓️ أيام حصص المادة في هذا الفصل</h3>
+          <p style="font-size:13px; color:#64748b; margin-bottom:10px;">يضبطها المعلم مرة واحدة وتُحفظ مع المادة/الفصل.</p>
+          <div id="attDaysCheckboxes" class="flex flex-wrap gap-12" style="margin-bottom:10px;"></div>
+          <div class="flex flex-wrap gap-12 items-center">
+            <button type="button" class="btn btn-primary btn-sm" data-action="saveAttendanceSubjectDays" data-args='[]'>💾 حفظ أيام الحصص</button>
+            <span id="attScheduleMsg" style="font-size:13px; color:#64748b;"></span>
+          </div>
+        </div>
+
+        <div class="card" id="attAdminSettingsCard" style="display:none; background:#fffbeb; border:1px solid #fde68a; margin-bottom:14px;">
+          <h3 style="margin:0 0 10px; font-size:15px; color:#92400e;">⚙️ إعدادات المدرسة (رئيس الكنترول)</h3>
+          <div class="flex flex-wrap gap-12 items-center" style="margin-bottom:12px;">
+            <label style="display:flex; align-items:center; gap:8px; font-weight:700; color:#78350f;">
+              <input type="checkbox" id="attSaturdayEnabled" data-event-type="change" data-event-action="saveAttendanceSchoolSettings"> تضمين يوم السبت ضمن أيام الأسبوع الدراسية
+            </label>
+          </div>
+          <div style="margin-bottom:10px;">
+            <div style="font-weight:700; margin-bottom:6px; color:#78350f;">📅 روزنامة الإجازات الرسمية (لكل المدرسة)</div>
+            <p style="font-size:12.5px; color:#92400e; margin:0 0 8px; line-height:1.7;">أي إجازة تُضاف هنا تُطبَّق على <strong>جميع المراحل</strong> دفعة واحدة، وتظهر في كشف المواظبة كعمود «إج» مظلّل ولا تُحسب غياباً.</p>
+            <div class="flex flex-wrap gap-12 items-center">
+              <input type="date" id="attHolidayDateInput" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px;">
+              <button type="button" class="btn btn-outline btn-sm" data-action="addAttendanceHoliday" data-args='[]'>➕ إضافة إجازة</button>
+            </div>
+            <div id="attHolidaysList" style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px;"></div>
+          </div>
+          <div style="border-top:1px dashed #fcd34d; padding-top:12px; margin-top:8px;">
+            <div style="font-weight:700; margin-bottom:6px; color:#78350f;">🔗 ترحيل درجة المواظبة إلى كشف الدرجات</div>
+            <p style="font-size:13px; color:#92400e; margin-bottom:8px; line-height:1.7;">
+              يخص <strong>المرحلة التي تديرها الآن فقط</strong> — ليس كل المراحل.
+              عند التفعيل تُستبدل درجة مكوّن المواظبة/الحضور في هذه المرحلة بالقيمة المحسوبة من سجل الغياب.
+              يمكنك تفعيله لمرحلة وإيقافه لأخرى حسب قرار الإدارة. متاح لرئيس الكنترول فقط.
+            </p>
+            <label style="display:flex; align-items:center; gap:8px; font-weight:700; color:#78350f;">
+              <input type="checkbox" id="attSyncToGrades" data-event-type="change" data-event-action="saveAttendanceSchoolSettings"> تفعيل الترحيل لهذه المرحلة فقط
+            </label>
+            <div class="mt-16">
+              <button type="button" class="btn btn-success btn-sm" data-action="syncAttendanceScoresToGrades" data-args='[]'>♻️ إعادة حساب وترحيل درجة المواظبة للفلتر الحالي</button>
+              <span id="attSyncMsg" style="font-size:13px; margin-right:10px;"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="attReportsCard" style="display:none; background:#eff6ff; border:1px solid #bfdbfe; margin-bottom:14px;">
+          <h3 style="margin:0 0 8px; font-size:15px; color:#1e40af;">📊 تقارير الحصر ومنحنى الحضور</h3>
+          <p style="font-size:13px; color:#1e3a8a; margin-bottom:12px; line-height:1.7;">
+            حصر حسب <strong>الفصل</strong> (نسبة حضور + اتجاه ارتفاع/انخفاض) بدون أسماء طلاب.
+            يعتمد على فلاتر الفصل الدراسي والشهر أعلاه. متاح لرئيس الكنترول ومدير المرحلة.
+          </p>
+          <div class="flex flex-wrap gap-12 items-center" style="margin-bottom:10px;">
+            <div class="form-group" style="margin:0;">
+              <label style="font-size:12px;">الأسبوع (للتقرير الأسبوعي)</label>
+              <select id="attReportWeekSelect" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px;">
+                <option value="1">الأسبوع الأول</option>
+                <option value="2">الأسبوع الثاني</option>
+                <option value="3">الأسبوع الثالث</option>
+                <option value="4">الأسبوع الرابع</option>
+              </select>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" data-action="printAttendanceAggregateReport" data-args='["weekly"]'>🖨️ تقرير أسبوعي</button>
+            <button type="button" class="btn btn-primary btn-sm" data-action="printAttendanceAggregateReport" data-args='["monthly"]'>🖨️ تقرير شهري</button>
+            <button type="button" class="btn btn-outline btn-sm" data-action="printAttendanceAggregateReport" data-args='["term"]'>🖨️ تقرير الفصل الدراسي</button>
+            <button type="button" class="btn btn-outline btn-sm" data-action="openTodaySkipSuspectsModal" data-args='[]'>⚠️ خارج الفصول الآن</button>
+            <button type="button" class="btn btn-outline btn-sm" data-action="printTodaySkipSuspectsReport" data-args='[]'>🖨️ طباعة بدون إذن (اليوم)</button>
+          </div>
+          <div style="margin-top:14px;padding-top:12px;border-top:1px dashed #93c5fd;">
+            <div class="flex flex-wrap gap-12 items-center" style="margin-bottom:10px;">
+              <div class="form-group" style="margin:0;">
+                <label style="font-size:12px;">نوع المنحنى</label>
+                <select id="attTrendModeSelect" data-event-type="change" data-event-action="refreshAttendanceTrendChart" data-event-arg="value" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px;">
+                  <option value="weekly">أسبوعي (أسابيع الشهر الحالي)</option>
+                  <option value="monthly">شهري (شهور الفصل)</option>
+                  <option value="term">الفصل الدراسي</option>
+                </select>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" data-action="refreshAttendanceTrendChart" data-args='[]'>🔄 تحديث المنحنى</button>
+            </div>
+            <div id="attTrendChartHost" style="background:#fff;border:1px solid #dbeafe;border-radius:12px;padding:12px 14px;min-height:80px;">
+              <div style="color:#94a3b8;font-size:13px;text-align:center;padding:12px;">اختر نوع المنحنى أو اضغط تحديث لعرض منحنى الحضور.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- مسار سريع للمعلم على الموبايل -->
+        <div id="attMobileDailyBar" class="att-mobile-daily-bar hidden">
+          <button type="button" class="btn btn-success" style="width:100%; min-height:48px; font-size:15px; font-weight:800;" data-action="openTeacherDailyAttendance" data-args='[]'>
+            📅 تسجيل حضور اليوم (بطاقات — الأنسب للموبايل)
+          </button>
+          <p style="font-size:12px; color:#64748b; margin:8px 0 0; text-align:center; line-height:1.6;">للكشف الشهري الكامل استخدم الفلاتر بالأسفل ثم «عرض الكشف».</p>
+        </div>
+
+        <div class="flex flex-wrap gap-12 items-center mb-16">
+          <button type="button" class="btn btn-primary" data-action="renderAttendanceGrid" data-args='[]'>📊 عرض / تحديث الكشف</button>
+          <button type="button" class="btn btn-success" data-action="saveAttendanceGrid" data-args='[]'>💾 حفظ الغياب</button>
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:12px; margin-bottom:2px;">عرض الأسبوع</label>
+            <select id="attWeekViewSelect" data-event-type="change" data-event-action="renderAttendanceGrid" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; min-height:40px;">
+              <option value="1">الأسبوع الأول</option>
+              <option value="2">الأسبوع الثاني</option>
+              <option value="3">الأسبوع الثالث</option>
+              <option value="4">الأسبوع الرابع</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-outline" data-action="printAttendanceSheet" data-args='[false]'>🖨️ طباعة كشف المواظبة (بالبيانات)</button>
+          <button type="button" class="btn btn-outline" data-action="printAttendanceSheet" data-args='[true]'>📄 طباعة كشف فارغ (مع تظليل)</button>
+          <span id="attStatusMsg" style="font-size:13px; color:#64748b;"></span>
+        </div>
+        <div class="hidden" id="attQuickBar">
+          <strong style="color:#065f46;">⚡ رصد سريع ليوم:</strong>
+          <select id="attQuickDaySelect" title="اختر اليوم"></select>
+          <button type="button" class="btn btn-success btn-sm" data-action="attMarkSelectedDayAll" data-args='[""]'>✅ حاضر للجميع</button>
+          <button type="button" class="btn btn-danger btn-sm" data-action="attMarkSelectedDayAll" data-args='["غ"]'>🚫 غائب للجميع</button>
+          <button type="button" class="btn btn-outline btn-sm" data-action="attMarkSelectedDayAll" data-args='["ع"]'>📋 عذر للجميع</button>
+          <button type="button" class="btn btn-outline btn-sm" data-action="attMarkSelectedDayAll" data-args='["__clear__"]'>🧹 مسح علامات اليوم</button>
+          <span style="font-size:12px;color:#64748b;">أو استخدم الأزرار الصغيرة أعلى كل عمود يوم / أسبوع</span>
+        </div>
+
+        <details class="att-legend-details" style="margin-bottom:12px;">
+          <summary style="cursor:pointer; font-weight:800; color:#9a3412; font-size:13.5px;">ℹ️ رموز الرصد والتنقل السريع (اضغط للعرض)</summary>
+          <div class="warning-box" style="margin-top:8px; margin-bottom:0;">
+            <strong>رموز الرصد:</strong>
+            فارغ = حضور &nbsp;|&nbsp; <b>غ</b> = غياب (يخصم) &nbsp;|&nbsp; <b>ع</b> = عذر/استئذان (يُحسب حضوراً).
+            الأيام المظلّلة ليست من جدول المادة أو إجازة رسمية.
+            <div style="margin-top:6px;font-size:12.5px;color:#64748b;">⌨️ تنقل سريع: <strong>↓ / Enter / Tab</strong> للطالب التالي بنفس اليوم، <strong>↑ / Shift+Tab</strong> للطالب السابق، <strong>→ / ←</strong> لليوم التالي/السابق.</div>
+          </div>
+        </details>
+
+        <div class="table-wrap" id="attGridWrap" style="max-height:70vh;">
+          <div id="attGridEmpty" style="padding:24px; text-align:center; color:#64748b; background:#f8fafc; border-radius:10px;">اختر المادة والفصل ثم اضغط «عرض / تحديث الكشف».</div>
+          <table class="hidden" id="attGridTable">
+            <thead id="attGridHead"></thead>
+            <tbody id="attGridBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-printcenter" class="tab-content">
+      <div class="card" style="border:1px solid #bfdbfe;background:linear-gradient(180deg,#eff6ff,#fff)">
+        <h2 style="border:none;margin:0 0 6px;color:#1e3a5f">🖨️ مركز الطباعة</h2>
+        <p style="margin:0;color:#64748b;font-size:13.5px;line-height:1.7">جميع أزرار الطباعة في مكان واحد حسب صلاحية حسابك. الأزرار ما زالت متاحة أيضاً في أماكنها الأصلية (الدرجات، المواظبة، التقارير…).</p>
+      </div>
+
+      <!-- ===== رصد الدرجات ===== -->
+      <div class="card pc-sec" data-pc-roles="superadmin,stageadmin,teacher">
+        <h2>📝 كشوف رصد الدرجات</h2>
+        <p style="color:#64748b;font-size:13px;margin-bottom:12px;line-height:1.7">تطبع حسب المادة والفصل المختارين في تبويب <strong>إدخال الدرجات</strong>.</p>
+        <div class="flex flex-wrap gap-12">
+          <button type="button" class="btn btn-primary" data-action="printGradeSheet" data-args='[]'>🖨️ كشف الرصد (مختصر)</button>
+          <button type="button" class="btn btn-primary" data-action="printDetailedGradeSheet" data-args='[]'>🖨️ كشف الرصد التفصيلي (4 أسابيع + امتحان)</button>
+          <button type="button" class="btn btn-outline" data-action="printTermAverageSheet" data-args='[]'>🖨️ متوسط الفصل الدراسي</button>
+        </div>
+        <p class="up-hint" style="margin-top:10px">اختر المادة والفصل والشهر من تبويب الدرجات أولاً، ثم ارجع هنا للطباعة إن رغبت.</p>
+      </div>
+
+      <!-- ===== كشوف فارغة للرصد ===== -->
+      <div class="card pc-sec" data-pc-roles="superadmin,stageadmin,monitor">
+        <h2>📝 كشوف رصد (نموذج للتعبئة اليدوية)</h2>
+        <p style="color:#64748b;font-size:13px;margin-bottom:12px;line-height:1.7">شكل كشف الرصد التفصيلي: <strong>4 أسابيع + متوسط + امتحان/تقييم الشهر</strong> · كل طلاب الفصل في صفحة · خانات فارغة.</p>
+        <div class="filter-bar">
+          <div class="form-group">
+            <label>الفصل الدراسي</label>
+            <select id="pcBlankTerm" data-event-type="change" data-event-action="pcOnBlankTermChange">
+              <option value="first">الفصل الأول</option>
+              <option value="second">الفصل الثاني</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>الشهر</label>
+            <select id="pcBlankMonth"></select>
+          </div>
+        </div>
+        <div class="grid-2" style="gap:16px;margin-top:8px">
+          <div>
+            <div class="flex justify-between items-center" style="margin-bottom:8px">
+              <strong style="font-size:14px">الفصول</strong>
+              <span>
+                <button type="button" class="btn btn-outline btn-sm" data-action="pcToggleAll" data-args='["pcClassList", true]'>تحديد الكل</button>
+                <button type="button" class="btn btn-outline btn-sm" data-action="pcToggleAll" data-args='["pcClassList", false]'>مسح الكل</button>
+              </span>
+            </div>
+            <div id="pcClassList" style="max-height:240px;overflow:auto;border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:#f8fafc"></div>
+          </div>
+          <div>
+            <div class="flex justify-between items-center" style="margin-bottom:8px">
+              <strong style="font-size:14px">المواد</strong>
+              <span>
+                <button type="button" class="btn btn-outline btn-sm" data-action="pcToggleAll" data-args='["pcSubjectList", true]'>تحديد الكل</button>
+                <button type="button" class="btn btn-outline btn-sm" data-action="pcToggleAll" data-args='["pcSubjectList", false]'>مسح الكل</button>
+              </span>
+            </div>
+            <div id="pcSubjectList" style="max-height:240px;overflow:auto;border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:#f8fafc"></div>
+          </div>
+        </div>
+        <div class="mt-16">
+          <button type="button" class="btn btn-primary" data-action="printBlankGradeSheetsBatch" data-args='[]'>🖨️ طباعة كشوف الرصد المحددة</button>
+        </div>
+      </div>
+
+      <!-- ===== أعمال السنة ===== -->
+      <div class="card pc-sec" data-pc-roles="superadmin,stageadmin,monitor" style="border:1px solid #bbf7d0">
+        <h2 style="color:#166534">📊 كشوف أعمال السنة (مجاميع المواد)</h2>
+        <p style="color:#64748b;font-size:13px;margin-bottom:12px;line-height:1.7">مسلسل · رقم الجلوس · الاسم · مجموع كل مادة · 40 طالباً/صفحة · توقيع وكيل ومدير المرحلة.</p>
+        <div class="filter-bar">
+          <label style="font-weight:700">الصف</label>
+          <select id="termTotalsGradeSelectPc" style="min-width:220px"></select>
+        </div>
+        <div class="flex flex-wrap gap-12 mt-16">
+          <button type="button" class="btn btn-success" data-action="printTermTotalsSheet" data-args='["first"]'>🖨️ طباعة الفصل الأول</button>
+          <button type="button" class="btn btn-success" data-action="printTermTotalsSheet" data-args='["second"]'>🖨️ طباعة الفصل الثاني</button>
+        </div>
+      </div>
+
+      <!-- ===== مواظبة ===== -->
+      <div class="card pc-sec" data-pc-roles="superadmin,stageadmin,teacher">
+        <h2>📅 المواظبة (من فلاتر تبويب الحضور)</h2>
+        <p style="color:#64748b;font-size:13px;margin-bottom:12px;line-height:1.7">تطبع حسب المادة والفصل والشهر المختارين في تبويب <strong>الغياب والمواظبة</strong>.</p>
+        <div class="flex flex-wrap gap-12">
+          <button type="button" class="btn btn-primary" data-action="printAttendanceSheet" data-args='[false]'>🖨️ بيان المواظبة (ببيانات)</button>
+          <button type="button" class="btn btn-outline" data-action="printAttendanceSheet" data-args='[true]'>🖨️ بيان المواظبة (نموذج للتعبئة)</button>
+        </div>
+      </div>
+
+      <div class="card pc-sec" data-pc-roles="superadmin,stageadmin,monitor">
+        <h2>📅 كشوف مواظبة (دفعة — فصول ومواد محددة)</h2>
+        <p style="color:#64748b;font-size:13px;margin-bottom:12px;line-height:1.7">نموذج لأيام الشهر. إن حُددت أيام التدريس للمادة/الفصل تُظلَّل الأيام خارج التدريس.</p>
+        <div class="filter-bar">
+          <div class="form-group">
+            <label>الفصل الدراسي</label>
+            <select id="pcAttTerm" data-event-type="change" data-event-action="pcOnAttTermChange">
+              <option value="first">الفصل الأول</option>
+              <option value="second">الفصل الثاني</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>الشهر</label>
+            <select id="pcAttMonth"></select>
+          </div>
+        </div>
+        <div class="grid-2" style="gap:16px;margin-top:8px">
+          <div>
+            <div class="flex justify-between items-center" style="margin-bottom:8px">
+              <strong style="font-size:14px">الفصول</strong>
+              <span>
+                <button type="button" class="btn btn-outline btn-sm" data-action="pcToggleAll" data-args='["pcAttClassList", true]'>تحديد الكل</button>
+                <button type="button" class="btn btn-outline btn-sm" data-action="pcToggleAll" data-args='["pcAttClassList", false]'>مسح الكل</button>
+              </span>
+            </div>
+            <div id="pcAttClassList" style="max-height:200px;overflow:auto;border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:#f8fafc"></div>
+          </div>
+          <div>
+            <div class="flex justify-between items-center" style="margin-bottom:8px">
+              <strong style="font-size:14px">المواد</strong>
+              <span>
+                <button type="button" class="btn btn-outline btn-sm" data-action="pcToggleAll" data-args='["pcAttSubjectList", true]'>تحديد الكل</button>
+                <button type="button" class="btn btn-outline btn-sm" data-action="pcToggleAll" data-args='["pcAttSubjectList", false]'>مسح الكل</button>
+              </span>
+            </div>
+            <div id="pcAttSubjectList" style="max-height:200px;overflow:auto;border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:#f8fafc"></div>
+          </div>
+        </div>
+        <div class="mt-16">
+          <button type="button" class="btn btn-primary" data-action="printBlankAttendanceBatch" data-args='[]'>🖨️ طباعة كشوف المواظبة المحددة</button>
+        </div>
+      </div>
+
+      <!-- ===== تقارير مواظبة مجمعة ===== -->
+      <div class="card pc-sec" data-pc-roles="superadmin,stageadmin,monitor">
+        <h2>📈 تقارير مواظبة مجمّعة</h2>
+        <div class="flex flex-wrap gap-12">
+          <button type="button" class="btn btn-outline" data-action="printAttendanceAggregateReport" data-args='["weekly"]'>🖨️ تقرير أسبوعي</button>
+          <button type="button" class="btn btn-outline" data-action="printAttendanceAggregateReport" data-args='["monthly"]'>🖨️ تقرير شهري</button>
+          <button type="button" class="btn btn-outline" data-action="printAttendanceAggregateReport" data-args='["term"]'>🖨️ تقرير فصل دراسي</button>
+        </div>
+      </div>
+
+      <!-- ===== تقارير المرحلة / الرقابة ===== -->
+      <div class="card pc-sec" data-pc-roles="superadmin,stageadmin,monitor" style="border:1px solid #fde68a">
+        <h2 style="color:#92400e">🏫 تقارير المرحلة والرقابة</h2>
+        <div class="flex flex-wrap gap-12">
+          <button type="button" class="btn btn-outline" data-action="printStageQualityReport" data-args='[]'>📋 تقرير الجودة</button>
+          <button type="button" class="btn btn-outline" data-action="printTeacherAbsenceSheet" data-args='[]'>🖨️ غائبو المعلمين اليوم</button>
+          <button type="button" class="btn btn-outline" data-action="printTeacherPresenceSheet" data-args='[]'>🖨️ حضور المعلمين</button>
+          <button type="button" class="btn btn-outline" data-action="printTodaySkipSuspectsReport" data-args='[]'>⚠️ خارج الفصول</button>
+          <button type="button" class="btn btn-outline" data-action="printAbsenceConflictReport" data-args='[]'>🖨️ تعارضات الغياب</button>
+        </div>
+      </div>
+
+      <!-- ===== بطاقات ===== -->
+      <div class="card pc-sec" data-pc-roles="superadmin,stageadmin">
+        <h2>🪪 بطاقات الدخول</h2>
+        <div class="flex flex-wrap gap-12">
+          <button type="button" class="btn btn-outline" data-action="printAllTeacherCards" data-args='[]'>🖨️ بطاقات المعلمين</button>
+          <button type="button" class="btn btn-outline" data-action="printAllStageAdminCards" data-args='[]'>🖨️ بطاقات مسؤولي الحاسب</button>
+          <button type="button" class="btn btn-outline" data-action="printAllStageMonitorCards" data-args='[]'>🖨️ بطاقات مديري المراحل</button>
+        </div>
+      </div>
+
+      <div class="card pc-sec" data-pc-roles="monitor">
+        <h2>🪪 بطاقات (مدير المرحلة)</h2>
+        <div class="flex flex-wrap gap-12">
+          <button type="button" class="btn btn-outline" data-action="printAllTeacherCards" data-args='[]'>🖨️ بطاقات معلمي المرحلة</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-schoolinfo" class="tab-content">
+      <div class="card" id="schoolInfoFormCard">
+        <h2>⚙️ بيانات المدرسة</h2>
+        <p style="color:#64748b; margin-bottom:12px;">هذه البيانات تظهر في أعلى الصفحة وتُستخدم كترويسة عامة للنظام.</p>
+        <div id="schoolInfoRestrictNote" class="warning-box" style="display:none; margin-bottom:12px;">🔒 تعديل بيانات المدرسة متاح لرئيس الكنترول فقط. يمكنك الاطلاع على البيانات الحالية أدناه دون تعديلها.</div>
+
+        <div class="grid-3">
+          <div class="form-group">
+            <label>اسم المحافظة</label>
+            <select id="siGovernorate">
+              <option value="">-- اختر المحافظة --</option>
+              <option>القاهرة</option><option>الجيزة</option><option>الإسكندرية</option><option>القليوبية</option>
+              <option>بورسعيد</option><option>السويس</option><option>الإسماعيلية</option><option>دمياط</option>
+              <option>الدقهلية</option><option>الشرقية</option><option>الغربية</option><option>المنوفية</option>
+              <option>البحيرة</option><option>كفر الشيخ</option><option>الفيوم</option><option>بني سويف</option>
+              <option>المنيا</option><option>أسيوط</option><option>سوهاج</option><option>قنا</option>
+              <option>الأقصر</option><option>أسوان</option><option>البحر الأحمر</option><option>الوادي الجديد</option>
+              <option>مطروح</option><option>شمال سيناء</option><option>جنوب سيناء</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>الإدارة التعليمية</label>
+            <input type="text" id="siEducationAdmin" placeholder="مثال: إدارة بنها التعليمية">
+          </div>
+          <div class="form-group">
+            <label>اسم المدرسة</label>
+            <input type="text" id="siSchoolName" placeholder="اسم المدرسة">
+          </div>
+          <div class="form-group">
+            <label>اسم مدير المدرسة</label>
+            <input type="text" id="siPrincipalName" placeholder="اسم مدير/ة المدرسة">
+          </div>
+          <div class="form-group">
+            <label>العام الدراسي</label>
+            <input type="text" id="siAcademicYear" placeholder="مثال: 2025 / 2026">
+          </div>
+          <div class="form-group">
+            <label>الفصل الدراسي</label>
+            <select id="siTerm">
+              <option value="first">الفصل الدراسي الأول</option>
+              <option value="second">الفصل الدراسي الثاني</option>
+            </select>
+          </div>
+        </div>
+
+        <h2 class="mt-16">📅 ضبط فترات الرصد</h2>
+        <p style="color:#64748b; margin-bottom:12px; line-height:1.8;">الفصلان الدراسيان <strong>ثابتان</strong> (أول / ثانٍ). داخل كل فصل يضيف <strong>رئيس الكنترول</strong> فترات رصد مستقلة: الاسم، عدد الأسابيع، تاريخ بداية الأسبوع الأول، هل تنتهي بامتحان شهر، وإجازات الفترة. يمكن إضافة فترات لاحقاً حسب تعليمات الوزارة. حساب الدرجات يبقى <strong>متوسط ما رُصد</strong>.</p>
+        <p style="color:#0b5e42; margin-bottom:12px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px; font-size:13px; line-height:1.8;">✅ عند الحفظ يُطبَّق <strong>ضبط الفترات كاملاً</strong> (الأسماء، التواريخ، أسابيع خارج الرصد، امتحان الشهر، الإجازات) على <strong>جميع المراحل</strong> لتوحيد الرصد والطباعة.</p>
+        <div class="hidden" aria-hidden="true">
+          <input type="text" id="siMonthF1"><input type="text" id="siMonthF2"><input type="text" id="siMonthF3">
+          <input type="date" id="siWeek1F1"><input type="date" id="siWeek1F2"><input type="date" id="siWeek1F3">
+          <input type="checkbox" id="siMonthF3Enabled">
+          <input type="text" id="siMonthS1"><input type="text" id="siMonthS2"><input type="text" id="siMonthS3">
+          <input type="date" id="siWeek1S1"><input type="date" id="siWeek1S2"><input type="date" id="siWeek1S3">
+          <input type="checkbox" id="siMonthS3Enabled">
+          <div id="siMonthF3Wrap"></div><div id="siMonthS3Wrap"></div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px">
+          <strong style="color:#0f172a">عرض فترات:</strong>
+          <select id="siPeriodsTerm" data-event-type="change" data-event-action="renderRecordingPeriodsEditor" style="min-width:180px">
+            <option value="first">الفصل الدراسي الأول</option>
+            <option value="second">الفصل الدراسي الثاني</option>
+          </select>
+          <button type="button" class="btn btn-outline btn-sm" id="siAddPeriodBtn" data-action="addRecordingPeriod" data-args='[]'>➕ إضافة فترة رصد</button>
+          <button type="button" class="btn btn-outline btn-sm" data-action="resetRecordingPeriodsDefaults" data-args='[]'>↺ استعادة الفترات الافتراضية</button>
+        </div>
+        <div id="siPeriodsEditor" style="display:flex;flex-direction:column;gap:12px"></div>
+        <button class="btn btn-primary mt-16" id="saveSchoolInfoBtn" data-action="saveSchoolInfo" data-args='[]'>💾 حفظ بيانات المدرسة والفترات</button>
+        <div id="schoolInfoMsg" class="mt-16" style="font-size:13px;"></div>
+      </div>
+
+      <div class="card sys-closure-card hidden" id="systemClosureCard">
+        <h2>🔒 الإغلاق العام للنظام</h2>
+        <p style="color:#64748b; margin:0 0 12px; font-size:13.5px; line-height:1.8;">
+          لوحة التحكم الكاملة للإغلاق العام موجودة في تبويب <strong>إدخال الدرجات</strong> أعلى الصفحة (بطاقة حمراء بعنوان «الإغلاق العام للنظام»).
+        </p>
+        <button type="button" class="btn btn-danger" data-action="scrollToSystemClosurePanel" data-args='[]'>➡️ الانتقال إلى لوحة الإغلاق العام</button>
+      </div>
+
+      <div class="card hidden" id="superAdminPassCard">
+        <h2>🔑 تغيير كلمة سر رئيس الكنترول</h2>
+        <p style="color:#64748b; margin-bottom:12px;">غيّر كلمة سر الدخول الخاصة برئيس الكنترول. ستحتاج لاستخدام كلمة السر الجديدة في المرة القادمة التي تسجّل فيها الدخول. (كلمات سر مديري المراحل يتم إنشاؤها وطباعتها من تبويب "إدارة المراحل" ولا يمكن لمدير المرحلة تغييرها بنفسه).</p>
+        <div class="grid-3">
+          <div class="form-group">
+            <label>كلمة السر الحالية</label>
+            <input type="password" id="changeAdminOldPass" placeholder="كلمة السر الحالية">
+          </div>
+          <div class="form-group">
+            <label>كلمة السر الجديدة</label>
+            <input type="password" id="changeAdminNewPass" placeholder="كلمة السر الجديدة">
+          </div>
+          <div class="form-group">
+            <label>تأكيد كلمة السر الجديدة</label>
+            <input type="password" id="changeAdminNewPass2" placeholder="أعد كتابة كلمة السر الجديدة">
+          </div>
+        </div>
+        <button class="btn btn-primary mt-16" data-action="changeAdminPassword" data-args='[]'>💾 تغيير كلمة السر</button>
+        <div id="changeAdminPassMsg" class="mt-16" style="font-size:13px;"></div>
+      </div>
+    </div>
+
+
+<div id="security" class="tab-content">
+      <div class="card">
+        <h2>🛡️ الأمان والنسخ والمراجعة</h2>
+        <p style="color:#64748b">أدوات محلية لحماية العمل ومراجعة العمليات. النسخة القادمة يمكن ربطها بالكامل مع Supabase Auth وRLS.</p>
+      </div>
+      <div class="security-grid">
+        <div class="security-card">
+          <h3>💾 النسخ الاحتياطي</h3>
+          <p>أنشئ نسخة كاملة من بيانات النظام واحفظها على جهازك.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary" data-action="downloadLocalBackup" data-args='[]'>📥 تنزيل نسخة احتياطية</button>
+            <button class="btn btn-outline" data-action="triggerFileInput" data-args='["backupRestoreInput"]'>♻️ استعادة نسخة</button>
+            <input class="hidden" id="backupRestoreInput" type="file" accept="application/json,.json" data-event-type="change" data-event-action="restoreLocalBackup" data-event-arg="files[0]">
+          </div>
+          <div id="backupStatus" style="margin-top:12px;font-size:13px"></div>
+        </div>
+        <div class="security-card">
+          <h3>📋 سجل دخول المدراء والعمليات</h3>
+          <p>يُخزَّن في السحابة فقط: دخول/خروج مديري المراحل والمعلمين والمدير العام، ورفع الملفات، وحفظ الدرجات، والطباعة/النسخ. يُجلب عند الطلب ولا يُحفظ كسجل رسمي على الجهاز.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button class="btn btn-primary" type="button" data-action="renderAuditLog" data-args='[]'>☁️ جلب سجل المدراء والعمليات</button>
+            <button class="btn btn-outline" type="button" data-action="downloadAuditLog" data-args='[]'>📥 تصدير Excel</button>
+          </div>
+          <div id="auditCloudStatus" style="margin-top:10px;font-size:13px;color:#64748b;">اضغط «جلب سجل المدراء والعمليات» لعرض آخر الأحداث من السحابة.</div>
+        </div>
+        <div class="security-card">
+          <h3>🗂️ سجل الإصدارات (Versioning)</h3>
+          <p>نسخ تلقائية دورية من كامل بيانات النظام يمكن الرجوع إليها عند حدوث خطأ كبير.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary" data-action="createManualVersionSnapshot" data-args='[]'>📌 حفظ نسخة الآن</button>
+            <button class="btn btn-outline" data-action="renderVersionsList" data-args='[]'>🔄 تحديث القائمة</button>
+          </div>
+          <div id="versionsStatus" style="margin-top:10px;font-size:13px"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px;overflow:auto">
+        <h3 style="margin:0 0 10px;font-size:15px;">☁️ سجل دخول المدراء والعمليات (من السحابة)</h3>
+        <table class="audit-table"><thead><tr><th>التاريخ والوقت</th><th>المستخدم</th><th>الدور</th><th>العملية</th><th>التفاصيل</th></tr></thead><tbody id="auditLogBody"><tr><td colspan="5" style="text-align:center;color:#94a3b8;">اضغط «جلب سجل المدراء والعمليات» لعرض السجل.</td></tr></tbody></table>
+      </div>
+      <div class="card" style="margin-top:16px;overflow:auto">
+        <h3>⚠️ سجل تعارضات الدرجات (Conflict Log)</h3>
+        <p style="color:#64748b;font-size:13px">حالات تم فيها اكتشاف تعديل نفس الدرجة من جهازين مختلفين تقريباً في نفس الوقت (بدل تجاهل أحد التعديلين بصمت).</p>
+        <table class="audit-table"><thead><tr><th>التاريخ والوقت</th><th>المستخدم</th><th>الطالب</th><th>المادة/المكوّن</th><th>قيمة السحابة</th><th>القيمة الجديدة</th><th>القرار</th></tr></thead><tbody id="conflictLogBody"><tr><td colspan="7">لا توجد تعارضات مسجّلة</td></tr></tbody></table>
+      </div>
+      <div class="card" style="margin-top:16px;overflow:auto">
+        <h3>🗂️ الإصدارات المحفوظة</h3>
+        <table class="audit-table"><thead><tr><th>التاريخ والوقت</th><th>النوع</th><th>عدد المراحل</th><th></th></tr></thead><tbody id="versionsListBody"><tr><td colspan="4">لا توجد إصدارات محفوظة بعد.</td></tr></tbody></table>
+      </div>
+      <div class="card" style="margin-top:16px;border-right:4px solid #d97706;background:#fffbeb">
+        <strong>⚠️ ملاحظة أمنية:</strong> هذه النسخة تضيف حماية ومراجعة على مستوى التطبيق المحلي، لكن المصادقة الحقيقية وصلاحيات Supabase/RLS يجب أن تُنقل إلى الخادم قبل الاعتماد على النظام في بيئة متعددة الأجهزة. راجع سكريبت SQL المرفق لإعداد RLS الفعلي في لوحة تحكم Supabase.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- نافذة تأكيد "الدرجات الناقصة" - نافذة مخصصة (وليست confirm() الافتراضية من المتصفح) حتى لا
+       يفوتها المستخدم بالخطأ أو يتجاوزها بضغطة سريعة معتاد عليها من رسائل تأكيد أخرى في النظام. -->
+  <!-- شاشة الإغلاق العام للنظام -->
+  <div id="systemClosedOverlay" class="sys-closed-overlay" aria-live="polite">
+    <div class="sys-closed-card">
+      <div class="sys-closed-badge">🔒 النظام مغلق حالياً</div>
+      <h2>تعذّر متابعة العمل</h2>
+      <div id="systemClosedMessage" class="sys-closed-msg">النظام مغلق مؤقتاً بقرار من رئيس الكنترول.</div>
+      <div id="systemClosedMeta" class="sys-closed-meta"></div>
+      <div class="sys-closed-actions">
+        <button type="button" class="btn btn-primary" data-action="logout" data-args='[]'>🚪 العودة لتسجيل الدخول</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="missingGradesModalOverlay" class="mg-modal-overlay hidden">
+    <div class="mg-modal-box">
+      <div class="mg-modal-header">⚠️ يوجد درجات لم تُرصد بعد</div>
+      <div id="missingGradesModalBody" class="mg-modal-body"></div>
+      <div class="mg-modal-footer">
+        <button type="button" class="btn btn-outline" id="missingGradesModalCancelBtn">↩️ إلغاء والرجوع لإكمال الرصد</button>
+        <button type="button" class="btn btn-danger" id="missingGradesModalProceedBtn">➡️ متابعة رغم ذلك</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة حل تعارضات الدرجات عند الحفظ (مستخدم آخر عدّل نفس الخانات) -->
+  <div id="gradeConflictModalOverlay" class="mg-modal-overlay hidden">
+    <div class="mg-modal-box" style="max-width:720px;">
+      <div class="mg-modal-header" style="color:#991b1b; background:#fef2f2; border-bottom-color:#fca5a5;">⚠️ تعارض في الدرجات مع جهاز/مستخدم آخر</div>
+      <div id="gradeConflictModalBody" class="mg-modal-body"></div>
+      <div class="mg-modal-footer" style="flex-wrap:wrap;">
+        <button type="button" class="btn btn-outline" id="gradeConflictModalCancelBtn">☁️ اعتماد نسخة السحابة وإلغاء حفظي</button>
+        <button type="button" class="btn btn-primary" id="gradeConflictModalKeepMineBtn">✅ اعتماد قيمي (استبدال السحابة)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- تنبيه: السحابة أحدث من النسخة المحلية قبل الرفع -->
+  <div id="stalePushModalOverlay" class="mg-modal-overlay hidden">
+    <div class="mg-modal-box" style="max-width:520px;">
+      <div class="mg-modal-header" style="color:#9a3412; background:#fff7ed; border-bottom-color:#fdba74;">🔄 توجد تعديلات أحدث على السحابة</div>
+      <div id="stalePushModalBody" class="mg-modal-body" style="line-height:1.9;">
+        تم تعديل بيانات هذه المرحلة من جهاز آخر بعد آخر مزامنة على هذا الجهاز.<br>
+        يُفضَّل تحميل النسخة الأحدث أولاً ثم إعادة حفظ تعديلاتك لتجنب فقدان درجات الطرف الآخر.
+      </div>
+      <div class="mg-modal-footer" style="flex-wrap:wrap;">
+        <button type="button" class="btn btn-outline" id="stalePushModalPullBtn">⬇️ تحميل الأحدث الآن</button>
+        <button type="button" class="btn btn-danger" id="stalePushModalForceBtn">⬆️ رفع نسختي رغم ذلك</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="printCardsArea"></div>
+  <div id="printGradeSheetArea"></div>
+  <div id="printAttendanceArea"></div>
+
+<div id="v20SearchArea" class="v20-search" style="max-width:900px;margin:16px auto;display:none;">
+  <input id="v20GlobalSearch" type="text" placeholder="🔎 ابحث عن طالب أو معلم أو مادة... (Ctrl + K)" autocomplete="off">
+  <kbd>Ctrl K</kbd>
+  <div id="v20SearchResults" class="v20-search-results"></div>
+</div>
+
+<div id="v20StudentModal" class="v20-modal" data-backdrop-close="closeV20Student">
+  <div class="v20-modal-box">
+    <div class="v20-modal-head"><div><strong id="v20StudentModalTitle">👨‍🎓 ملف الطالب</strong><div id="v20StudentModalSub" style="font-size:12px;color:#64748b;margin-top:4px"></div></div><button class="v20-close" data-action="closeV20Student" data-args='[]'>✕</button></div>
+    <div id="v20StudentModalBody" class="v20-modal-body"></div>
+  </div>
+</div>
+
+<div id="attnConflictModal" class="v20-modal" data-backdrop-close="closeAttendanceConflictsModal">
+  <div class="v20-modal-box">
+    <div class="v20-modal-head">
+      <div><strong>⚠️ تعارضات الحضور والغياب</strong><div style="font-size:12px;color:#64748b;margin-top:4px">طلاب لديهم "غ" في مادة ودرجات فعلية في مادة أخرى — يُنصح بالرجوع لشئون الطلاب للتأكد من الغياب اليومي الفعلي قبل اعتماد أي درجة.</div></div>
+      <button class="v20-close" data-action="closeAttendanceConflictsModal" data-args='[]'>✕</button>
+    </div>
+    <div id="attnConflictModalBody" class="v20-modal-body"></div>
+  </div>
+</div>
+
+<!-- ملاحظة: تحميل v20-v24 وattn-conflicts-review يتم مرة واحدة فقط، بالترتيب الصحيح بعد app.js
+     أسفل الصفحة (كان محمَّلاً هنا أيضاً بالخطأ قبل app.js، فيفشل بـ ReferenceError لأنه يعتمد على
+     دوال معرَّفة في app.js لم تُحمَّل بعد — أزلنا هذا التكرار المكسور). -->
+
+<!-- Teacher Daily Attendance Modal -->
+<div id="teacherDailyAttModal" class="tda-overlay hidden" data-backdrop-close="closeTeacherDailyAttendance">
+  <div class="tda-box" role="dialog" aria-modal="true">
+    <div class="tda-head">
+      <div>
+        <strong id="tdaTitle">📅 تسجيل حضور اليوم</strong>
+        <div id="tdaSubtitle" class="tda-sub"></div>
+      </div>
+      <button type="button" class="tda-close" data-action="closeTeacherDailyAttendance" data-args='[]' title="إغلاق">✕</button>
+    </div>
+    <div class="tda-toolbar" id="tdaToolbar">
+      <!-- شريط ملخص للموبايل: يُظهر الفلاتر المختارة ويطوي/يفتح التفاصيل -->
+      <button type="button" class="tda-filter-summary" id="tdaFilterSummary" data-action="tdaToggleFilters" data-args='[]' aria-expanded="false">
+        <span class="tda-filter-summary-text" id="tdaFilterSummaryText">اختر المادة والفصل والتاريخ</span>
+        <span class="tda-filter-summary-chevron" id="tdaFilterChevron">▼ تعديل</span>
+      </button>
+      <div class="tda-filters-panel" id="tdaFiltersPanel">
+        <div class="tda-filters">
+          <div class="form-group">
+            <label>📚 المادة</label>
+            <select id="tdaSubjectSelect" data-event-type="change" data-event-action="onTdaFilterChange"></select>
+          </div>
+          <div class="form-group">
+            <label>🏫 الفصل</label>
+            <select id="tdaClassSelect" data-event-type="change" data-event-action="onTdaFilterChange"></select>
+          </div>
+          <div class="form-group">
+            <label>📆 التاريخ</label>
+            <input type="date" id="tdaDateInput" data-event-type="change" data-event-action="onTdaFilterChange">
+          </div>
+        </div>
+      </div>
+      <div id="tdaBanner" class="tda-banner hidden"></div>
+      <div class="tda-bulk hidden" id="tdaBulkBar">
+        <button type="button" class="btn btn-success btn-sm" data-action="tdaMarkAll" data-args='["present"]'>✅ تعيين الكل حاضر</button>
+        <button type="button" class="btn btn-danger btn-sm" data-action="tdaMarkAll" data-args='["absent"]'>🚫 تعيين الكل غائب</button>
+        <button type="button" class="btn btn-outline btn-sm" data-action="tdaMarkAll" data-args='["excuse"]'>📋 تعيين الكل عذر</button>
+        <span id="tdaSaveStatus" class="tda-status"></span>
+      </div>
+    </div>
+    <div id="tdaCards" class="tda-cards"></div>
+    <div class="tda-foot">
+      <div class="tda-legend">✓ حاضر &nbsp;|&nbsp; غ غائب &nbsp;|&nbsp; ع عذر &nbsp;|&nbsp; بدون اختيار = حاضر (يُحفظ عند الحاجة كحاضر)</div>
+      <button type="button" class="btn btn-primary" data-action="closeTeacherDailyAttendance" data-args='[]'>تم — العودة للوحة التحكم</button>
+    </div>
+  </div>
+</div>
+
+  <!--
+    =====================================================================
+    ترتيب التحميل (كلاسيك defer فقط — بدون type=module)
+    1) Core runtime
+    2) Infrastructure + Auth
+    3) Sync stack
+    4) App state + split app parts
+    5) Grades feature stack
+    6) Students / print / import
+    7) UX / analytics layers
+    8) Attendance: domain → system → services → ports → composition → UI
+    9) Monitor + final composition
+    يعمل عبر: python -m http.server 5173   أو   npm run dev
+    لا تفتح index.html مباشرة بـ file://
+    =====================================================================
+  -->
+
+  <!-- 1. Core -->
+  <script defer src="js/architecture-bootstrap.js"></script>
+  <script defer src="js/core/gsp-runtime.js"></script>
+  <script defer src="js/core/version.js"></script>
+  <script src="js/domain/school/tenant-context.js"></script>
+  <script src="js/domain/calendar/term-calendar.js"></script>
+  <script defer src="js/core/ui-modal.js"></script>
+  <script defer src="js/core/utils.js"></script>
+  <script defer src="js/core/dom-actions.js"></script>
+  <script defer src="js/core/grade-logic.js"></script>
+  <script defer src="js/domain/grades/weekly-period.js"></script>
+  <script defer src="js/core/pin-logic.js"></script>
+  <script defer src="js/infrastructure/database-gateway.js"></script>
+  <script defer src="js/core/storage.js"></script>
+  <script defer src="js/infrastructure/repositories/stage-data-repository.js"></script>
+  <script defer src="js/infrastructure/repositories/grades-repository.js"></script>
+
+  <!-- 2. Auth + config -->
+  <script defer src="js/application/services/configuration-service.js"></script>
+  <script defer src="js/auth/supabase-config.js"></script>
+  <script defer src="js/auth/cloud-auth.js"></script>
+  <script defer src="js/auth/session.js"></script>
+  <script defer src="js/auth/login-ui.js"></script>
+
+  <!-- 3. Cloud sync stack -->
+  <script defer src="js/infrastructure/adapters/supabase-sync-adapter.js"></script>
+  <script defer src="js/application/services/sync-queue.js"></script>
+  <script defer src="js/application/services/sync-status.js"></script>
+  <script defer src="js/application/services/conflict-resolver.js"></script>
+  <script defer src="js/application/services/offline-sync-reliability.js"></script>
+  <script defer src="js/application/services/transaction-service.js"></script>
+  <script defer src="js/application/services/audit-service.js"></script>
+  <script defer src="js/application/services/error-recovery-service.js"></script>
+  <script defer src="js/application/services/permission-matrix-service.js"></script>
+  <script defer src="js/application/services/data-migration-service.js"></script>
+  <script defer src="js/application/services/import-validation-service.js"></script>
+  <script defer src="js/application/services/performance-service.js"></script>
+  <script defer src="js/application/testing/regression-suite-service.js"></script>
+  <script defer src="js/application/composition/cloud-sync-composition.js"></script>
+  <script defer src="js/features/cloud-sync.js"></script>
+
+  <!-- 4. App (former app.js split — order matches original sections) -->
+  <script defer src="js/app/state.js"></script>
+  <script defer src="js/app/auth-audit.part01.js"></script>
+  <script defer src="js/app/auth-audit.part02.js"></script>
+  <script defer src="js/app/auth-audit.part03.js"></script>
+  <script defer src="js/app/student-roster.part01.js"></script>
+  <script defer src="js/app/student-roster.part02.js"></script>
+  <script defer src="js/app/student-roster.part03.js"></script>
+  <script defer src="js/app/excel-catalog.js"></script>
+  <script defer src="js/app/grades-support.js"></script>
+  <script defer src="js/app/subjects-stats.js"></script>
+  <script defer src="js/app/school-info.js"></script>
+  <script defer src="js/app/teachers.js"></script>
+  <script defer src="js/app/init.js"></script>
+
+  <!-- 5. Grades feature stack -->
+  <script defer src="js/features/grades-ui.part01.js"></script>
+  <script defer src="js/features/grades-ui.part02.js"></script>
+  <script defer src="js/features/grades-ui.part03.js"></script>
+  <script defer src="js/features/grades-ui.part04.js"></script>
+  <script defer src="js/application/services/grades-ui-state.js"></script>
+  <script defer src="js/application/services/grades-service.js"></script>
+  <script defer src="js/application/services/grades-lock-service.js"></script>
+  <script defer src="js/application/services/grades-bulk-service.js"></script>
+  <script defer src="js/application/services/grades-save-service.js"></script>
+  <script defer src="js/application/ports/grades-public-api.js"></script>
+  <script defer src="js/application/composition/grades-composition.js"></script>
+  <script defer src="js/ui/grades-ui-adapter.js"></script>
+  <script defer src="js/features/grades/index.js"></script>
+
+  <!-- 6. Students / print / import-export -->
+  <script defer src="js/features/students.js"></script>
+  <script defer src="js/features/print-sheets.part01.js"></script>
+  <script defer src="js/features/print-sheets.part02.js"></script>
+  <script defer src="js/features/print-sheets.part03.js"></script>
+  <script defer src="js/features/print-sheets.part04.js"></script>
+  <script defer src="js/features/import-export.part01.js"></script>
+  <script defer src="js/features/import-export.part02.js"></script>
+  <script defer src="js/features/import-export.part03.js"></script>
+  <script defer src="js/features/import-export.part04.js"></script>
+  <script defer src="js/features/sql-export.js"></script>
+
+  <!-- 7. UX / analytics / security layers -->
+  <script defer src="js/v20-smart-ux.js"></script>
+  <script defer src="js/attn-conflicts-review.js"></script>
+  <script defer src="js/v21-smart-analytics.js"></script>
+  <script defer src="js/v22-security.js"></script>
+  <script defer src="js/v23-supabase-status.js"></script>
+  <script defer src="js/v24-teacher-analytics.js"></script>
+
+  <!-- 8. Attendance: domain → system (globals) → repo/services → ports → composition → UI -->
+  <script defer src="js/domain/attendance/attendance-calendar.js"></script>
+  <script defer src="js/domain/attendance/workday-policy.js"></script>
+  <script defer src="js/domain/monitor/monitor-ranking.js"></script>
+  <script defer src="js/features/attendance/analytics.js"></script>
+  <script defer src="js/features/attendance/filters.js"></script>
+  <script defer src="js/application/services/attendance-ui-state.js"></script>
+  <script defer src="js/application/services/attendance-notification-service.js"></script>
+  <script defer src="js/attendance-system.js"></script>
+  <script defer src="js/infrastructure/repositories/attendance-repository.js"></script>
+  <script defer src="js/application/services/attendance-service.js"></script>
+  <script defer src="js/application/services/attendance-admin-service.js"></script>
+  <script defer src="js/application/services/attendance-grid-actions.js"></script>
+  <script defer src="js/application/services/attendance-report-service.js"></script>
+  <script defer src="js/application/ports/attendance-legacy-boundary.js"></script>
+  <script defer src="js/application/ports/attendance-public-api.js"></script>
+  <script defer src="js/application/composition/attendance-composition.js"></script>
+  <script defer src="js/features/attendance/teacher-daily.js"></script>
+  <script defer src="js/ui/attendance-ui-adapter.js"></script>
+  <script defer src="js/features/attendance/index.js"></script>
+
+  <!-- 9. Monitor + final composition -->
+  <script defer src="js/features/monitor/analytics.js"></script>
+  <script defer src="js/application/services/monitor-service.js"></script>
+  <script defer src="js/application/ports/monitor-public-api.js"></script>
+  <script defer src="js/application/composition/monitor-composition.js"></script>
+  <script defer src="js/monitor-shell.js"></script>
+  <script defer src="js/ui/monitor-ui-adapter.js"></script>
+  <script defer src="js/application/composition/application-context.js"></script>
+  <script defer src="js/application/bootstrap/error-recovery-bootstrap.js"></script>
+  <script defer src="js/features/monitor/index.js"></script>
+  <script defer src="js/app/ui-shortcuts.js"></script>
+
+  <!-- إصلاح طارئ: إغلاق نوافذ التعارض/الدرجات الناقصة عند النقر (يُحمَّل آخراً) -->
+  <script defer src="js/modal-dismiss-fix.js"></script>
+
+  <script src="pwa-register.js"></script>
+</body>
+</html>

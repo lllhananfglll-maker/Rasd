@@ -1,0 +1,26 @@
+{
+  "name": "grade-system-pro",
+  "version": "26.0.0-dev",
+  "description": "رصد — نظام رصد درجات أعمال السنة Pro (offline-first, multi-school ready)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "serve": "python3 -m http.server 5173",
+    "test": "node tests/run-tests.mjs && npm run test:vitest",
+    "test:vitest": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint js --ext .js",
+    "format": "prettier --write \"js/**/*.js\" \"css/**/*.css\" \"index.html\"",
+    "check": "npm run lint && npm test && npm run build"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "vite": "^6.0.0",
+    "vite-plugin-static-copy": "^4.1.1",
+    "vitest": "^3.0.0"
+  }
+}
