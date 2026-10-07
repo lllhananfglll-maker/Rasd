@@ -1,0 +1,2007 @@
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    /* كلاس مساعد عام بدل style="display:none;" المضمّن (يقلّل الاعتماد على unsafe-inline في CSP) */
+    .hidden {
+      display: none;
+    }
+    body {
+      font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f7f4;
+      color: #1e293b;
+      padding: 16px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 10px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .form-group label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #334155;
+    }
+    .form-group input,
+    .form-group select {
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #fff;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #0b5e42;
+      box-shadow: 0 0 0 3px rgba(11, 94, 66, .18);
+    }
+    .btn {
+      padding: 8px 18px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: .2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary {
+      background: #0b5e42;
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: #064e3b;
+    }
+    .btn-success {
+      background: #0b5e42;
+      color: #fff;
+    }
+    .btn-success:hover {
+      background: #064e3b;
+    }
+    .btn-danger {
+      background: #b91c1c;
+      color: #fff;
+    }
+    .btn-danger:hover {
+      background: #991b1b;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 2px solid #94a3b8;
+      color: #1e293b;
+    }
+    .btn-outline:hover {
+      border-color: #0b5e42;
+    }
+    .btn-sm {
+      padding: 4px 12px;
+      font-size: 13px;
+    }
+    .btn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+    .mt-16 {
+      margin-top: 16px;
+    }
+    .mb-16 {
+      margin-bottom: 16px;
+    }
+    .flex {
+      display: flex;
+    }
+    .flex-wrap {
+      flex-wrap: wrap;
+    }
+    .gap-12 {
+      gap: 12px;
+    }
+    .items-center {
+      align-items: center;
+    }
+    .justify-between {
+      justify-content: space-between;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      max-height: 70vh;
+    }
+    .idx-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      background: #0b5e42;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 700;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      min-width: 600px;
+    }
+    th {
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 600;
+      padding: 10px 12px;
+      text-align: right;
+      border-bottom: 2px solid #e2e8f0;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+    tbody tr:hover {
+      background: #f8fafc;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-f {
+      background: #f43f5e;
+      color: #fff;
+    }
+    .badge-m {
+      background: #3b82f6;
+      color: #fff;
+    }
+    .badge-subject {
+      background: #7c3aed;
+      color: #fff;
+    }
+    .upload-area {
+      border: 2px dashed #94a3b8;
+      border-radius: 12px;
+      padding: 30px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: .25s;
+      background: #f8fafc;
+      margin-bottom: 16px;
+    }
+    .upload-area:hover {
+      border-color: #0b5e42;
+      background: #f1f5f9;
+    }
+    .upload-area input[type="file"] {
+      display: none;
+    }
+    .upload-area .icon {
+      font-size: 40px;
+      display: block;
+      margin-bottom: 6px;
+    }
+    /* ===== تبويب رفع الملف — 3 أقسام احترافية ===== */
+    .up-page-head {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+      flex-wrap: wrap; margin-bottom: 18px;
+    }
+    .up-page-head h2 { margin: 0 0 6px; border: none; padding: 0; }
+    .up-page-head p { margin: 0; color: #64748b; font-size: 13.5px; line-height: 1.7; max-width: 640px; }
+    .up-step-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .up-step-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700;
+      border: 1px solid #e2e8f0; background: #f8fafc; color: #475569;
+    }
+    .up-step-pill .n {
+      width: 20px; height: 20px; border-radius: 50%; display: inline-flex;
+      align-items: center; justify-content: center; font-size: 11px; font-weight: 800;
+      background: #e2e8f0; color: #334155;
+    }
+    .up-step-pill.is-import { border-color: #93c5fd; background: #eff6ff; color: #1e40af; }
+    .up-step-pill.is-import .n { background: #2563eb; color: #fff; }
+    .up-step-pill.is-export { border-color: #86efac; background: #f0fdf4; color: #166534; }
+    .up-step-pill.is-export .n { background: #16a34a; color: #fff; }
+    .up-step-pill.is-admin { border-color: #fcd34d; background: #fffbeb; color: #92400e; }
+    .up-step-pill.is-admin .n { background: #d97706; color: #fff; }
+
+    .up-section {
+      border-radius: 14px; margin-bottom: 14px; overflow: hidden;
+      border: 1px solid #e2e8f0; background: #fff;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, .04);
+    }
+    .up-section-head {
+      display: flex; align-items: center; gap: 12px; flex-wrap: nowrap;
+      padding: 14px 18px; border-bottom: 1px solid transparent;
+      width: 100%; text-align: right; cursor: pointer;
+      font: inherit; background: transparent; color: inherit;
+      transition: filter .15s, border-color .15s;
+    }
+    .up-section-head:hover { filter: brightness(0.98); }
+    .up-section-head:focus-visible { outline: 3px solid rgba(37, 99, 235, .35); outline-offset: -3px; }
+    .up-section-head .up-icon {
+      width: 40px; height: 40px; border-radius: 12px; display: flex;
+      align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+    }
+    .up-section-head .up-head-text { flex: 1; min-width: 0; text-align: right; }
+    .up-section-head h3 { margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; }
+    .up-section-head .up-sub { margin: 2px 0 0; font-size: 12.5px; color: #64748b; line-height: 1.5; }
+    .up-section-head .up-chevron {
+      width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(15, 23, 42, .06); color: #0f172a; font-size: 18px; font-weight: 800;
+      transition: transform .2s ease;
+    }
+    .up-section.is-open .up-section-head { border-bottom: 1px solid #e2e8f0; }
+    .up-section.is-open .up-chevron { transform: rotate(180deg); }
+    .up-section-panel { display: none; }
+    .up-section.is-open .up-section-panel { display: block; }
+    .up-section-body { padding: 16px 18px 18px; }
+    .up-section-foot {
+      padding: 12px 18px; border-top: 1px solid #e2e8f0; background: #f8fafc;
+      font-size: 12.5px; color: #64748b; line-height: 1.7;
+    }
+
+    .up-section.is-import { border-color: #bfdbfe; }
+    .up-section.is-import .up-section-head { background: linear-gradient(90deg, #eff6ff, #f8fafc); }
+    .up-section.is-import.is-open .up-section-head { border-bottom-color: #bfdbfe; }
+    .up-section.is-import .up-icon { background: #dbeafe; }
+
+    .up-section.is-export { border-color: #bbf7d0; }
+    .up-section.is-export .up-section-head { background: linear-gradient(90deg, #f0fdf4, #f8fafc); }
+    .up-section.is-export.is-open .up-section-head { border-bottom-color: #bbf7d0; }
+    .up-section.is-export .up-icon { background: #dcfce7; }
+
+    .up-section.is-admin { border-color: #fde68a; }
+    .up-section.is-admin .up-section-head { background: linear-gradient(90deg, #fffbeb, #f8fafc); }
+    .up-section.is-admin.is-open .up-section-head { border-bottom-color: #fde68a; }
+    .up-section.is-admin .up-icon { background: #fef3c7; }
+
+    .up-nav-btns {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 800px) {
+      .up-nav-btns { grid-template-columns: 1fr; }
+      .up-section-head { flex-wrap: wrap; }
+    }
+    .up-nav-btn {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 12px 14px; border-radius: 12px; border: 1px solid #e2e8f0;
+      background: #fff; cursor: pointer; font: inherit; text-align: right;
+      transition: .15s; box-shadow: 0 1px 4px rgba(15,23,42,.04);
+    }
+    .up-nav-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,23,42,.08); }
+    .up-nav-btn .up-nav-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .up-nav-btn .up-nav-num {
+      width: 28px; height: 28px; border-radius: 50%; display: inline-flex;
+      align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0;
+    }
+    .up-nav-btn strong { display: block; font-size: 14px; color: #0f172a; }
+    .up-nav-btn small { display: block; font-size: 11.5px; color: #64748b; margin-top: 2px; }
+    .up-nav-btn .up-nav-arrow {
+      width: 28px; height: 28px; border-radius: 8px; display: inline-flex;
+      align-items: center; justify-content: center; background: rgba(15,23,42,.06);
+      font-size: 16px; font-weight: 800; flex-shrink: 0; transition: transform .2s ease;
+    }
+    .up-nav-btn.is-open .up-nav-arrow { transform: rotate(180deg); }
+    .up-nav-btn.is-import { border-color: #93c5fd; background: #eff6ff; }
+    .up-nav-btn.is-import .up-nav-num { background: #2563eb; color: #fff; }
+    .up-nav-btn.is-export { border-color: #86efac; background: #f0fdf4; }
+    .up-nav-btn.is-export .up-nav-num { background: #16a34a; color: #fff; }
+    .up-nav-btn.is-admin { border-color: #fcd34d; background: #fffbeb; }
+    .up-nav-btn.is-admin .up-nav-num { background: #d97706; color: #fff; }
+    .up-nav-btn.is-active { box-shadow: 0 0 0 3px rgba(37, 99, 235, .18); }
+
+    .up-field-grid {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px;
+    }
+    .up-field-grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @media (max-width: 900px) {
+      .up-field-grid, .up-field-grid.cols-2 { grid-template-columns: 1fr; }
+    }
+    .up-field {
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px;
+    }
+    .up-field label {
+      display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 6px;
+    }
+    .up-field select, .up-field input {
+      width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px;
+      background: #fff; font-size: 14px;
+    }
+    .up-field select:focus, .up-field input:focus {
+      outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+    }
+    .up-required::after { content: " *"; color: #dc2626; font-weight: 800; }
+
+    .up-section.is-import .upload-area {
+      border: 2px dashed #60a5fa; background: linear-gradient(180deg, #eff6ff, #f8fafc);
+      margin-bottom: 12px;
+    }
+    .up-section.is-import .upload-area:hover {
+      border-color: #2563eb; background: #dbeafe;
+    }
+
+    .up-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .up-group-title {
+      font-size: 13px; font-weight: 800; color: #0f172a; margin: 14px 0 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .up-group-title span.tag {
+      font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+      background: #e2e8f0; color: #475569;
+    }
+    .up-export-box {
+      background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px;
+      padding: 12px 14px; margin-bottom: 12px;
+    }
+    .up-export-box.control {
+      background: #eff6ff; border-color: #bfdbfe;
+    }
+    .up-export-box.monthly {
+      background: #faf5ff; border-color: #e9d5ff;
+    }
+    .up-danger-zone {
+      background: #fef2f2; border: 1px dashed #fca5a5; border-radius: 12px;
+      padding: 14px; margin-top: 10px;
+    }
+    .up-danger-zone h4 {
+      margin: 0 0 6px; color: #991b1b; font-size: 14px; font-weight: 800;
+    }
+    .up-danger-zone p { margin: 0 0 10px; color: #b91c1c; font-size: 12.5px; line-height: 1.7; }
+    .up-backup-row {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+      background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px 14px;
+    }
+    .up-status-panel {
+      margin-top: 12px; padding: 12px 14px; border-radius: 12px;
+      background: #f8fafc; border: 1px solid #e2e8f0; min-height: 24px;
+    }
+    .up-hint {
+      font-size: 12px; color: #64748b; line-height: 1.7; margin-top: 8px;
+    }
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 8px 8px 0 0;
+      font-weight: 600;
+      color: #64748b;
+      transition: .2s;
+      background: transparent;
+      border: none;
+    }
+    .tab.active {
+      background: #0b5e42;
+      color: #fff;
+    }
+    .tab:hover:not(.active) {
+      background: #e2e8f0;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .progress-wrap {
+      width: 100%;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 8px 0 4px;
+    }
+    .progress-wrap .bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #0b5e42, #16a34a);
+      transition: width .3s;
+    }
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .filter-bar select,
+    .filter-bar input {
+      padding: 6px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #fff;
+      min-width: 140px;
+    }
+    .subject-grade-group {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .subject-grade-group h4 {
+      color: #0b5e42;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+    .component-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .component-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      background: #fff;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+    }
+    .warning-box {
+      background: #fff7ed;
+      border: 1px solid #fb923c;
+      color: #9a3412;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.9;
+    }
+    .error-box {
+      background: #fef2f2;
+      border: 1px solid #f87171;
+      color: #991b1b;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.9;
+    }
+    .success-box {
+      background: #f0fdf4;
+      border: 1px solid #4ade80;
+      color: #166534;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.9;
+    }
+    .btn-absent-g {
+      flex: 0 0 auto;
+      width: 32px;
+      min-width: 32px;
+      height: 36px;
+      padding: 0;
+      border: 1px solid #fca5a5;
+      background: #fef2f2;
+      color: #b91c1c;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .btn-absent-g:active { background: #fee2e2; }
+    @media (max-width: 640px) {
+      .btn-absent-g { width: 36px; min-width: 36px; height: 40px; font-size: 15px; }
+    }
+    .grade-input.invalid {
+      border-color: #b91c1c !important;
+      background: #fef2f2 !important;
+    }
+    /* خانة درجة لم تُرصد بعد إطلاقاً (لا رقم ولا "غ") - تلوين لحظي أثناء الرصد نفسه حتى تُكتشف
+       الخانات الفارغة فوراً بدل اكتشافها متأخراً وقت الطباعة/التصدير. */
+    td.grade-cell-missing {
+      background: #fff1f2 !important;
+      box-shadow: inset 0 0 0 1.5px #fca5a5;
+    }
+    td.grade-cell-missing .grade-input {
+      border-color: #f87171 !important;
+      background: #fff5f5 !important;
+    }
+    /* نقطة لونية صغيرة بجانب اسم الطالب تعكس مستوى أدائه في الشهر الحالي (نظام الدرجة الوصفية) */
+    .tier-dot {
+      display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+      margin-inline-start: 7px; vertical-align: middle; box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(0,0,0,0.08);
+    }
+    /* نافذة تأكيد "الدرجات الناقصة" - overlay داكن + صندوق مركزي، تحجب الصفحة بالكامل حتى يُضطر
+       المستخدم لاتخاذ قرار واضح (متابعة/إلغاء) ولا يمكن تفويتها أو إغلاقها بالخطأ بضغطة عابرة. */
+    .mg-modal-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; padding: 20px;
+    }
+    /* مهم: بدون هذا القاعدة، .mg-modal-overlay {display:flex} يتفوّق على .hidden ويترك الطبقة حاجبة للنقر */
+    .mg-modal-overlay.hidden {
+      display: none !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
+    }
+    .mg-modal-box {
+      background: #fff; border-radius: 12px; max-width: 640px; width: 100%;
+      max-height: 85vh; display: flex; flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+    .mg-modal-header {
+      padding: 18px 22px; font-size: 17px; font-weight: 800; color: #9a3412;
+      background: #fff7ed; border-bottom: 1px solid #fdba74; border-radius: 12px 12px 0 0;
+    }
+    .mg-modal-body {
+      padding: 16px 22px; overflow-y: auto; font-size: 14px; color: #334155; line-height: 1.9;
+    }
+    .mg-modal-body table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .mg-modal-body th, .mg-modal-body td { padding: 6px 8px; border-bottom: 1px solid #e2e8f0; text-align: right; }
+    .mg-modal-footer {
+      padding: 14px 22px; display: flex; gap: 10px; justify-content: flex-end;
+      border-top: 1px solid #e2e8f0;
+    }
+    /* نافذة تأكيد/تنبيه عامة موحّدة تحل محل alert()/confirm() الافتراضيتين من المتصفح في كل النظام.
+       تعيد استخدام نفس هيكل mg-modal (overlay + box) مع ألوان رأس متغيرة حسب نوع الرسالة. */
+    .ui-modal-header.ui-type-info    { color: #0b5e42; background: #eff6ff; border-bottom-color: #bfdbfe; }
+    .ui-modal-header.ui-type-warning { color: #9a3412; background: #fff7ed; border-bottom-color: #fdba74; }
+    .ui-modal-header.ui-type-danger  { color: #991b1b; background: #fef2f2; border-bottom-color: #fca5a5; }
+    .ui-modal-header.ui-type-success { color: #065f46; background: #ecfdf5; border-bottom-color: #6ee7b7; }
+    .ui-modal-body { white-space: pre-wrap; }
+    .stat-card {
+      text-align: center;
+      padding: 14px;
+    }
+    .stat-num {
+      font-size: 28px;
+      font-weight: 700;
+      color: #0b5e42;
+    }
+    .stat-label {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+    .bar-outer {
+      background: #e2e8f0;
+      border-radius: 6px;
+      overflow: hidden;
+      height: 10px;
+      margin-top: 6px;
+    }
+    .bar-inner {
+      height: 100%;
+      background: linear-gradient(90deg, #0b5e42, #22c55e);
+    }
+
+    /* إغلاق عام للنظام */
+    .sys-closed-overlay {
+      position: fixed; inset: 0; z-index: 12000;
+      background: radial-gradient(1200px 600px at 70% -10%, rgba(37,99,235,.25), transparent 55%),
+                  radial-gradient(900px 500px at 10% 100%, rgba(15,23,42,.35), transparent 50%),
+                  linear-gradient(160deg, #064e3b 0%, #1e293b 45%, #0b1220 100%);
+      display: none; align-items: center; justify-content: center; padding: 20px;
+      direction: rtl;
+    }
+    .sys-closed-overlay.is-visible { display: flex; }
+    body.system-closed-active > *:not(#systemClosedOverlay) {
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+    body.system-closed-active #systemClosedOverlay {
+      visibility: visible !important;
+      pointer-events: auto !important;
+    }
+    .sys-closed-card {
+      width: min(520px, 100%); background: rgba(255,255,255,.97);
+      border-radius: 22px; padding: 28px 26px 22px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.08);
+      text-align: center; position: relative; overflow: hidden;
+    }
+    .sys-closed-card::before {
+      content: ''; position: absolute; top: 0; right: 0; left: 0; height: 5px;
+      background: linear-gradient(90deg, #dc2626, #f59e0b, #2563eb);
+    }
+    .sys-closed-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;
+      border-radius: 999px; padding: 6px 14px; font-size: 12.5px; font-weight: 800;
+      margin-bottom: 14px;
+    }
+    .sys-closed-card h2 {
+      margin: 0 0 10px; font-size: 22px; font-weight: 900; color: #0f172a;
+      border: none; padding: 0;
+    }
+    .sys-closed-msg {
+      margin: 0 auto 18px; max-width: 420px; font-size: 15px; line-height: 1.95;
+      color: #334155; background: #f8fafc; border: 1px solid #e2e8f0;
+      border-radius: 14px; padding: 14px 16px;
+    }
+    .sys-closed-meta { font-size: 12px; color: #94a3b8; margin-bottom: 16px; }
+    .sys-closed-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .sys-closure-card {
+      border: 1px solid #fecaca; background: linear-gradient(180deg, #fff, #fef2f2);
+      border-radius: 14px; padding: 16px 18px; margin-top: 16px;
+    }
+    .sys-closure-card h2 { border: none; padding: 0; margin: 0 0 8px; color: #991b1b; }
+    .sys-closure-presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 12px; }
+    .sys-closure-presets button {
+      border: 1px solid #fdba74; background: #fff7ed; color: #9a3412;
+      border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .sys-closure-presets button:hover { background: #ffedd5; }
+
+    .locked-note {
+      background: #eef2ff;
+      color: #3730a3;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    @media (max-width:768px) {
+      .grid-2,
+      .grid-3,
+      .grid-4 {
+        grid-template-columns: 1fr;
+      }
+      .tab-bar {
+        flex-direction: column;
+      }
+      .tab {
+        border-radius: 6px;
+      }
+      .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .filter-bar select,
+      .filter-bar input {
+        width: 100%;
+      }
+
+      /* رصد الدرجات على الموبايل: كل طالب يظهر ككرت مستقل،
+         اسم الطالب أعلى الكرت ثم درجاته أسفله رأسياً بدل التمرير يمين/يسار */
+      .grades-table-wrap {
+        max-height: none;
+        overflow-x: visible;
+        border: none;
+      }
+      .grades-table {
+        min-width: 0;
+      }
+      .grades-table thead {
+        display: none;
+      }
+      .grades-table,
+      .grades-table tbody,
+      .grades-table tr,
+      .grades-table td {
+        display: block;
+        width: 100%;
+      }
+      .grades-table tr {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 14px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, .06);
+      }
+      .grades-table td {
+        border-bottom: none;
+        padding: 7px 0;
+      }
+      .grades-table td.col-index {
+        display: none;
+      }
+      .grades-table td.col-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+        padding-bottom: 10px;
+        margin-bottom: 6px;
+        border-bottom: 2px solid #e2e8f0;
+      }
+      .grades-table td.col-id,
+      .grades-table td.col-lang,
+      .grades-table td.col-grade {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border-top: 1px dashed #f1f5f9;
+      }
+      .grades-table td.col-id::before,
+      .grades-table td.col-lang::before,
+      .grades-table td.col-grade::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #64748b;
+        font-size: 13px;
+        flex-shrink: 0;
+      }
+      .grades-table td.col-grade input {
+        width: 110px !important;
+        text-align: center;
+      }
+      .grades-table td.col-action {
+        padding-top: 12px;
+      }
+      .grades-table td.col-action button {
+        width: 100%;
+        justify-content: center;
+      }
+
+      /* إدارة المعلمين على الموبايل: كل معلم يظهر ككرت مستقل تحت الآخر (تمرير رأسي)،
+         بدل جدول عريض يحتاج تمريراً أفقياً يمين/يسار */
+      .teachers-table thead {
+        display: none;
+      }
+      .teachers-table,
+      .teachers-table tbody,
+      .teachers-table tr,
+      .teachers-table td {
+        display: block;
+        width: 100%;
+      }
+      .teachers-table tr {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 14px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, .06);
+      }
+      .teachers-table td {
+        border-bottom: none;
+        padding: 7px 0;
+      }
+      .teachers-table td.col-index {
+        display: none;
+      }
+      .teachers-table td.col-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+        padding-bottom: 10px;
+        margin-bottom: 6px;
+        border-bottom: 2px solid #e2e8f0;
+      }
+      .teachers-table td.col-info,
+      .teachers-table td.col-pin {
+        border-top: 1px dashed #f1f5f9;
+      }
+      .teachers-table td.col-info::before,
+      .teachers-table td.col-pin::before {
+        content: attr(data-label);
+        display: block;
+        font-weight: 600;
+        color: #64748b;
+        font-size: 13px;
+        margin-bottom: 4px;
+      }
+      .teachers-table td.col-actions {
+        padding-top: 12px;
+        border-top: 1px dashed #f1f5f9;
+      }
+      .teachers-table td.col-actions .flex {
+        flex-wrap: wrap;
+      }
+      .teachers-table td.col-actions button {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+    }
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      min-height: 100%;
+      min-height: 100dvh;
+      min-height: -webkit-fill-available;
+      /* لون احتياطي ثم تدرج — يعمل على كل المتصفحات بما فيها موبايل قديم */
+      background-color: #0b1224;
+      background-image:
+        radial-gradient(ellipse 90% 60% at 15% 10%, rgba(59, 130, 246, 0.45), transparent 55%),
+        radial-gradient(ellipse 80% 50% at 90% 85%, rgba(14, 165, 233, 0.28), transparent 50%),
+        radial-gradient(circle at 50% 120%, rgba(37, 99, 235, 0.2), transparent 45%),
+        linear-gradient(165deg, #022c22 0%, #0b5e42 50%, #064e3b 100%);
+      background-repeat: no-repeat;
+      background-size: cover;
+      -webkit-background-size: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 12px;
+      padding-top: max(12px, env(safe-area-inset-top, 0px));
+      padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      /* طبقة GPU مستقرة على iOS/Android */
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      isolation: isolate;
+    }
+    /* زخارف خلفية شاشة الدخول — تظهر حول بطاقة الدخول على الموبايل أيضاً */
+    .auth-overlay::before,
+    .auth-overlay::after {
+      content: '';
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+      border-radius: 50%;
+      filter: blur(2px);
+      -webkit-filter: blur(2px);
+      opacity: 0.85;
+    }
+    .auth-overlay::before {
+      width: min(70vw, 320px);
+      height: min(70vw, 320px);
+      top: -8%;
+      right: -12%;
+      background: radial-gradient(circle, rgba(96, 165, 250, 0.55) 0%, rgba(37, 99, 235, 0.15) 45%, transparent 70%);
+    }
+    .auth-overlay::after {
+      width: min(85vw, 380px);
+      height: min(85vw, 380px);
+      bottom: -15%;
+      left: -18%;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.4) 0%, rgba(14, 116, 144, 0.12) 50%, transparent 72%);
+    }
+    .auth-overlay > .auth-card {
+      position: relative;
+      z-index: 1;
+    }
+    body.auth-open {
+      overflow: hidden !important;
+      height: 100%;
+      height: 100dvh;
+      min-height: -webkit-fill-available;
+      /* لا نستخدم none — يمنع اللمس على بعض أجهزة الموبايل */
+      touch-action: manipulation;
+      background-color: #0b1224;
+    }
+    body.auth-open > .container,
+    body.auth-open > #monShell {
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+    body.auth-open #connStatusBadge {
+      z-index: 10001;
+      top: max(8px, env(safe-area-inset-top));
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
+      max-width: min(92vw, 320px);
+      font-size: 11px;
+      padding: 6px 12px;
+      line-height: 1.45;
+    }
+    .auth-card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 20px 18px 22px;
+      width: 100%;
+      max-width: 440px;
+      max-height: min(92vh, 720px);
+      overflow-y: auto;
+      box-shadow: 0 20px 50px rgba(0,0,0,.35);
+      margin: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .auth-card h3 {
+      margin: 8px 0 14px;
+      color: #0f172a;
+      font-size: 18px;
+      text-align: center;
+      border: none;
+      padding: 0;
+    }
+    .auth-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .auth-switch button {
+      width: 100%;
+      min-height: 48px;
+      margin: 0;
+      padding: 10px 8px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 12px;
+      line-height: 1.35;
+      white-space: normal;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .auth-switch button.btn-primary {
+      box-shadow: 0 4px 14px rgba(37, 99, 235, .35);
+    }
+    .auth-card .form-group label {
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .auth-card .form-group input,
+    .auth-card .form-group select {
+      min-height: 44px;
+      font-size: 16px; /* يمنع تكبير iOS التلقائي */
+      border-radius: 10px;
+    }
+    .auth-card .btn-primary:not(.auth-switch button) {
+      width: 100%;
+      min-height: 46px;
+      font-size: 15px;
+      border-radius: 12px;
+      margin-top: 4px;
+    }
+    .auth-card > p {
+      font-size: 12.5px;
+      line-height: 1.7;
+    }
+    @media (min-width: 520px) {
+      .auth-switch {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .auth-switch button {
+        font-size: 12px;
+        padding: 10px 4px;
+        min-height: 52px;
+      }
+      .auth-card {
+        padding: 26px 24px;
+      }
+    }
+    
+    body.role-monitor input.grade-input,
+    body.role-monitor input.att-mark,
+    body.role-monitor #attDaysCheckboxes input {
+      pointer-events: none !important;
+      opacity: 0.9;
+    }
+    .account-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #475569;
+    }
+    .checkbox-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-height: 160px;
+      overflow-y: auto;
+      padding: 8px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+    .checkbox-list label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      background: #f8fafc;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+    }
+    .term-month-selector {
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-end;
+    }
+    .term-month-selector .form-group {
+      flex: 1 1 180px;
+    }
+    .term-month-selector .form-group label {
+      font-weight: 700;
+      color: #0f172a;
+      font-size: 15px;
+    }
+    .term-month-selector .form-group select {
+      background: #fff;
+      font-weight: 500;
+      border-color: #94a3b8;
+    }
+    .grade-term-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #0b5e42;
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .grade-month-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #7c3aed;
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .third-month-toggle {
+      background: #eef2ff;
+      border: 1px dashed #818cf8;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-top: 8px;
+    }
+    .third-month-toggle label.switch-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      color: #3730a3;
+      font-size: 14px;
+    }
+    .third-month-toggle input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #4338ca;
+      cursor: pointer;
+    }
+    .third-month-fields {
+      margin-top: 12px;
+    }
+    /* ==================== LOCK CENTER (workflow control) ==================== */
+    .lock-term-card {
+      background: #fff;
+      border: 1px solid #fdba74;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+    .lock-term-card:last-child { margin-bottom: 0; }
+    .lock-term-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed #fdba74;
+    }
+    .lock-term-title {
+      font-weight: 700;
+      color: #9a3412;
+      font-size: 15px;
+    }
+    .lock-month-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .lock-month-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      min-width: 200px;
+      flex: 1 1 220px;
+      justify-content: space-between;
+    }
+    .lock-month-chip span:first-child {
+      font-weight: 600;
+      font-size: 13.5px;
+      color: #1e293b;
+    }
+    .lock-month-chip.is-locked {
+      background: #fef2f2;
+      border-color: #fca5a5;
+    }
+    .lock-month-chip.is-open {
+      background: #f0fdf4;
+      border-color: #86efac;
+    }
+    .lock-month-chip .chip-status {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+    .lock-month-chip.is-locked .chip-status { background: #b91c1c; color: #fff; }
+    .lock-month-chip.is-open .chip-status { background: #0b5e42; color: #fff; }
+    #printCardsArea, #printGradeSheetArea, #printAttendanceArea {
+      display: none;
+    }
+    .grade-sheet-page {
+      font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      direction: rtl;
+    }
+    .grade-sheet-header {
+      text-align: center;
+      border-bottom: 2px solid #064e3b;
+      padding-bottom: 6mm;
+      margin-bottom: 6mm;
+    }
+    .grade-sheet-header .gs-top-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #1e293b;
+      margin-bottom: 3mm;
+    }
+    .grade-sheet-header .gs-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 2mm;
+    }
+    .grade-sheet-header .gs-subtitle {
+      font-size: 13px;
+      color: #334155;
+      font-weight: 600;
+    }
+    .grade-sheet-meta {
+      font-size: 12px;
+      color: #1e293b;
+      margin-bottom: 5mm;
+      background: #f1f5f9;
+      border-radius: 6px;
+      padding: 3mm 4mm;
+      line-height: 2.1;
+      /* عرض بـ flex + flex-wrap:wrap بدل الاعتماد على التفاف inline-block الافتراضي: التفاف
+         inline-block يعتمد على أن يترك المتصفح "فراغاً" كافياً لنقل العنصر التالي لسطر جديد، لكن
+         مع خط عربي عريض نسبياً (Cairo) وعدد كبير من عناصر meta معاً (مدرسة/محافظة/إدارة/عام دراسي/
+         فصل دراسي/شهر/صف/مرحلة/قسم/فصل-شعبة/مادة/معلم)، ثبت عملياً أن السطر الأول قد يفيض ويُقطع عند
+         حافة الصفحة بدل أن ينتقل الباقي لسطر جديد (فتختفي عناصر meta كاملة من الكشف المطبوع). flex
+         مع flex-wrap:wrap يضمن حسب مواصفات CSS أن أي عنصر لا يتسع في السطر الحالي ينتقل لسطر جديد
+         دائماً، بصرف النظر عن عرض الخط الفعلي، فلا يحدث فيضان أو اختفاء لأي عنصر مهما كان طويلاً. */
+      display: flex;
+      flex-wrap: wrap;
+      row-gap: 1.5mm;
+    }
+    .grade-sheet-meta span {
+      display: inline-block;
+      white-space: nowrap;
+      margin-left: 8mm;
+    }
+    .grade-sheet-meta strong { color: #0f172a; }
+    .grade-sheet-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      table-layout: fixed;
+      border: 2px solid #3f7a57;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .grade-sheet-table th, .grade-sheet-table td {
+      border: 1px solid #94a3b8;
+      padding: 2mm 1.5mm;
+      text-align: center;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+    .grade-sheet-table thead th {
+      background: #3f7a57 !important;
+      color: #fff !important;
+      font-weight: 800;
+      border-color: #fff;
+    }
+    .grade-sheet-table thead th .gs-comp-max {
+      color: #e2e8f0 !important;
+    }
+    .grade-sheet-table td.serial-col,
+    .grade-sheet-table th.serial-col {
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: clip !important;
+      max-width: 0;
+      font-weight: 700;
+    }
+    .grade-sheet-table td.gs-score {
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: clip !important;
+      max-width: 0;
+      font-weight: 600;
+    }
+    .grade-sheet-table td.grand-total-col {
+      background: #dcfce7;
+      font-weight: 800;
+    }
+    /* تم تقييد منع تقسيم الصف (page-break-inside) على صفوف الجسم (tbody) فقط بدلاً من كل الصفوف
+       بما فيها صفوف الرأس (thead). كان تطبيقها على صفوف رأس الجدول متعددة الصفوف (rowspan/colspan)
+       يتسبب في خلل معروف بالمتصفحات عند إعادة تكرار الرأس تلقائياً أعلى كل صفحة طباعة: يظهر الرأس
+       الأول فارغاً تماماً بلا نصوص، ثم يظهر رأس آخر مكتمل في منتصف الجدول، وتختفي بصرياً بضعة صفوف
+       بيانات (رغم بقائها في طبقة النص بملف PDF). إبعاد thead عن هذه القاعدة يمنع الخلل تماماً. */
+    .grade-sheet-table tbody tr { page-break-inside: avoid; }
+    .grade-sheet-table thead { display: table-header-group; }
+    .grade-sheet-table th {
+      background: #e2e8f0;
+      color: #0f172a;
+      font-weight: 700;
+      /* تجاوز صريح لقاعدة "th { position: sticky; top:0; z-index:2 }" العامة المُعرَّفة لجداول
+         الواجهة القابلة للتمرير. هذه القاعدة العامة كانت تتسرب لرأس جدول كشف الدرجات المطبوع أيضاً،
+         و position:sticky معروف بسلوك غير مستقر جداً أثناء الطباعة في متصفح Chrome: بدل أن يبقى
+         الرأس ثابتاً أعلى الجدول، كان "يلتصق" بموضع رأسي محسوب خطأً في منتصف الصفحة المطبوعة،
+         فيظهر رأس الجدول عائماً في المنتصف ويُغطي (يُخفي بصرياً) الصف الذي يقع تحته تماماً. هذا هو
+         السبب الحقيقي وراء ظهور رأس الأعمدة في المنتصف واختفاء صف طالب مع كل محاولة طباعة سابقة. */
+      position: static;
+      top: auto;
+      z-index: auto;
+      /* نفس القاعدة العامة تحتوي أيضاً على white-space:nowrap (مخصصة لجداول الواجهة ذات الأعمدة
+         العريضة)، وكانت تتسرب هنا أيضاً فتمنع نص رأس العمود (خصوصاً الأسماء الطويلة مثل "المهام
+         الأدائية") من الالتفاف لسطر جديد، فيطفح النص خارج حدود الخلية الضيقة بدل أن يلتف بداخلها.
+         التجاوز إلى normal يحل هذا فعلياً. */
+      white-space: normal;
+      vertical-align: middle;
+      line-height: 1.3;
+    }
+    .grade-sheet-table td.gs-name {
+      text-align: right;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 0;
+    }
+    .grade-sheet-table th .gs-comp-name,
+    .grade-sheet-table th .gs-comp-max {
+      display: block;
+    }
+    .grade-sheet-table th .gs-comp-name {
+      font-weight: 800;
+      font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .grade-sheet-table th .gs-comp-max {
+      font-weight: 500;
+      font-size: .82em;
+      color: #475569;
+      margin-top: .6mm;
+    }
+    .grade-sheet-table th:is(:first-child, :nth-child(2), :last-child) {
+      font-weight: 800;
+    }
+    .grade-sheet-table tbody tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+    .grade-sheet-table tbody tr:nth-child(even) td.grand-total-col {
+      background: #dcfce7;
+    }
+    .grade-sheet-table td.serial-col {
+      border-left: 2px solid #3f7a57;
+    }
+    .grade-sheet-footer {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 14mm;
+      font-size: 12px;
+      color: #1e293b;
+    }
+    .grade-sheet-footer .gs-sign { text-align: center; min-width: 55mm; }
+    .grade-sheet-footer .gs-sign .gs-sign-name {
+      font-size: 12.5px;
+      white-space: nowrap;
+    }
+    .grade-sheet-footer .gs-sign .gs-sign-caption {
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .grade-sheet-footer .gs-sign .gs-line {
+      margin-top: 20mm;
+      border-top: 1px dotted #64748b;
+    }
+    .grade-sheet-footer .gs-print-note {
+      text-align: center;
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 6mm;
+    }
+    @media print {
+      /* body له padding:16px في وضع الشاشة العادي (للتصميم العادي). عند إزالة position:absolute
+         سابقاً (كجزء من إصلاح مشكلة الصفحات الفارغة الزائدة)، بقيت هذه المسافة الداخلية تؤثر على
+         الطباعة أيضاً لأن العنصر المطبوع أصبح يتبع التدفق العادي داخل body بدل موضع مطلق منفصل عنه
+         تماماً — ما كان يجعل كشف الدرجات يظهر مزاحاً وغير متمركز في الصفحة المطبوعة. تصفير padding
+         هنا فقط أثناء الطباعة يعيد الكشف لمنتصف الصفحة دون التأثير على الشاشة العادية إطلاقاً. */
+      body { padding: 0 !important; }
+      /* تم الانتقال من visibility:hidden إلى display:none لإخفاء بقية عناصر الصفحة (لوحة التحكم
+         الكاملة بكل تبويباتها) عند الطباعة. المشكلة أن visibility:hidden يخفي العنصر بصرياً فقط
+         دون إزالته من تدفق الصفحة (layout)، فيظل يحتفظ بكامل ارتفاعه الأصلي حتى لو كان غير مرئي؛
+         ولأن التطبيق بأكمله طويل جداً (عدة آلاف من البكسلات)، كانت المتصفحات الحديثة تُخرج عدداً
+         كبيراً من الصفحات الفارغة عند الطباعة (لأن حساب عدد صفحات الطباعة يعتمد على الارتفاع
+         الكلي لعناصر الصفحة بصرف النظر عن رؤيتها)، وتظهر منطقة الطباعة الفعلية في الصفحة الأولى
+         فقط بينما تبقى باقي الصفحات فارغة. display:none يزيل العنصر من التخطيط تماماً فلا يأخذ أي
+         مساحة، فتُطبع فقط الصفحة/الصفحات التي تحتوي فعلياً على كشف الدرجات أو البطاقات. */
+      body > *:not(#printCardsArea):not(#printGradeSheetArea):not(#printAttendanceArea) { display: none !important; }
+      #printCardsArea, #printGradeSheetArea, #printAttendanceArea {
+        display: block;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      .grade-sheet-page {
+        page-break-after: always;
+        page-break-inside: avoid;
+        break-inside: avoid;
+        padding: 0 2mm;
+      }
+      /* تجاوز إضافي بـ !important داخل سياق الطباعة نفسه كخط دفاع ثانٍ، لضمان عدم عودة سلوك
+         position:sticky غير المستقر أثناء الطباعة أياً كان مصدره. */
+      .grade-sheet-table th {
+        position: static !important;
+      }
+      .grade-sheet-page:last-child { page-break-after: auto; }
+
+      /* كشف أعمال السنة المتتالي: كل حاوية = صفحة طباعة واحدة داخل هوامش A4 */
+      @page {
+        size: A4 portrait;
+        margin: 10mm 12mm;
+      }
+      .term-totals-print-page {
+        width: 186mm !important;
+        max-width: 186mm !important;
+        max-height: 273mm !important;
+        margin: 0 auto !important;
+        padding: 2mm 1mm 2mm !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        page-break-before: auto !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+      }
+      .term-totals-print-page:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
+      .term-totals-print-page table,
+      .term-totals-print-page tr,
+      .term-totals-print-page td,
+      .term-totals-print-page th {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      /* تصغير خفيف للترويسة الموحّدة داخل هذا الكشف فقط حتى لا تتجاوز الهامش */
+      .term-totals-print-page .detailed-letterhead {
+        margin: 0 0 1.5mm 0 !important;
+      }
+      .term-totals-print-page .detailed-letterhead-strip {
+        font-size: 9px !important;
+        padding: 1mm 2mm !important;
+      }
+      .term-totals-print-page .detailed-lh-title {
+        font-size: 13px !important;
+      }
+      .term-totals-print-page .detailed-lh-meta-bar {
+        font-size: 9px !important;
+        padding: 1mm 0 !important;
+      }
+
+      .detailed-sheet-page,
+      .grade-sheet-page,
+      .att-print-page {
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        break-after: avoid-page !important;
+        padding: 0 1mm;
+        overflow: hidden;
+      }
+      .grade-sheet-table, .att-print-table, .detailed-weekly-table {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      table.detailed-weekly-table {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      table.detailed-weekly-table thead { display: table-header-group; }
+      table.detailed-weekly-table tbody tr { page-break-inside: avoid; break-inside: avoid; }
+      table.detailed-weekly-table th { position: static !important; }
+      table.detailed-weekly-table td.gs-name {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      table.detailed-weekly-table td.gs-score {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: clip !important;
+      }
+      table.detailed-weekly-table td.serial-col,
+      table.detailed-weekly-table th.serial-col {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: clip !important;
+      }
+
+      @page { size: A4; margin: 10mm; }
+      /* صفحات بطاقات الأرقام السرية لها "صفحة" مسمّاة خاصة بدون فرض مقاس A4 صراحةً، حتى تتبع مقاس
+         الورق الذي يختاره المستخدم فعلياً من نافذة الطباعة (A4 أو Letter) وتظل 4 بطاقات منسّقة في
+         الحالتين. المشكلة سابقاً أن .card-page لم يكن لها ارتفاع محدَّد، فكان ارتفاع الشبكة (grid)
+         يُحسَب من محتوى الكروت نفسها (min-height فقط) بدل ارتفاع الصفحة، فإذا زاد محتوى أي كارت (مثل
+         عدد مواد/فصول معلم ما) فاض الكارتان الثالث والرابع لصفحة تالية، فتظهر كل صفحة بكارتين فقط
+         وغير متوسطة. الحل: إعطاء .card-page ارتفاعاً صريحاً يساوي ارتفاع الصفحة القابل للطباعة
+         (100vh يتبع مقاس الورق المختار فعلياً من نافذة الطباعة)، ليمتلئ الشبكة كامل الصفحة دائماً
+         بأربع كروت متساوية تتوسطها، مع overflow:hidden لمنع أي فيضان يُحدث صفحة إضافية غير مقصودة. */
+      @page cardsPage { margin: 10mm; }
+      .card-page { page: cardsPage; }
+      .card-page {
+        width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        box-sizing: border-box;
+        overflow: hidden;
+        position: relative;
+        page-break-after: always;
+        page-break-inside: avoid;
+      }
+      .card-page:last-child { page-break-after: auto; }
+      /* خطان منقطان يتقاطعان في منتصف الصفحة تماماً (رأسي وأفقي) ليكونا دليل قص واضح يقسم الورقة
+         الواحدة إلى 4 أرباع متساوية بعد الطباعة، بصرف النظر عن عدد الكروت الفعلية في هذه الصفحة. */
+      .card-page::before, .card-page::after {
+        content: '';
+        position: absolute;
+        z-index: 5;
+      }
+      .card-page::before { top: 0; bottom: 0; left: 50%; border-left: 1px dashed #94a3b8; }
+      .card-page::after { left: 0; right: 0; top: 50%; border-top: 1px dashed #94a3b8; }
+      .id-card-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .id-card {
+        position: relative;
+        overflow: hidden;
+        border: none;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        box-shadow: 0 0 0 1.5px #cbd5e1, 0 3px 10px rgba(15, 23, 42, 0.10);
+        margin: 6mm;
+        padding: 8mm 9mm 7mm;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 3mm;
+        break-inside: avoid;
+      }
+      .id-card::before {
+        content: '';
+        position: absolute;
+        top: 0; right: 0; left: 0;
+        height: 4mm;
+        background: linear-gradient(90deg, #0b5e42, #1e7a5a, #0b5e42);
+      }
+      .id-card .id-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid #dbe3ee;
+        padding-bottom: 4mm;
+        margin-bottom: 2mm;
+      }
+      .id-card .id-card-title {
+        font-size: 20px;
+        font-weight: 800;
+        color: #0f172a;
+      }
+      .id-card .id-card-school {
+        font-size: 14px;
+        font-weight: 600;
+        color: #64748b;
+        max-width: 45%;
+        text-align: left;
+        overflow-wrap: break-word;
+      }
+      .id-card .id-card-row {
+        font-size: 18px;
+        color: #1e293b;
+        line-height: 1.6;
+      }
+      .id-card .id-card-row strong {
+        color: #0f172a;
+        font-weight: 800;
+      }
+      /* صف "المواد والفصول" في بطاقة المعلم قد يطول (عدة مواد/فصول لمعلم واحد)، فيُعرض بخط أصغر
+         مع ارتفاع أقصى محدود حتى يبقى الكارت داخل حدود ربع الصفحة المخصص له دائماً ولا يدفع بقية
+         محتوى الكارت خارج مساحته. */
+      .id-card .id-card-assignments {
+        font-size: 12.5px;
+        line-height: 1.35;
+        max-height: 22mm;
+        overflow: hidden;
+      }
+      .id-card .id-card-assignments > div:first-child { margin-top: 1mm; }
+      .id-card .id-card-pin {
+        margin-top: 4mm;
+        text-align: center;
+        background: #eef6f1;
+        border: 2px dashed #0b5e42;
+        border-radius: 12px;
+        padding: 4mm;
+      }
+      .id-card .id-card-pin .pin-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: #0b5e42;
+        display: block;
+        margin-bottom: 1.5mm;
+      }
+      .id-card .id-card-pin .pin-value {
+        font-size: 42px;
+        font-weight: 800;
+        letter-spacing: 9px;
+        color: #0f172a;
+        font-family: 'Consolas', 'Menlo', 'Courier New', monospace;
+      }
+    }
+  
+
+    /* ==================== كشف رصد درجات تفصيلي (4 أسابيع) ==================== */
+    .detailed-sheet-page {
+      font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      direction: rtl;
+    }
+    .detailed-letterhead {
+      border: 1.5px solid #3f7a57;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 5mm;
+    }
+    .detailed-letterhead-strip {
+      background: linear-gradient(90deg,#3f7a57 0%,#5a9c72 55%,#3f7a57 100%);
+      color: #fff;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 9px; padding: 1.4mm 3.5mm;
+    }
+    .detailed-letterhead-body {
+      display: flex; align-items: center; gap: 3mm;
+      padding: 3mm 4mm 3.5mm;
+    }
+    .detailed-lh-logo {
+      width: 15mm; height: 15mm; border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%,#4a8a63,#3f7a57);
+      color: #fff; display:flex; align-items:center; justify-content:center;
+      font-size: 16px; flex-shrink:0; border: 2px solid #dbe4ee;
+    }
+    .detailed-lh-side { font-size: 10px; color:#1e293b; line-height:1.85; white-space:nowrap; flex-shrink:0; }
+    .detailed-lh-side strong { color:#0f172a; }
+    .detailed-lh-right { text-align:right; padding-left:3mm; border-left: 1px solid #dbe4ee; }
+    .detailed-lh-left  { text-align:left; padding-right:3mm; border-right: 1px solid #dbe4ee; }
+    .detailed-lh-center { flex:1; text-align:center; }
+    .detailed-lh-title { font-size:15px; font-weight:900; color:#0f172a; margin-bottom:1mm; }
+    .detailed-lh-subtitle { font-size:10.5px; color:#475569; font-weight:600; }
+    .detailed-lh-divider { height:1px; background:linear-gradient(90deg,transparent,#94a3b8,transparent); margin:0 4mm; }
+    .detailed-lh-meta-bar {
+      font-size:10.5px; color:#1e293b; padding: 2mm 4mm; background:#f8fafc;
+      display:flex; flex-wrap:wrap; justify-content:center; row-gap:1mm; column-gap:6mm;
+    }
+    .detailed-lh-meta-bar strong { color:#0f172a; }
+    table.detailed-weekly-table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:8.6px; border:2px solid #3f7a57; }
+    table.detailed-weekly-table th, table.detailed-weekly-table td {
+      border:1px solid #94a3b8; padding:.7mm .12mm; text-align:center; overflow-wrap:break-word;
+    }
+    /* خانات الدرجات: سطر واحد، داخل الخلية فقط، بدون قص بنقاط (...) — القيمة تظهر كاملة بخط مناسب */
+    table.detailed-weekly-table td.gs-score {
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: clip !important;
+      max-width: 0;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      font-size: 8.2px;
+      font-weight: 600;
+      padding-left: 0.1mm;
+      padding-right: 0.1mm;
+    }
+    table.detailed-weekly-table th.serial-col { border-left:2px solid #ffffff; }
+    table.detailed-weekly-table td.serial-col { border-left:2px solid #3f7a57; }
+    table.detailed-weekly-table th.grand-total-col, table.detailed-weekly-table td.grand-total-col { border-right:3px solid #3f7a57; }
+    table.detailed-weekly-table thead th { border-color:#fff; }
+    table.detailed-weekly-table thead tr.max-row th { border-bottom:2px solid #3f7a57; }
+    table.detailed-weekly-table thead tr.week-row th {
+      background:#3f7a57; color:#fff; font-weight:800; padding:1.3mm .5mm; line-height:1.4;
+    }
+    table.detailed-weekly-table thead tr.week-row th .w-name { display:block; font-size:9.5px; }
+    table.detailed-weekly-table thead tr.week-row th .w-date { display:block; font-size:7.6px; font-weight:500; opacity:.9; margin-top:.5mm; }
+    table.detailed-weekly-table thead tr.week-row th.agg-header { background:#2f6045; font-size:8.4px; }
+    table.detailed-weekly-table thead tr.comp-row th {
+      background:#e2e8f0; color:#0f172a; font-weight:700; height:26mm; vertical-align:middle; padding:1mm .2mm;
+      position: static !important; top: auto; z-index: auto; white-space: normal;
+    }
+    table.detailed-weekly-table thead .c-vert {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      white-space: nowrap;
+      font-size: 8.6px;
+      font-weight: 800;
+      display: inline-block;
+    }
+    table.detailed-weekly-table thead tr.max-row th {
+      background:#cbd5e1; color:#334155; font-weight:700; font-size:9px; padding:.8mm .2mm;
+      position: static !important; white-space: normal;
+    }
+    table.detailed-weekly-table td.gs-name {
+      text-align:right; font-weight:600; font-size:8.4px; padding-right:1.0mm; padding-left:0.4mm;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      max-width:0; /* مع table-layout:fixed يجبر الخلية على احترام عرض العمود ولا تفيض */
+    }
+    table.detailed-weekly-table th.serial-col,
+    table.detailed-weekly-table td.serial-col {
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: clip !important;
+      max-width: 0;
+      font-size: 8px;
+      font-weight: 700;
+      padding-left: 0.2mm;
+      padding-right: 0.2mm;
+    }
+    table.detailed-weekly-table td.week-total { font-weight:700; background:#f8fafc; }
+    table.detailed-weekly-table th.avg-col, table.detailed-weekly-table td.avg-col { background:#ede9fe; }
+    table.detailed-weekly-table th.attendance-col, table.detailed-weekly-table td.attendance-col { background:#dbeafe; }
+    table.detailed-weekly-table th.month-eval-col, table.detailed-weekly-table td.month-eval-col { background:#fef9c3; }
+    table.detailed-weekly-table th.grand-total-col, table.detailed-weekly-table td.grand-total-col { background:#dcfce7; font-weight:800; }
+    table.detailed-weekly-table thead tr.week-row th.grand-total-col { vertical-align:middle; }
+    table.detailed-weekly-table tbody tr:nth-child(even) td:not(.avg-col):not(.attendance-col):not(.month-eval-col):not(.grand-total-col) { background:#f8fafc; }
+    table.detailed-weekly-table thead tr.week-row th.week-sep-left,
+    table.detailed-weekly-table thead tr.comp-row th.week-sep-left { border-right:2px solid #ffffff !important; }
+    table.detailed-weekly-table thead tr.max-row th.week-sep-left,
+    table.detailed-weekly-table tbody td.week-sep-left { border-right:2.5px solid #3f7a57 !important; }
+    table.detailed-weekly-table .month-sep { border-right:3px solid #3f7a57 !important; }
+    .detailed-sheet-footer { display:flex; justify-content:space-around; margin-top:8mm; font-size:10px; color:#1e293b; }
+    .detailed-sheet-footer .gs-sign { text-align:center; min-width:42mm; }
+    .detailed-sheet-footer .gs-sign-caption { font-weight:600; }
+    .detailed-sheet-footer .gs-line { margin-top:12mm; border-top:1px dotted #64748b; }
+
+    /* كشف أعمال السنة المتتالي — مقاس آمن داخل هوامش A4 الافتراضية للمتصفح
+       ورقة A4 = 210×297mm · هامش المتصفح الافتراضي ≈ 10–12mm من كل جانب
+       منطقة المحتوى الآمنة ≈ 186×273mm */
+    .term-totals-print-page {
+      width: 186mm;
+      max-width: 186mm;
+      min-height: 0;
+      max-height: 273mm;
+      margin: 0 auto;
+      padding: 3mm 2mm 2.5mm;
+      box-sizing: border-box;
+      overflow: hidden;
+      direction: rtl;
+      font-family: 'Cairo', Tahoma, sans-serif;
+      color: #0f172a;
+      background: #fff;
+    }
+    .term-totals-print-page .tt-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1.5px solid #3f7a57;
+      table-layout: fixed;
+    }
+    .term-totals-print-page .tt-table th,
+    .term-totals-print-page .tt-table td {
+      border: 1px solid #94a3b8;
+      overflow: hidden;
+    }
+    .term-totals-print-page .tt-footer {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 2.5mm;
+      font-size: 9.5px;
+      color: #1e293b;
+    }
+    .term-totals-print-page .tt-footer .gs-sign { text-align: center; min-width: 38mm; }
+    .term-totals-print-page .tt-footer .gs-sign-caption { font-weight: 700; }
+    .term-totals-print-page .tt-footer .gs-line {
+      margin-top: 5mm;
+      border-top: 1px dotted #64748b;
+    }
+
+    .blank-weekly-sheet .blank-cell { padding: 1mm 0.5mm; vertical-align: middle; }
+    .blank-weekly-sheet .blank-cell {
+      background: #fff;
+    }
+    .blank-weekly-sheet .name-col {
+      text-align: right;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 1.5mm;
+    }
+    .blank-weekly-sheet .serial-col { text-align: center; }
+
+    /* تظليل الأسابيع خارج نطاق الرصد في كشوف الدرجات والمواظبة (فارغة ومملوءة)
+       يُطبَّق على th/td التي تحمل class="week-out-of-scope" من منطق isWeekExcluded / scopeWeeks */
+    .week-out-of-scope,
+    th.week-out-of-scope,
+    td.week-out-of-scope,
+    .blank-weekly-sheet th.week-out-of-scope,
+    .blank-weekly-sheet td.week-out-of-scope,
+    .blank-weekly-sheet .blank-cell.week-out-of-scope,
+    table.detailed-weekly-table th.week-out-of-scope,
+    table.detailed-weekly-table td.week-out-of-scope,
+    table.detailed-weekly-table thead tr.comp-row th.week-out-of-scope,
+    table.detailed-weekly-table thead tr.max-row th.week-out-of-scope,
+    table.detailed-weekly-table thead tr.week-row th.week-out-of-scope,
+    table.detailed-weekly-table tbody tr:nth-child(even) td.week-out-of-scope,
+    .att-print-table th.week-out-of-scope,
+    .att-print-table td.week-out-of-scope,
+    .att-print-table thead th.att-week-1.week-out-of-scope,
+    .att-print-table thead th.att-week-2.week-out-of-scope,
+    .att-print-table thead th.att-week-3.week-out-of-scope,
+    .att-print-table thead th.att-week-4.week-out-of-scope {
+      background-color: #c5cdd8 !important;
+      background-image: repeating-linear-gradient(
+        -45deg,
+        rgba(71, 85, 105, 0.18) 0,
+        rgba(71, 85, 105, 0.18) 3px,
+        rgba(148, 163, 184, 0.35) 3px,
+        rgba(148, 163, 184, 0.35) 6px
+      ) !important;
+      color: #475569 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+
+@media print {
+    .week-out-of-scope,
+    th.week-out-of-scope,
+    td.week-out-of-scope,
+    .blank-weekly-sheet th.week-out-of-scope,
+    .blank-weekly-sheet td.week-out-of-scope,
+    .blank-weekly-sheet .blank-cell.week-out-of-scope,
+    table.detailed-weekly-table th.week-out-of-scope,
+    table.detailed-weekly-table td.week-out-of-scope,
+    table.detailed-weekly-table thead tr.comp-row th.week-out-of-scope,
+    table.detailed-weekly-table thead tr.max-row th.week-out-of-scope,
+    table.detailed-weekly-table thead tr.week-row th.week-out-of-scope,
+    table.detailed-weekly-table tbody tr:nth-child(even) td.week-out-of-scope,
+    .att-print-table th.week-out-of-scope,
+    .att-print-table td.week-out-of-scope,
+    .att-print-table thead th.att-week-1.week-out-of-scope,
+    .att-print-table thead th.att-week-2.week-out-of-scope,
+    .att-print-table thead th.att-week-3.week-out-of-scope,
+    .att-print-table thead th.att-week-4.week-out-of-scope {
+      background-color: #c5cdd8 !important;
+      background-image: repeating-linear-gradient(
+        -45deg,
+        rgba(71, 85, 105, 0.18) 0,
+        rgba(71, 85, 105, 0.18) 3px,
+        rgba(148, 163, 184, 0.35) 3px,
+        rgba(148, 163, 184, 0.35) 6px
+      ) !important;
+      color: #475569 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+}
+
+
+
+
+/* Stages management compact UI */
+.stages-kpi{margin-bottom:12px}
+.stages-inner-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.stages-pill{border:1px solid #cbd5e1;background:#f8fafc;color:#334155;border-radius:999px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer}
+.stages-pill:hover{border-color:#0b5e42;background:#fff}
+.stages-pill.active{background:#0b5e42;color:#fff;border-color:#0b5e42}
+.stages-inner-panel{display:none}
+.stages-inner-panel.active{display:block}
+.stages-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.stages-hint{margin:4px 0 0;color:#64748b;font-size:12.5px;max-width:520px}
+.stages-form-details{border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc;margin-bottom:4px;overflow:hidden}
+.stages-form-details[open]{background:#fff}
+.stages-form-body{padding:14px 16px}
+.stage-sec-badge{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;margin-right:6px}
+.stage-sec-ar{background:#dcfce7;color:#166534}
+.stage-sec-lang{background:#dbeafe;color:#1e40af}
+.stage-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.stage-more-wrap{position:relative}
+.stage-more-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:40;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 10px 24px rgba(15,23,42,.12);min-width:180px;padding:4px;direction:rtl}
+.stage-more-menu.open{display:block}
+.stage-more-menu button{display:block;width:100%;text-align:right;border:0;background:transparent;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:#1e293b}
+.stage-more-menu button:hover{background:#f1f5f9}
+.stage-more-menu button.danger{color:#b91c1c}
+html[data-theme="dark"] .stages-pill{background:#0f1626;border-color:#334155;color:#e2e8f0}
+html[data-theme="dark"] .stages-pill.active{background:#0b5e42;color:#fff}
+html[data-theme="dark"] .stages-form-details{background:#111827;border-color:#263348}
+html[data-theme="dark"] .stage-more-menu{background:#141b2d;border-color:#263348}
+html[data-theme="dark"] .stage-more-menu button{color:#e2e8f0}
+html[data-theme="dark"] .stage-more-menu button:hover{background:#1a2338}
+
+/* ==================== V19 UX / AUDIT / BACKUP + Compact Dashboard ==================== */
+.dashboard-hero{background:linear-gradient(135deg,#043d2e,#0b5e42);color:#fff;border-radius:14px;padding:14px 18px;margin-bottom:12px;box-shadow:0 6px 18px rgba(15,23,42,.10);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.dashboard-hero h2{margin:0;font-size:18px;font-weight:800}.dashboard-hero p{margin:2px 0 0;color:#cbd5e1;font-size:12.5px}
+.dash-hero-left{min-width:0;flex:1}
+.dash-search-wrap{position:relative;flex:0 1 320px;min-width:180px}
+.dash-search-wrap input{width:100%;box-sizing:border-box;padding:9px 40px 9px 12px;border:none;border-radius:10px;font-size:13px;background:#fff;color:#0f172a}
+.dash-search-wrap kbd{position:absolute;left:10px;top:50%;transform:translateY(-50%);background:#e2e8f0;color:#475569;border-radius:5px;padding:2px 6px;font-size:10px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 12px}.kpi-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;box-shadow:0 1px 4px rgba(15,23,42,.04)}
+.kpi-label{font-size:11px;color:#64748b;font-weight:700}.kpi-value{font-size:22px;font-weight:800;color:#0f172a;margin-top:2px;line-height:1.2}.kpi-note{font-size:11px;color:#64748b;margin-top:2px}
+.kpi-card .mini-progress{margin-top:6px;background:#e2e8f0;border-radius:999px;height:6px;overflow:hidden}
+.kpi-card .mini-progress > span{display:block;height:100%;background:#0b5e42;border-radius:999px;transition:width .35s ease}
+.progress-wrap{background:#e2e8f0;border-radius:999px;height:12px;overflow:hidden}.progress-bar{height:100%;border-radius:999px;background:#0b5e42;transition:width .35s ease}
+.dash-actions-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.dash-actions-bar .qa-btn{border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:8px 14px;font-weight:700;font-size:13px;cursor:pointer;transition:.15s;color:#1e293b}
+.dash-actions-bar .qa-btn:hover{border-color:#0b5e42;background:#f8fafc}
+.dash-actions-bar .qa-btn.primary{background:#0b5e42;color:#fff;border-color:#0b5e42}
+.dash-actions-bar .qa-btn.primary:hover{background:#064e3b}
+.dash-more-wrap{position:relative}
+.dash-more-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:50;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 12px 28px rgba(15,23,42,.12);min-width:200px;padding:6px;direction:rtl}
+.dash-more-menu.open{display:block}
+.dash-more-menu button{display:block;width:100%;text-align:right;border:0;background:transparent;padding:9px 12px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;color:#1e293b}
+.dash-more-menu button:hover{background:#f1f5f9}
+.dash-main-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.dash-panel{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;box-shadow:0 1px 4px rgba(15,23,42,.04)}
+.dash-panel h3{margin:0 0 10px;font-size:14px;color:#0f172a;font-weight:800}
+.dash-panel .panel-body{max-height:260px;overflow-y:auto}
+.action-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.quick-action{border:1px solid #cbd5e1;background:#fff;border-radius:12px;padding:14px;text-align:center;font-weight:700;cursor:pointer;transition:.15s}.quick-action:hover{transform:translateY(-1px);box-shadow:0 5px 15px rgba(15,23,42,.08)}
+.alert-list{display:grid;gap:8px}.alert-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;font-size:13px}.alert-item.danger{border-right:4px solid #dc2626}.alert-item.warn{border-right:4px solid #d97706}.alert-item.ok{border-right:4px solid #16a34a}
+.dash-details{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
+.dash-details > summary{list-style:none;cursor:pointer;padding:12px 16px;font-weight:800;font-size:14px;color:#0f172a;background:#f8fafc;border-bottom:1px solid transparent;user-select:none;display:flex;align-items:center;justify-content:space-between}
+.dash-details > summary::-webkit-details-marker{display:none}
+.dash-details > summary::after{content:'▼';font-size:11px;color:#64748b;transition:transform .2s}
+.dash-details[open] > summary{border-bottom-color:#e2e8f0}
+.dash-details[open] > summary::after{transform:rotate(180deg)}
+.dash-details-body{padding:14px 16px}
+.audit-table{width:100%;border-collapse:collapse;font-size:12px}.audit-table th,.audit-table td{padding:9px 8px;border-bottom:1px solid #e2e8f0;text-align:right;vertical-align:top}.audit-table th{background:#f8fafc;color:#475569}
+.security-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.security-card{border:1px solid #e2e8f0;border-radius:14px;padding:16px;background:#fff}.security-card h3{margin-top:0}
+.autosave-status{font-size:12px;font-weight:700;margin-right:10px}.autosave-saving{color:#b45309}.autosave-saved{color:#0b5e42}.autosave-error{color:#b91c1c}
+@media(max-width:900px){.kpi-grid,.action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-main-grid{grid-template-columns:1fr}.security-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.kpi-grid,.action-grid{grid-template-columns:1fr}.dashboard-hero{padding:12px 14px}.dash-search-wrap{flex:1 1 100%}}
+
+/* بطاقات مدير المرحلة التفاعلية */
+.mdc-wrap{margin:0 0 14px}
+.mdc-filter-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center}
+.mdc-filter-bar select{padding:7px 10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-size:13px}
+.mdc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media(max-width:900px){.mdc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.mdc-grid{grid-template-columns:1fr}}
+.mdc-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px;cursor:pointer;transition:.15s;box-shadow:0 1px 4px rgba(15,23,42,.04);text-align:right}
+.mdc-card:hover{border-color:#0b5e42;box-shadow:0 4px 14px rgba(15,23,42,.08);transform:translateY(-1px)}
+.mdc-card.is-open{border-color:#0b5e42;background:#f8fafc}
+.mdc-card .mdc-label{font-size:12.5px;font-weight:700;color:#64748b;margin-bottom:4px}
+.mdc-card .mdc-value{font-size:26px;font-weight:800;color:#0f172a;line-height:1.2}
+.mdc-card .mdc-note{font-size:11.5px;color:#94a3b8;margin-top:4px}
+.mdc-card .mdc-mini{margin-top:8px;height:6px;background:#e2e8f0;border-radius:99px;overflow:hidden}
+.mdc-card .mdc-mini>i{display:block;height:100%;background:#2563eb;border-radius:99px}
+.mdc-detail{margin-top:12px;border:1px solid #bfdbfe;border-radius:14px;background:#fff;overflow:hidden}
+.mdc-detail-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;background:#eff6ff;border-bottom:1px solid #dbeafe}
+.mdc-detail-head h3{margin:0;font-size:15px;color:#0f172a}
+.mdc-detail-actions{display:flex;gap:6px;flex-wrap:wrap}
+.mdc-detail-body{padding:12px 14px;max-height:480px;overflow:auto}
+.mdc-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.mdc-table th,.mdc-table td{padding:8px 9px;border-bottom:1px solid #f1f5f9;text-align:right}
+.mdc-table th{background:#f8fafc;color:#475569;font-weight:700;position:sticky;top:0}
+.mdc-badge{display:inline-flex;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:700}
+.mdc-badge.good{background:#dcfce7;color:#166534}
+.mdc-badge.warn{background:#fef3c7;color:#92400e}
+.mdc-badge.danger{background:#fee2e2;color:#991b1b}
+.mdc-badge.info{background:#dbeafe;color:#1e40af}
+.mdc-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:5px;vertical-align:middle}
+.mdc-dot.good{background:#16a34a}.mdc-dot.warn{background:#d97706}.mdc-dot.danger{background:#dc2626}
+.mdc-empty{padding:18px;text-align:center;color:#64748b}
+html[data-theme="dark"] .dash-panel,html[data-theme="dark"] .dash-details,html[data-theme="dark"] .dash-actions-bar .qa-btn,html[data-theme="dark"] .dash-more-menu{background:#141b2d;border-color:#263348;color:#e2e8f0}
+html[data-theme="dark"] .dash-details > summary{background:#111827;color:#e2e8f0}
+html[data-theme="dark"] .dash-more-menu button{color:#e2e8f0}
+html[data-theme="dark"] .dash-more-menu button:hover{background:#1a2338}
+
+.dash-search-wrap .v20-search-results{position:absolute;z-index:1000;left:0;right:0;top:42px;background:#fff;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 14px 35px rgba(15,23,42,.15);max-height:320px;overflow:auto;display:none;text-align:right;color:#0f172a}
+
+    /* ==================== V24 DARK MODE ====================
+       تغطي هذه القواعد أهم الأسطح المرئية في التطبيق (الخلفية، البطاقات، الجداول، الحقول، التبويبات،
+       الأزرار الثانوية) عبر خاصية data-theme على <html>. لا تغيّر الألوان ذات الدلالة (أخضر=نجاح،
+       أحمر=خطر، أصفر=تحذير) حتى تبقى مفهومة بنفس المعنى في الوضعين. */
+    html[data-theme="dark"] body { background:#0b1220; color:#e2e8f0; }
+    html[data-theme="dark"] .card,
+    html[data-theme="dark"] .security-card,
+    html[data-theme="dark"] .v20-card,
+    html[data-theme="dark"] .v21-card,
+    html[data-theme="dark"] .v22-sec-card,
+    html[data-theme="dark"] .stat-card,
+    html[data-theme="dark"] .quick-action,
+    html[data-theme="dark"] .v20-mini,
+    html[data-theme="dark"] .v20-item,
+    html[data-theme="dark"] .v20-modal-box,
+    html[data-theme="dark"] .v20-search-results { background:#141b2d; color:#e2e8f0; border-color:#263348; }
+    html[data-theme="dark"] .account-bar,
+    html[data-theme="dark"] .tab-bar { background:#111827; border-color:#263348; }
+    html[data-theme="dark"] .tab { color:#cbd5e1; }
+    html[data-theme="dark"] .tab.active { background:#0b5e42; color:#fff; }
+    html[data-theme="dark"] table, html[data-theme="dark"] .audit-table, html[data-theme="dark"] .v20-table { color:#e2e8f0; }
+    html[data-theme="dark"] .audit-table th, html[data-theme="dark"] .v20-table th { background:#1a2338; color:#94a3b8; }
+    html[data-theme="dark"] .audit-table td, html[data-theme="dark"] .v20-table td,
+    html[data-theme="dark"] .audit-table th, html[data-theme="dark"] .v20-table th { border-color:#263348; }
+    html[data-theme="dark"] input, html[data-theme="dark"] select, html[data-theme="dark"] textarea {
+      background:#0f1626; color:#e2e8f0; border-color:#334155; }
+    html[data-theme="dark"] .btn-outline { background:#141b2d; color:#e2e8f0; border-color:#334155; }
+    html[data-theme="dark"] .v20-search input { background:#0f1626; color:#e2e8f0; border-color:#334155; }
+    html[data-theme="dark"] .warning-box, html[data-theme="dark"] .error-box { background:#241a10; }
+    html[data-theme="dark"] a { color:#7dd3fc; }
+
+  

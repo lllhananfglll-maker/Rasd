@@ -1,0 +1,86 @@
+/**
+ * رصد Pro — Design Tokens (الهوية الخضراء)
+ * المصدر الوحيد لألوان وسمات الواجهة.
+ * غيّر هنا فقط؛ باقي الملفات تستخدم var(--rasd-*).
+ */
+:root {
+  /* —— العلامة التجارية —— */
+  --rasd-brand: #0b5e42;
+  --rasd-brand-dark: #064e3b;
+  --rasd-brand-deeper: #043d2e;
+  --rasd-brand-light: #16a34a;
+  --rasd-brand-soft: #dcfce7;
+  --rasd-brand-muted: #bbf7d0;
+  --rasd-brand-wash: #f0fdf4;
+
+  /* —— أسطح —— */
+  --rasd-bg: #f0f7f4;
+  --rasd-surface: #ffffff;
+  --rasd-surface-2: #f8fafc;
+  --rasd-surface-3: #f1f5f9;
+  --rasd-border: #e2e8f0;
+  --rasd-border-strong: #cbd5e1;
+
+  /* —— نص —— */
+  --rasd-text: #1e293b;
+  --rasd-text-strong: #0f172a;
+  --rasd-text-muted: #64748b;
+  --rasd-text-subtle: #94a3b8;
+  --rasd-on-brand: #ffffff;
+
+  /* —— حالات —— */
+  --rasd-success: #16a34a;
+  --rasd-success-bg: #f0fdf4;
+  --rasd-warning: #d97706;
+  --rasd-warning-bg: #fffbeb;
+  --rasd-danger: #b91c1c;
+  --rasd-danger-bg: #fef2f2;
+  --rasd-info: #0b5e42;
+  --rasd-info-bg: #ecfdf5;
+
+  /* —— تدرجات —— */
+  --rasd-gradient-brand: linear-gradient(135deg, #064e3b 0%, #0b5e42 45%, #16a34a 100%);
+  --rasd-gradient-hero: linear-gradient(135deg, #043d2e 0%, #0b5e42 55%, #0f766e 100%);
+  --rasd-gradient-bar: linear-gradient(90deg, #0b5e42, #16a34a);
+  --rasd-gradient-auth: linear-gradient(165deg, #022c22 0%, #0b5e42 50%, #064e3b 100%);
+
+  /* —— ظلال —— */
+  --rasd-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --rasd-shadow-md: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --rasd-shadow-lg: 0 6px 18px rgba(11, 94, 66, 0.12);
+  --rasd-focus-ring: 0 0 0 3px rgba(11, 94, 66, 0.22);
+
+  /* —— أبعاد —— */
+  --rasd-radius-sm: 6px;
+  --rasd-radius-md: 10px;
+  --rasd-radius-lg: 14px;
+  --rasd-radius-pill: 999px;
+
+  /* —— توافق مع الأسماء القديمة (حتى اكتمال التنظيف) —— */
+  --color-primary: var(--rasd-brand);
+  --color-primary-dark: var(--rasd-brand-dark);
+  --color-success: var(--rasd-success);
+  --color-danger: var(--rasd-danger);
+  --color-bg: var(--rasd-bg);
+  --color-surface: var(--rasd-surface);
+  --color-text: var(--rasd-text);
+  --color-border: var(--rasd-border);
+}
+
+/* الوضع الداكن (اختياري — يفعّل بـ data-theme="dark") */
+html[data-theme="dark"] {
+  --rasd-bg: #0c1a14;
+  --rasd-surface: #13261e;
+  --rasd-surface-2: #1a2f26;
+  --rasd-surface-3: #1f3a30;
+  --rasd-border: #2d4a3e;
+  --rasd-border-strong: #3d5c4e;
+  --rasd-text: #e2e8f0;
+  --rasd-text-strong: #f8fafc;
+  --rasd-text-muted: #94a3b8;
+  --rasd-text-subtle: #64748b;
+  --rasd-brand-soft: #14532d;
+  --rasd-brand-wash: #052e1c;
+  --rasd-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --rasd-shadow-lg: 0 6px 18px rgba(0, 0, 0, 0.4);
+}

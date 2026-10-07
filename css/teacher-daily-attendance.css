@@ -1,0 +1,266 @@
+.tda-overlay {
+  position:fixed; inset:0; z-index:10050; background:rgba(15,23,42,.72);
+  display:flex; align-items:stretch; justify-content:center; padding:12px;
+  direction:rtl;
+  /* يمنع تمرير الخلفية على الموبايل */
+  overscroll-behavior: contain;
+}
+/* يجب أن تفوز على display:flex أعلاه — وإلا تظهر النافذة عند كل تحميل */
+.tda-overlay.hidden {
+  display: none !important;
+}
+.tda-box {
+  background:#fff; width:min(1100px,100%); max-height:96vh; max-height:96dvh; border-radius:16px;
+  display:flex; flex-direction:column; overflow:hidden;
+  box-shadow:0 25px 80px rgba(0,0,0,.35);
+  /* ضروري حتى يتمكن .tda-cards من التمرير داخل flex */
+  min-height:0;
+}
+.tda-head {
+  display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+  padding:16px 18px; border-bottom:1px solid #e2e8f0; background:linear-gradient(180deg,#eff6ff,#fff);
+  flex-shrink:0;
+}
+.tda-head strong { font-size:18px; color:#0f172a; }
+.tda-sub { font-size:12.5px; color:#64748b; margin-top:4px; line-height:1.7; }
+.tda-close {
+  border:0; background:#f1f5f9; width:36px; height:36px; border-radius:10px;
+  cursor:pointer; font-size:18px; font-weight:800; color:#334155; flex-shrink:0;
+}
+.tda-toolbar {
+  padding:12px 18px; border-bottom:1px solid #e2e8f0; background:#f8fafc;
+  flex-shrink:0;
+}
+/* زر الملخص يظهر فقط على الموبايل */
+.tda-filter-summary {
+  display: none;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: right;
+  font: inherit;
+  margin-bottom: 0;
+}
+.tda-filter-summary-text {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.45;
+  flex: 1;
+  min-width: 0;
+}
+.tda-filter-summary-chevron {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #1e40af;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tda-filters-panel { display: block; }
+.tda-filters {
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-bottom:10px;
+}
+.tda-filters .form-group label { font-size:12px; font-weight:700; color:#475569; }
+.tda-filters select, .tda-filters input {
+  width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; font-size:14px;
+}
+.tda-banner {
+  padding:10px 12px; border-radius:10px; font-size:13px; line-height:1.7; margin-bottom:8px; font-weight:600;
+}
+.tda-banner.warn { background:#fff7ed; border:1px solid #fdba74; color:#9a3412; }
+.tda-banner.danger { background:#fef2f2; border:1px solid #fca5a5; color:#991b1b; }
+.tda-banner.info { background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; }
+.tda-bulk { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.tda-status { font-size:12.5px; color:#64748b; margin-right:6px; }
+.tda-cards {
+  flex:1 1 auto;
+  min-height:0; /* يمنع انضغاط المنطقة لشريط ضيق دون تمرير */
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding:14px 18px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:12px;
+  background:#f1f5f9;
+  align-content:start;
+}
+.tda-card {
+  background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:12px;
+  box-shadow:0 2px 8px rgba(15,23,42,.05);
+}
+.tda-card.is-g { border-color:#fca5a5; background:#fff5f5; }
+.tda-card.is-e { border-color:#93c5fd; background:#eff6ff; }
+.tda-card.is-p { border-color:#86efac; background:#f0fdf4; }
+.tda-card-name { font-weight:800; color:#0f172a; font-size:14px; margin-bottom:4px; }
+.tda-card-meta { font-size:11.5px; color:#64748b; margin-bottom:10px; }
+.tda-card-actions { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.tda-card-actions button {
+  border:1px solid #cbd5e1; background:#fff; border-radius:8px; padding:8px 4px;
+  font-size:12px; font-weight:800; cursor:pointer; transition:.15s;
+}
+.tda-card-actions button:disabled { opacity:.45; cursor:not-allowed; }
+.tda-card-actions button.active-p { background:#16a34a; color:#fff; border-color:#16a34a; }
+.tda-card-actions button.active-g { background:#dc2626; color:#fff; border-color:#dc2626; }
+.tda-card-actions button.active-e { background:#2563eb; color:#fff; border-color:#2563eb; }
+.tda-foot {
+  display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;
+  padding:12px 18px; border-top:1px solid #e2e8f0; background:#fff;
+  flex-shrink:0;
+}
+.tda-legend { font-size:12px; color:#64748b; }
+.tda-empty { grid-column:1/-1; text-align:center; padding:28px; color:#64748b; background:#fff; border-radius:12px; }
+
+/* ===== موبايل: ملء الشاشة + بطاقات عمودية قابلة للتمرير (مثل رصد الدرجات) ===== */
+@media (max-width: 700px) {
+  .tda-overlay {
+    padding: 0;
+    padding-top: env(safe-area-inset-top, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .tda-box {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    max-height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .tda-head {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .tda-head strong { font-size: 15px; line-height: 1.35; }
+  .tda-sub {
+    font-size: 11px;
+    line-height: 1.55;
+    /* اختصار السطر الطويل على الموبايل */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .tda-close {
+    width: 40px; height: 40px;
+  }
+  .tda-head {
+    padding: 8px 12px;
+  }
+  .tda-sub {
+    -webkit-line-clamp: 1;
+    font-size: 10.5px;
+  }
+  .tda-toolbar {
+    padding: 6px 10px 8px;
+  }
+  /* ملخص الفلاتر ظاهر دائماً على الموبايل */
+  .tda-filter-summary {
+    display: flex;
+    margin-bottom: 6px;
+  }
+  /* افتراضياً: الفلاتر مطوية لإظهار أكبر عدد بطاقات */
+  .tda-toolbar:not(.filters-open) .tda-filters-panel {
+    display: none;
+  }
+  .tda-toolbar.filters-open .tda-filters-panel {
+    display: block;
+    margin-bottom: 6px;
+  }
+  .tda-toolbar.filters-open .tda-filter-summary-chevron::after {
+    content: none;
+  }
+  .tda-toolbar.filters-open #tdaFilterChevron {
+    /* يُحدَّث من JS أيضاً */
+  }
+  .tda-filters {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    margin-bottom: 0;
+  }
+  .tda-filters .form-group label {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+  .tda-filters select,
+  .tda-filters input {
+    min-height: 40px;
+    font-size: 16px; /* يمنع تكبير iOS التلقائي */
+    padding: 7px 10px;
+  }
+  .tda-banner {
+    font-size: 11.5px;
+    padding: 6px 10px;
+    margin-bottom: 6px;
+  }
+  .tda-bulk {
+    gap: 5px;
+  }
+  .tda-bulk .btn {
+    flex: 1 1 calc(33% - 5px);
+    min-width: 0;
+    justify-content: center;
+    font-size: 11px;
+    padding: 7px 3px;
+    min-height: 36px;
+  }
+  .tda-status {
+    width: 100%;
+    margin: 2px 0 0;
+    font-size: 11px;
+  }
+  /* بطاقات مضغوطة لعرض ~4 طلاب في الشاشة */
+  .tda-cards {
+    grid-template-columns: 1fr;
+    padding: 8px 10px 12px;
+    gap: 8px;
+  }
+  .tda-card {
+    padding: 10px 12px 8px;
+    border-radius: 11px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  }
+  .tda-card-name {
+    font-size: 14px;
+    margin-bottom: 1px;
+    line-height: 1.3;
+  }
+  .tda-card-meta {
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+  .tda-card-actions {
+    gap: 6px;
+  }
+  .tda-card-actions button {
+    min-height: 40px;
+    padding: 8px 3px;
+    font-size: 12.5px;
+    border-radius: 9px;
+  }
+  .tda-foot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px 10px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  }
+  .tda-legend {
+    font-size: 10.5px;
+    text-align: center;
+    order: 2;
+  }
+  .tda-foot .btn {
+    width: 100%;
+    min-height: 42px;
+    justify-content: center;
+    order: 1;
+  }
+}
