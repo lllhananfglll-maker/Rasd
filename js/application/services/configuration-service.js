@@ -23,7 +23,7 @@
     environment: '',
     /* مشروع Supabase الحالي (مجاني) — يُستبدل لاحقاً عبر GSP_RUNTIME_CONFIG عند النشر */
     supabaseUrl: 'https://wbanrokgolirwzuzafws.supabase.co',
-    supabasePublishableKey: 'sb_publishable_Hd7DBk_HmCJrxJaWaIB_Ow_qanrbSpF',
+    supabasePublishableKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndiYW5yb2tnb2xpcnd6dXphZndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODk5NzgsImV4cCI6MjEwNjk2NTk3OH0.jqjilVaSjMGVOJIpM46E4xWFxMuEF0EFAkrkyR-JTMA',
     workbookStorageBucket: 'workbook-originals',
     /* تعدد المدارس: حالياً مدرسة واحدة افتراضية؛ البنية جاهزة للتوسعة */
     schoolId: 'default',
@@ -98,7 +98,12 @@
     const value = input || {};
     const errors = [];
     if (value.supabaseUrl && !/^https:\/\/[^\s]+$/i.test(String(value.supabaseUrl))) errors.push('supabaseUrl');
-    if (value.supabasePublishableKey && !/^sb_publishable_[A-Za-z0-9_-]+$/.test(String(value.supabasePublishableKey))) errors.push('supabasePublishableKey');
+    if (value.supabasePublishableKey) {
+      const k = String(value.supabasePublishableKey);
+      const okPub = /^sb_publishable_[A-Za-z0-9_-]+$/.test(k);
+      const okJwt = /^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(k);
+      if (!okPub && !okJwt) errors.push('supabasePublishableKey');
+    }
     if (value.direction && !['rtl', 'ltr'].includes(value.direction)) errors.push('direction');
     if (value.locale && typeof value.locale !== 'string') errors.push('locale');
     if (value.timezone && typeof value.timezone !== 'string') errors.push('timezone');
@@ -159,7 +164,9 @@
   }
 
   function isCloudConfigured() {
-    return /^https:\/\/[^\s]+$/i.test(String(merged.supabaseUrl || '')) && /^sb_publishable_[A-Za-z0-9_-]+$/.test(String(merged.supabasePublishableKey || ''));
+    const _key = String(merged.supabasePublishableKey || '');
+    const _keyOk = /^sb_publishable_[A-Za-z0-9_-]+$/.test(_key) || /^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(_key);
+    return /^https:\/\/[^\s]+$/i.test(String(merged.supabaseUrl || '')) && _keyOk;
   }
 
   function describe() {
