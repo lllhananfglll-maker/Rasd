@@ -795,15 +795,23 @@ function scheduleCloudPush() {
   if (service && typeof service.enqueue === 'function') service.enqueue(queueIds);
   else if (queue) queue.enqueue(queueIds);
   if (!isOnline) { setConnBadge(); updateSyncPendingStatus(); return; }
-  if (typeof GSP.isLocalPersistenceHealthy === 'function' && !GSP.isLocalPersistenceHealthy()) {
-    setConnBadge('الحفظ المحلي لم يكتمل — ستُؤجَّل المزامنة لحماية البيانات');
-    updateSyncPendingStatus();
-    return;
-  }
+  // أثناء الكتابة المحلية: انتظر اكتمال الحفظ بدل اعتباره فشلاً
   clearTimeout(cloudSyncTimer);
-  const waitForLocalSave = typeof GSP.whenLocalPersistenceSettled === 'function' ? GSP.whenLocalPersistenceSettled() : Promise.resolve(true);
+  const waitForLocalSave = typeof GSP.whenLocalPersistenceSettled === 'function'
+    ? GSP.whenLocalPersistenceSettled()
+    : Promise.resolve(true);
   cloudSyncTimer = setTimeout(() => {
-    Promise.resolve(waitForLocalSave).then(ok => { if (ok !== false) runCloudPush(); });
+    Promise.resolve(waitForLocalSave).then(ok => {
+      if (ok === false) {
+        setConnBadge('الحفظ المحلي لم يكتمل — ستُؤجَّل المزامنة لحماية البيانات');
+        updateSyncPendingStatus();
+        return;
+      }
+      runCloudPush();
+    }).catch(() => {
+      setConnBadge('الحفظ المحلي لم يكتمل — ستُؤجَّل المزامنة لحماية البيانات');
+      updateSyncPendingStatus();
+    });
   }, 1200);
   updateSyncPendingStatus();
 }
@@ -813,9 +821,16 @@ function scheduleCloudPush() {
 async function runCloudPush() {
   if (!cloudAvailable || !isOnline) return false;
   if (!(await ensureCloudSession())) { setConnBadge(); return false; }
-  if (typeof GSP.isLocalPersistenceHealthy === 'function' && !GSP.isLocalPersistenceHealthy()) {
+  // لا تعتمد على العلم اللحظي فقط — انتظر انتهاء آخر كتابة IndexedDB
+  if (typeof GSP.whenLocalPersistenceSettled === 'function') {
+    const settled = await GSP.whenLocalPersistenceSettled();
+    if (settled === false) {
+      setConnBadge('الحفظ المحلي لم يكتمل — لن تتم المزامنة حتى ينجح الحفظ');
+      return false;
+    }
+  } else if (typeof GSP.isLocalPersistenceHealthy === 'function' && !GSP.isLocalPersistenceHealthy()) {
     setConnBadge('الحفظ المحلي لم يكتمل — لن تتم المزامنة حتى ينجح الحفظ');
-    return;
+    return false;
   }
   if (cloudPushInFlight) { cloudPushPending = true; return; }
   cloudPushInFlight = true;

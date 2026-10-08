@@ -424,6 +424,19 @@ function persistRootDB(root, protectKeys) {
 }
 GSP.whenLocalPersistenceSettled = function () { return _localPersistencePromise; };
 GSP.isLocalPersistenceHealthy = function () { return _localPersistenceHealthy; };
+/** بعد استقرار الكتابة: إن نجحت يُعاد العلم true (حماية من حالات عالقة) */
+GSP.refreshLocalPersistenceHealth = function () {
+  return Promise.resolve(_localPersistencePromise).then(function (ok) {
+    if (ok !== false) {
+      _localPersistenceHealthy = true;
+      try {
+        const syncStatus = GSP.application && GSP.application.services && GSP.application.services.syncStatus;
+        if (syncStatus && typeof syncStatus.setStorageHealth === 'function') syncStatus.setStorageHealth(true);
+      } catch (_) {}
+    }
+    return ok !== false;
+  }).catch(function () { return false; });
+};
 
 // الكائن الجذري: يحتوي قائمة كل المراحل الدراسية (كل مرحلة ببياناتها الخاصة الكاملة والمعزولة)،
 // وقائمة حسابات مديري المراحل، وكلمة سر رئيس الكنترول.
