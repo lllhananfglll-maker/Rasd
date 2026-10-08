@@ -1538,6 +1538,38 @@
           </div>
         </div>
 
+        
+        <div class="card" id="termCalendarCard" style="border:1px solid var(--rasd-brand-muted, #bbf7d0); background: var(--rasd-brand-wash, #f0fdf4); margin: 16px 0;">
+          <h2 style="border:none;margin:0 0 8px;color:var(--rasd-brand-dark,#064e3b)">🗓️ الروزنامة المركزية للأسابيع</h2>
+          <p style="color:#64748b;font-size:13px;line-height:1.7;margin-bottom:12px">
+            مصدر الرصد الأسبوعي والغياب اليومي والطباعة. حدّد بداية الأسبوع الأول وعدد أسابيع الفصل ونطاق كل فترة.
+            الأسبوع التالي يُحسب تلقائياً كل 7 أيام. المتوسط يُحسب من الأسابيع <strong>المرصودة فعلياً</strong> فقط.
+          </p>
+          <div class="grid-2" style="margin-bottom:12px">
+            <div class="form-group">
+              <label>الفصل الدراسي</label>
+              <select id="siCalendarTerm">
+                <option value="first">الفصل الدراسي الأول</option>
+                <option value="second">الفصل الدراسي الثاني</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>📅 تاريخ بداية الأسبوع الأول</label>
+              <input type="date" id="termCalStartDate">
+            </div>
+            <div class="form-group">
+              <label>🔢 عدد أسابيع الفصل بالكامل</label>
+              <input type="number" id="termCalTotalWeeks" min="1" max="40" value="16">
+            </div>
+          </div>
+          <div id="termCalendarEditor"></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+            <button type="button" class="btn btn-outline btn-sm" id="termCalAddMonthBtn">➕ إضافة فترة</button>
+            <button type="button" class="btn btn-primary btn-sm" id="termCalSaveBtn">💾 حفظ الروزنامة</button>
+          </div>
+          <div id="termCalendarMsg" style="font-size:13px;margin-top:8px;color:var(--rasd-brand,#0b5e42)"></div>
+        </div>
+
         <h2 class="mt-16">📅 ضبط فترات الرصد</h2>
         <p style="color:#64748b; margin-bottom:12px; line-height:1.8;">الفصلان الدراسيان <strong>ثابتان</strong> (أول / ثانٍ). داخل كل فصل يضيف <strong>رئيس الكنترول</strong> فترات رصد مستقلة: الاسم، عدد الأسابيع، تاريخ بداية الأسبوع الأول، هل تنتهي بامتحان شهر، وإجازات الفترة. يمكن إضافة فترات لاحقاً حسب تعليمات الوزارة. حساب الدرجات يبقى <strong>متوسط ما رُصد</strong>.</p>
         <p style="color:#0b5e42; margin-bottom:12px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px; font-size:13px; line-height:1.8;">✅ عند الحفظ يُطبَّق <strong>ضبط الفترات كاملاً</strong> (الأسماء، التواريخ، أسابيع خارج الرصد، امتحان الشهر، الإجازات) على <strong>جميع المراحل</strong> لتوحيد الرصد والطباعة.</p>
@@ -1805,11 +1837,14 @@
   <script defer src="js/core/version.js"></script>
   <script src="js/domain/school/tenant-context.js"></script>
   <script src="js/domain/calendar/term-calendar.js"></script>
+  <script defer src="js/features/calendar/calendar-bridge.js"></script>
+  <script defer src="js/features/calendar/calendar-ui.js"></script>
   <script defer src="js/core/ui-modal.js"></script>
   <script defer src="js/core/utils.js"></script>
   <script defer src="js/core/dom-actions.js"></script>
   <script defer src="js/core/grade-logic.js"></script>
   <script defer src="js/domain/grades/weekly-period.js"></script>
+  <script defer src="js/domain/grades/real-averages.js"></script>
   <script defer src="js/core/pin-logic.js"></script>
   <script defer src="js/infrastructure/database-gateway.js"></script>
   <script defer src="js/core/storage.js"></script>
@@ -1842,24 +1877,17 @@
 
   <!-- 4. App (former app.js split — order matches original sections) -->
   <script defer src="js/app/state.js"></script>
-  <script defer src="js/app/auth-audit.part01.js"></script>
-  <script defer src="js/app/auth-audit.part02.js"></script>
-  <script defer src="js/app/auth-audit.part03.js"></script>
-  <script defer src="js/app/student-roster.part01.js"></script>
-  <script defer src="js/app/student-roster.part02.js"></script>
-  <script defer src="js/app/student-roster.part03.js"></script>
   <script defer src="js/app/excel-catalog.js"></script>
   <script defer src="js/app/grades-support.js"></script>
   <script defer src="js/app/subjects-stats.js"></script>
   <script defer src="js/app/school-info.js"></script>
+  <script defer src="js/app/auth-audit.js"></script>
+  <script defer src="js/app/student-roster.js"></script>
   <script defer src="js/app/teachers.js"></script>
   <script defer src="js/app/init.js"></script>
 
   <!-- 5. Grades feature stack -->
-  <script defer src="js/features/grades-ui.part01.js"></script>
-  <script defer src="js/features/grades-ui.part02.js"></script>
-  <script defer src="js/features/grades-ui.part03.js"></script>
-  <script defer src="js/features/grades-ui.part04.js"></script>
+  <script defer src="js/features/grades-ui.js"></script>
   <script defer src="js/application/services/grades-ui-state.js"></script>
   <script defer src="js/application/services/grades-service.js"></script>
   <script defer src="js/application/services/grades-lock-service.js"></script>
@@ -1872,14 +1900,8 @@
 
   <!-- 6. Students / print / import-export -->
   <script defer src="js/features/students.js"></script>
-  <script defer src="js/features/print-sheets.part01.js"></script>
-  <script defer src="js/features/print-sheets.part02.js"></script>
-  <script defer src="js/features/print-sheets.part03.js"></script>
-  <script defer src="js/features/print-sheets.part04.js"></script>
-  <script defer src="js/features/import-export.part01.js"></script>
-  <script defer src="js/features/import-export.part02.js"></script>
-  <script defer src="js/features/import-export.part03.js"></script>
-  <script defer src="js/features/import-export.part04.js"></script>
+  <script defer src="js/features/print-sheets.js"></script>
+  <script defer src="js/features/import-export.js"></script>
   <script defer src="js/features/sql-export.js"></script>
 
   <!-- 7. UX / analytics / security layers -->
