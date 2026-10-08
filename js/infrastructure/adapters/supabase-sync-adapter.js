@@ -14,7 +14,8 @@ function createSupabaseSyncAdapter({client, table='grade_system_state', bucket='
       return state().select('data, updated_at').eq('id', id).maybeSingle();
     },
     async upsertRows(rows) {
-      return state().upsert(rows);
+      // onConflict ضروري حتى يعمل UPSERT بوضوح مع PRIMARY KEY (id)
+      return state().upsert(rows, { onConflict: 'id' });
     },
     async listRowIds() {
       return state().select('id');

@@ -863,7 +863,11 @@ async function runCloudPush() {
     if (typeof GSP.refreshLocalPersistenceHealth === 'function') await GSP.refreshLocalPersistenceHealth();
   } catch (_) {}
 
-  if (cloudPushInFlight) { cloudPushPending = true; return; }
+  if (cloudPushInFlight) {
+    cloudPushPending = true;
+    // لا تترك الشارة على «جارٍ المزامنة» إلى الأبد إذا كانت عملية سابقة عالقة
+    return false;
+  }
   cloudPushInFlight = true;
   cloudPushPending = false;
   const syncService = getCloudSyncService();
@@ -884,6 +888,13 @@ async function runCloudPush() {
   if (syncStatus) syncStatus.markSyncing();
   if (syncQueue) syncQueue.markAttempt(syncQueue.ids());
   setConnBadge(null, 'syncing');
+  var pushWatchdog = setTimeout(function () {
+    if (!cloudPushInFlight) return;
+    console.warn('runCloudPush watchdog: force-release after 25s');
+    cloudPushInFlight = false;
+    setConnBadge(null, 'error');
+    updateSyncPendingStatus();
+  }, 25000);
   try {
     const root = _rootDBCache;
     if (root) {
@@ -995,8 +1006,10 @@ async function runCloudPush() {
     if (syncService && typeof syncService.recordFailure === 'function') syncService.recordFailure(e, (syncQueue && syncQueue.ids) ? syncQueue.ids() : []);
     setConnBadge(null, 'error');
     if (reliability) reliability.scheduleRetry(runCloudPush);
+  } finally {
+    try { clearTimeout(pushWatchdog); } catch (_) {}
+    cloudPushInFlight = false;
   }
-  cloudPushInFlight = false;
   updateSyncPendingStatus();
   if (cloudPushPending || (syncQueue && syncQueue.ids().length)) {
     if (reliability) reliability.scheduleRetry(runCloudPush);
