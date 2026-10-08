@@ -1000,7 +1000,13 @@ async function runCloudPush() {
         if (reliability) reliability.scheduleRetry(runCloudPush);
       }
       else {
-        persistRootDB(root);
+        // تحديث updatedAt محلياً دون إعادة إطلاق scheduleCloudPush (يمنع وميض الشارة)
+        try {
+          window.__gspSuppressCloudPush = true;
+          persistRootDB(root);
+        } finally {
+          window.__gspSuppressCloudPush = false;
+        }
         if (syncService && typeof syncService.complete === 'function') syncService.complete(rows.map(r => r.id));
         else if (syncQueue) syncQueue.remove(rows.map(r => r.id));
         if (syncService && typeof syncService.recordSuccess === 'function') syncService.recordSuccess();
@@ -1019,8 +1025,9 @@ async function runCloudPush() {
   }
   updateSyncPendingStatus();
   if (cloudPushPending || (syncQueue && syncQueue.ids().length)) {
+    // تأخير أطول قليلاً لتقليل وميض الشارة عند إعادة المحاولة
     if (reliability) reliability.scheduleRetry(runCloudPush);
-    else setTimeout(runCloudPush, 1000);
+    else setTimeout(runCloudPush, 3000);
   }
 }
 
