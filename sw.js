@@ -1,17 +1,23 @@
 /* رصد — Service Worker: تخزين أساسي لواجهة التطبيق */
-const CACHE_NAME = 'rasd-static-v1';
+const CACHE_NAME = 'rasd-static-v2';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './icons/icon-192.svg',
-  './icons/icon-512.svg'
+  './icons/rasd-icon-192.png',
+  './icons/rasd-icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(APP_SHELL))
+      .then((cache) =>
+        Promise.all(
+          APP_SHELL.map((url) =>
+            cache.add(url).catch((err) => console.warn('SW cache skip', url, err))
+          )
+        )
+      )
       .then(() => self.skipWaiting())
   );
 });
@@ -28,7 +34,6 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  // لا نخزّن طلبات خارجية (Supabase / CDN / الجسر)
   if (url.origin !== self.location.origin) return;
 
   event.respondWith(
