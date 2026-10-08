@@ -396,6 +396,10 @@ function persistRootDB(root, protectKeys) {
       if (syncStatus && typeof syncStatus.setStorageHealth === 'function') syncStatus.setStorageHealth(true);
     } catch (_) {}
     const b=document.getElementById('autosaveStatus'); if(b){b.textContent='🟢 تم الحفظ';b.className='autosave-status autosave-saved';}
+    // امسح شارة «الحفظ المحلي لم يكتمل» إن كانت ظاهرة بعد نجاح الكتابة
+    try {
+      if (typeof setConnBadge === 'function') setConnBadge('تم الحفظ المحلي — جارٍ المزامنة عند الاتصال');
+    } catch (_) {}
     // STEP 36: only release queued cloud work after the local durable write succeeds.
     try { if (typeof scheduleCloudPush === 'function') scheduleCloudPush(); } catch (_) {}
     return true;

@@ -795,24 +795,30 @@ function scheduleCloudPush() {
   if (service && typeof service.enqueue === 'function') service.enqueue(queueIds);
   else if (queue) queue.enqueue(queueIds);
   if (!isOnline) { setConnBadge(); updateSyncPendingStatus(); return; }
-  // أثناء الكتابة المحلية: انتظر اكتمال الحفظ بدل اعتباره فشلاً
+  // أثناء الكتابة المحلية: انتظر آخر كتابة IndexedDB (الأحدث)، وليس لقطة قديمة
   clearTimeout(cloudSyncTimer);
-  const waitForLocalSave = typeof GSP.whenLocalPersistenceSettled === 'function'
-    ? GSP.whenLocalPersistenceSettled()
-    : Promise.resolve(true);
+  if (typeof GSP.isLocalPersistenceHealthy === 'function' && !GSP.isLocalPersistenceHealthy()) {
+    setConnBadge('جاري الحفظ المحلي...');
+  }
   cloudSyncTimer = setTimeout(() => {
-    Promise.resolve(waitForLocalSave).then(ok => {
+    const waitLatest = typeof GSP.whenLocalPersistenceSettled === 'function'
+      ? GSP.whenLocalPersistenceSettled()
+      : Promise.resolve(true);
+    Promise.resolve(waitLatest).then(ok => {
       if (ok === false) {
         setConnBadge('الحفظ المحلي لم يكتمل — ستُؤجَّل المزامنة لحماية البيانات');
         updateSyncPendingStatus();
         return;
       }
+      try {
+        if (typeof GSP.refreshLocalPersistenceHealth === 'function') GSP.refreshLocalPersistenceHealth();
+      } catch (_) {}
       runCloudPush();
     }).catch(() => {
       setConnBadge('الحفظ المحلي لم يكتمل — ستُؤجَّل المزامنة لحماية البيانات');
       updateSyncPendingStatus();
     });
-  }, 1200);
+  }, 400);
   updateSyncPendingStatus();
 }
 
@@ -821,17 +827,18 @@ function scheduleCloudPush() {
 async function runCloudPush() {
   if (!cloudAvailable || !isOnline) return false;
   if (!(await ensureCloudSession())) { setConnBadge(); return false; }
-  // لا تعتمد على العلم اللحظي فقط — انتظر انتهاء آخر كتابة IndexedDB
+  // انتظر اكتمال الكتابة؛ أعد ضبط العلم بعد النجاح حتى لا تبقى الشارة عالقة
   if (typeof GSP.whenLocalPersistenceSettled === 'function') {
     const settled = await GSP.whenLocalPersistenceSettled();
     if (settled === false) {
       setConnBadge('الحفظ المحلي لم يكتمل — لن تتم المزامنة حتى ينجح الحفظ');
       return false;
     }
-  } else if (typeof GSP.isLocalPersistenceHealthy === 'function' && !GSP.isLocalPersistenceHealthy()) {
-    setConnBadge('الحفظ المحلي لم يكتمل — لن تتم المزامنة حتى ينجح الحفظ');
-    return false;
   }
+  try {
+    if (typeof GSP.refreshLocalPersistenceHealth === 'function') await GSP.refreshLocalPersistenceHealth();
+  } catch (_) {}
+
   if (cloudPushInFlight) { cloudPushPending = true; return; }
   cloudPushInFlight = true;
   cloudPushPending = false;
