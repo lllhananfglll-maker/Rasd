@@ -16,14 +16,20 @@
 
   /** Number of recording weeks for a term+period (month index 1-based). */
   function getPeriodWeekCount(term, month) {
+    // أولوية: الروزنامة المركزية عبر الجسر
+    try {
+      if (GSP.calendarBridge && typeof GSP.calendarBridge.getPeriodWeekCount === 'function') {
+        const n = GSP.calendarBridge.getPeriodWeekCount(term, month);
+        if (Number.isFinite(n) && n >= 1) return Math.min(12, n);
+      }
+    } catch (e) {}
     const periods = getRecordingPeriodsSafe(term);
     const idx = Math.max(0, (Number(month) || 1) - 1);
     const p = periods[idx];
     if (p && p.weeks != null) {
       const w = parseInt(p.weeks, 10);
-      if (Number.isFinite(w) && w >= 1) return Math.min(8, Math.max(1, w));
+      if (Number.isFinite(w) && w >= 1) return Math.min(12, Math.max(1, w));
     }
-    // Fallback: 4 weeks, minus excluded if available
     if (p && Array.isArray(p.excludedWeeks) && p.excludedWeeks.length) {
       return Math.max(1, 4 - p.excludedWeeks.length);
     }

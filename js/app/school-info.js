@@ -75,6 +75,15 @@
     }
 
     function saveSchoolInfo() {
+      try {
+        if (window._termCalendarDraft) {
+          ['first','second'].forEach(function(term){
+            var c = window._termCalendarDraft[term];
+            if (c && typeof saveCentralCalendar === 'function') saveCentralCalendar(term, c);
+          });
+        }
+      } catch (e) { console.warn('termCalendar pre-save', e); }
+
       const msg = document.getElementById('schoolInfoMsg');
       try {
         if (currentAccountType !== 'superadmin') {
