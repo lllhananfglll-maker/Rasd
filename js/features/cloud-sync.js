@@ -250,6 +250,30 @@ function applyRemoteRootMeta(root, publicData, secureData, legacyData) {
 }
 
 // يجلب صفاً واحداً من grade_system_state بمعرّفه
+
+function withCloudTimeout(promise, ms, label) {
+  ms = ms || 15000;
+  return new Promise(function (resolve, reject) {
+    var done = false;
+    var timer = setTimeout(function () {
+      if (done) return;
+      done = true;
+      reject(new Error((label || 'cloud') + ' timeout after ' + ms + 'ms'));
+    }, ms);
+    Promise.resolve(promise).then(function (v) {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      resolve(v);
+    }, function (e) {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      reject(e);
+    });
+  });
+}
+
 async function cloudFetchRow(rowId) {
   if (!cloudAvailable || !isOnline) return null;
   if (!(await ensureCloudSession())) {
@@ -259,7 +283,7 @@ async function cloudFetchRow(rowId) {
   try {
     const service = getCloudSyncGateway();
     if (!service) return null;
-    const { data, error } = await service.fetchRow(rowId);
+    const { data, error } = await withCloudTimeout(service.fetchRow(rowId), 12000, 'fetchRow');
     if (error) { console.error('Supabase fetch error [' + rowId + ']:', error); return null; }
     return data;
   } catch (e) { console.error('Supabase fetch exception [' + rowId + ']:', e); return null; }
@@ -853,6 +877,7 @@ async function runCloudPush() {
       if (syncStatus) updateSyncPendingStatus();
       reliability.scheduleRetry(runCloudPush);
       cloudPushInFlight = false;
+      setConnBadge('بانتظار إعادة محاولة المزامنة...');
       return;
     }
   }
@@ -949,7 +974,7 @@ async function runCloudPush() {
       root.lastUpdated = now;
       const service = getCloudSyncGateway();
       if (!service) throw new Error('Cloud sync service is not available');
-      const { error } = await service.upsertRows(rows);
+      const { error } = await withCloudTimeout(service.upsertRows(rows), 20000, 'upsertRows');
       if (error) {
         console.error('Supabase push error:', error);
         if (syncService && typeof syncService.recordFailure === 'function') syncService.recordFailure(error, rows.map(r => r.id));
