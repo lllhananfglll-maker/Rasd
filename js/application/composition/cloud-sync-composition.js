@@ -9,9 +9,11 @@
   function resolveService() {
     if (GSP.application.services.cloudSync && typeof GSP.application.services.cloudSync.fetchRow === 'function') return GSP.application.services.cloudSync;
     const factory = GSP.infrastructure && GSP.infrastructure.adapters && GSP.infrastructure.adapters.createSupabaseSyncAdapter;
-    if (typeof factory !== 'function' || !global.supabaseClient) return null;
+    if (typeof factory !== 'function') return null;
+    const sbClient = global.supabaseClient || (GSP && GSP.supabaseClient) || null;
+    if (!sbClient) return null;
     const gateway = factory({
-      client: global.supabaseClient,
+      client: sbClient,
       table: 'grade_system_state',
       bucket: global.WORKBOOK_STORAGE_BUCKET || (global.GSP && global.GSP.application && global.GSP.application.services && global.GSP.application.services.configuration && global.GSP.application.services.configuration.get('workbookStorageBucket')) || 'workbook-originals'
     });

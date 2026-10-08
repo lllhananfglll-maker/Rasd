@@ -984,7 +984,14 @@ async function runCloudPush() {
       });
       root.lastUpdated = now;
       const service = getCloudSyncGateway();
-      if (!service) throw new Error('Cloud sync service is not available');
+      if (!service) {
+        console.error('Cloud sync gateway unavailable', {
+          hasFactory: !!(window.GSP && GSP.infrastructure && GSP.infrastructure.adapters && GSP.infrastructure.adapters.createSupabaseSyncAdapter),
+          hasClient: !!(window.supabaseClient || (window.GSP && GSP.supabaseClient)),
+          cloudAvailable: !!window.cloudAvailable
+        });
+        throw new Error('Cloud sync service is not available');
+      }
       const { error } = await withCloudTimeout(service.upsertRows(rows), 20000, 'upsertRows');
       if (error) {
         console.error('Supabase push error:', error);
@@ -1253,7 +1260,14 @@ async function cleanupCloudStorage() {
     for (const id of r.orphanRows) {
       try {
         const service = getCloudSyncGateway();
-        if (!service) throw new Error('Cloud sync service is not available');
+        if (!service) {
+        console.error('Cloud sync gateway unavailable', {
+          hasFactory: !!(window.GSP && GSP.infrastructure && GSP.infrastructure.adapters && GSP.infrastructure.adapters.createSupabaseSyncAdapter),
+          hasClient: !!(window.supabaseClient || (window.GSP && GSP.supabaseClient)),
+          cloudAvailable: !!window.cloudAvailable
+        });
+        throw new Error('Cloud sync service is not available');
+      }
         const { error } = await service.deleteRow(id);
         if (error) rowErrors.push(id + ': ' + error.message);
         else deletedRows++;
@@ -1268,7 +1282,14 @@ async function cleanupCloudStorage() {
         const part = r.orphanFiles.slice(i, i + chunk);
         try {
           const service = getCloudSyncGateway();
-          if (!service) throw new Error('Cloud sync service is not available');
+          if (!service) {
+        console.error('Cloud sync gateway unavailable', {
+          hasFactory: !!(window.GSP && GSP.infrastructure && GSP.infrastructure.adapters && GSP.infrastructure.adapters.createSupabaseSyncAdapter),
+          hasClient: !!(window.supabaseClient || (window.GSP && GSP.supabaseClient)),
+          cloudAvailable: !!window.cloudAvailable
+        });
+        throw new Error('Cloud sync service is not available');
+      }
           const { error } = await service.removeWorkbooks(part);
           if (!error) deletedFiles += part.length;
           else console.error('storage remove error:', error);
