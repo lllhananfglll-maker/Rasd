@@ -188,13 +188,22 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
   }
   function getMonthCalendarDays(term, month){
     const db = loadDB(); const att = ensureAttendance(db);
-    const weekStarts = (typeof getFourWeekDates === 'function') ? getFourWeekDates(term, month - 1) : ['','','',''];
     const activeJsDays = getActiveDayIndices(att);
     const holidaySet = collectSchoolHolidaySet();
+    // روزنامة مركزية: أعمدة بأيام وتواريخ حقيقية (عدد أسابيع الفترة الفعلي)
+    if (typeof buildMonthDayColumns === 'function') {
+      return buildMonthDayColumns(term, month, {
+        activeJsDays: activeJsDays,
+        holidaySet: holidaySet,
+        dayLabels: (typeof DAY_LABELS !== 'undefined' ? DAY_LABELS : undefined)
+      });
+    }
+    const weekStarts = (typeof getFourWeekDates === 'function') ? getFourWeekDates(term, month - 1) : ['','','',''];
     const scopeWeeksCal = (typeof getPeriodWeekCount === 'function') ? getPeriodWeekCount(term, month - 1) : 4;
+    const nWeeks = Math.max(scopeWeeksCal, 1);
     const columns = [];
-    for (let w = 0; w < 4; w++) {
-      const base = parseISO(weekStarts[w]);
+    for (let w = 0; w < nWeeks; w++) {
+      const base = parseISO(weekStarts[w] || '');
       if (!base) {
         activeJsDays.forEach((jsDay, di) => {
           columns.push({ week:w+1, dayIdx:di, jsDay, dateISO:'', label:DAY_LABELS[di]||'', dateLabel:'—', isHoliday:false, hasDate:false, outOfScope: (typeof isWeekExcluded === 'function') ? isWeekExcluded(term, month - 1, w) : (w >= scopeWeeksCal) });
