@@ -146,12 +146,14 @@
     const msg = document.getElementById('termCalendarMsg');
     if (msg) msg.textContent = '✅ تم حفظ الروزنامة المركزية. الرصد والغياب والطباعة تستخدم هذه التواريخ.';
     try {
-      if (typeof GSP.refreshLocalPersistenceHealth === 'function') {
-        GSP.refreshLocalPersistenceHealth().then(function (ok) {
-          if (ok && typeof setConnBadge === 'function') setConnBadge('تم حفظ الروزنامة محلياً');
-        });
-      } else if (typeof setConnBadge === 'function') {
-        setConnBadge('تم حفظ الروزنامة محلياً');
+      if (typeof setConnBadge === 'function') setConnBadge('تم حفظ الروزنامة محلياً — بانتظار المزامنة');
+      if (typeof forceFullCloudSync === 'function') {
+        setTimeout(function () {
+          forceFullCloudSync({ reason: 'after-calendar-save' }).then(function (r) {
+            console.log('forceFullCloudSync after calendar', r);
+            if (!r || !r.ok) console.warn('مزامنة الروزنامة لم تكتمل', r);
+          });
+        }, 600);
       }
     } catch (_) {}
     try {

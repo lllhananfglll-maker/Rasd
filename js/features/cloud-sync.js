@@ -134,9 +134,29 @@ function setConnBadge(text, kind) {
     badge.style.background = '#1e3a5f'; return; }
   if (kind === 'error') { badge.textContent = '🟠 متصل — لكن حدث خطأ أثناء آخر مزامنة، سيُعاد المحاولة';
     badge.style.background = '#c2410c'; return; }
-  badge.textContent = '🟢 متصل بالإنترنت' + (text ? ' — ' + text : ' — البيانات متزامنة');
+  if (!text) {
+    var last = null;
+    try { last = localStorage.getItem('rasd_last_cloud_sync_at'); } catch (_) {}
+    if (last) {
+      try {
+        var d = new Date(last);
+        text = 'آخر مزامنة ناجحة ' + d.toLocaleString('ar-EG');
+      } catch (_) { text = 'البيانات متزامنة'; }
+    } else {
+      text = 'لم تكتمل مزامنة سحابية بعد — البيانات محلية';
+    }
+  }
+  badge.textContent = '🟢 متصل بالإنترنت' + (text ? ' — ' + text : '');
   badge.style.background = '#0b5e42';
 }
+
+function markCloudSyncSuccess() {
+  try {
+    var iso = new Date().toISOString();
+    localStorage.setItem('rasd_last_cloud_sync_at', iso);
+  } catch (_) {}
+}
+
 
 function updateOnlineStatus() {
   isOnline = !!navigator.onLine;
@@ -717,8 +737,26 @@ async function pullFromCloud(refreshUi) {
       const remoteStageIsNewer = !localStageUpdated ||
         (stageRow.updated_at && new Date(stageRow.updated_at) > new Date(localStageUpdated));
       if (remoteStageIsNewer) {
-        if (st) { st.data = stageRow.data; st.updatedAt = stageRow.updated_at; }
-        changed = true;
+        // لا تستبدل بيانات محلية غنية بنسخة سحابية شبه فارغة
+        var remoteEmpty = !stageRow.data || (
+          !(stageRow.data.schoolInfo && (stageRow.data.schoolInfo.recordingPeriods || stageRow.data.schoolInfo.termCalendar))
+          && !(stageRow.data.students && stageRow.data.students.length)
+          && !(stageRow.data.grades && stageRow.data.grades.length)
+        );
+        var localRich = st && st.data && (
+          (st.data.schoolInfo && (st.data.schoolInfo.recordingPeriods || st.data.schoolInfo.termCalendar))
+          || (st.data.students && st.data.students.length)
+          || (st.data.grades && st.data.grades.length)
+        );
+        if (remoteEmpty && localRich) {
+          console.warn('pullFromCloud: skip empty remote stage overwrite', currentStageId);
+        } else if (st) {
+          st.data = stageRow.data;
+          st.updatedAt = stageRow.updated_at;
+          changed = true;
+        } else {
+          changed = true;
+        }
       } else if (st && st.data && stageRow.data) {
         const remote = stageRow.data; let merged = false;
         if (remote.monthLocks && typeof remote.monthLocks === 'object') {
@@ -1021,6 +1059,7 @@ async function runCloudPush() {
         if (syncService && typeof syncService.complete === 'function') syncService.complete(rows.map(r => r.id));
         else if (syncQueue) syncQueue.remove(rows.map(r => r.id));
         if (syncService && typeof syncService.recordSuccess === 'function') syncService.recordSuccess();
+        markCloudSyncSuccess();
         setConnBadge('تمت المزامنة ' + new Date().toLocaleTimeString('ar-EG'));
         maybeAutoVersionSnapshot();
       }
@@ -1473,6 +1512,7 @@ async function forceFullCloudSync(options) {
       window.__gspSuppressCloudPush = false;
     }
 
+    markCloudSyncSuccess();
     setConnBadge('تمت المزامنة الكاملة ' + new Date().toLocaleTimeString('ar-EG'));
     updateSyncPendingStatus();
     return { ok: true, count: rows.length };
