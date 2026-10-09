@@ -100,7 +100,8 @@
         const prevInfo = db.schoolInfo || {};
         const root = getRootDB();
         const stageRec = root.stages.find(s => s.id === currentStageId);
-        db.schoolInfo = {
+        // [إصلاح] الحفاظ على باقي مفاتيح schoolInfo (وأهمها termCalendar) بدل استبدال الكائن بالكامل
+        db.schoolInfo = Object.assign({}, prevInfo, {
           governorate: document.getElementById('siGovernorate').value,
           educationAdmin: document.getElementById('siEducationAdmin').value.trim(),
           schoolName: document.getElementById('siSchoolName').value.trim(),
@@ -144,7 +145,21 @@
             const draft = GSP._siPeriodsDraft || { first: [], second: [] };
             return periodsToMonthsAndWeek1(draft).week1Dates;
           })()
-        };
+        });
+
+        // [إصلاح] الروزنامة المركزية هي المصدر الوحيد للفترات (ensureCalendarSeeded يعيد بناء recordingPeriods منها عند كل تحميل)،
+        // لذلك نعيد اشتقاق البنية القديمة منها حتى لا تكتب مسودة قديمة فوق ما حُفظ من الروزنامة.
+        try {
+          const br = window.GSP && window.GSP.calendarBridge;
+          if (br && db.schoolInfo.termCalendar) {
+            ['first', 'second'].forEach(function (t) {
+              if (db.schoolInfo.termCalendar[t] && db.schoolInfo.termCalendar[t].startDate) {
+                br.syncLegacyFromCalendar(db, t, db.schoolInfo.termCalendar[t]);
+              }
+            });
+            GSP._siPeriodsDraft = null;
+          }
+        } catch (eCal) { console.warn('legacy periods re-derive', eCal); }
 
         // عند تفعيل شهر ثالث مع اختيار «حذف التقييم الشهري»: إزالة مكوّنات الامتحان من مواد هذه المرحلة
         let examRemoved = 0;

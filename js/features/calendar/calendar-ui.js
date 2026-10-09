@@ -142,6 +142,23 @@
       ? domainCal.normalizeCalendar(c, term)
       : c;
     if (b && b.saveCentralCalendar) b.saveCentralCalendar(term, normalized);
+    // [إصلاح] تعميم الروزنامة على كل المراحل، وإلا تبذر المرحلة الأخرى الروزنامة الافتراضية عند فتحها
+    try {
+      if (typeof getRootDB === 'function' && typeof persistRootDB === 'function' && typeof currentStageId !== 'undefined') {
+        const rootDb = getRootDB();
+        let n = 0;
+        (rootDb.stages || []).forEach(function (st) {
+          if (!st || st.id === currentStageId) return;
+          if (!st.data) return;
+          st.data.schoolInfo = st.data.schoolInfo || {};
+          st.data.schoolInfo.termCalendar = st.data.schoolInfo.termCalendar || {};
+          st.data.schoolInfo.termCalendar[term] = JSON.parse(JSON.stringify(normalized));
+          if (b && b.syncLegacyFromCalendar) b.syncLegacyFromCalendar(st.data, term, normalized);
+          n++;
+        });
+        if (n) persistRootDB(rootDb);
+      }
+    } catch (ePropagate) { console.warn('calendar propagate', ePropagate); }
     draftStore()[term] = normalized;
     const msg = document.getElementById('termCalendarMsg');
     if (msg) msg.textContent = '✅ تم حفظ الروزنامة المركزية. الرصد والغياب والطباعة تستخدم هذه التواريخ.';
