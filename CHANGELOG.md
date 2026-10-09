@@ -1,3 +1,14 @@
+# STEP 54 — ثبات فترات الرصد عبر الجلسات والمراحل
+
+- **المشكلة:** ضبط فترات الرصد كان يُقبل في الجلسة ثم يعود للافتراضي بعد تسجيل الخروج لأن `ensureCalendarSeeded` كان يعيد كتابة `recordingPeriods` من الروزنامة الافتراضية عند كل تحميل، و`saveSchoolInfo` كان يعيد اشتقاق الفترات من الروزنامة فيمحو ما أدخله المستخدم.
+- **الإصلاح:**
+  - `calendar-bridge.js`: لا تُستبدل الفترات المحفوظة عند التحميل؛ إن وُجدت فترات بلا روزنامة تُبنى الروزنامة منها؛ `getRecordingPeriods` يفضّل المحفوظ.
+  - دالة جديدة `syncCalendarFromPeriods` لكتابة الروزنامة المركزية من فترات الرصد.
+  - `school-info.js`: عند الحفظ تُحدَّث الروزنامة من مسودة الفترات (وليس العكس).
+  - `cloud-sync.js`: دمج `recordingPeriods` و`termCalendar` عند السحب الجزئي من السحابة.
+
+---
+
 # STEP 53 — Supabase New Project Bootstrap & Verification
 
 - Added idempotent Supabase bootstrap and verification SQL.
