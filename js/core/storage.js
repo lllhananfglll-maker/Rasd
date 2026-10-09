@@ -399,7 +399,7 @@ function persistRootDB(root, protectKeys) {
     // امسح شارة الفشل المؤقت بعد نجاح الكتابة
     try {
       if (!window.__gspSuppressCloudPush && typeof setConnBadge === 'function') {
-        setConnBadge('تم الحفظ المحلي — جارٍ المزامنة عند الاتصال');
+        setConnBadge('تم الحفظ المحلي — بانتظار تأكيد المزامنة السحابية');
       }
     } catch (_) {}
     // لا تعِد جدولة المزامنة إذا كان الحفظ ناتجاً عن اكتمال رفع سحابي (يمنع حلقة الارتعاش)

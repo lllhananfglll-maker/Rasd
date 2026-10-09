@@ -175,7 +175,8 @@
           academicYear: db.schoolInfo.academicYear,
           months: db.schoolInfo.months,
           week1Dates: db.schoolInfo.week1Dates,
-          recordingPeriods: db.schoolInfo.recordingPeriods
+          recordingPeriods: db.schoolInfo.recordingPeriods,
+          termCalendar: db.schoolInfo.termCalendar
         };
         let propagated = 0;
         (root.stages || []).forEach(st => {
@@ -191,7 +192,6 @@
           propagated++;
         });
         if (propagated) persistRootDB(root);
-        if (typeof scheduleCloudPush === 'function') scheduleCloudPush();
 
         msg.textContent = (propagated
           ? ('✅ تم حفظ بيانات المدرسة وضبط الفترات على جميع المراحل (' + (propagated + 1) + ' مرحلة) — توحيد الطباعة والرصد')
@@ -200,6 +200,25 @@
         updateSchoolInfoDisplay();
         populateMonthSelects();
         renderMonthlyExportButtons();
+        // مزامنة جذرية فورية حتى لا تُفقد الفترات عند إعادة فتح الموقع
+        try {
+          if (typeof forceFullCloudSync === 'function') {
+            msg.textContent += ' — جارٍ رفع نسخة سحابية...';
+            setTimeout(function () {
+              forceFullCloudSync({ reason: 'after-school-info-save' }).then(function (r) {
+                if (r && r.ok) {
+                  msg.textContent = msg.textContent.replace(' — جارٍ رفع نسخة سحابية...', '') + ' — ✅ تم التأكيد السحابي (' + r.count + ' صف)';
+                  msg.style.color = '#0b5e42';
+                } else {
+                  msg.textContent = msg.textContent.replace(' — جارٍ رفع نسخة سحابية...', '') + ' — ⚠️ الحفظ محلي فقط (المزامنة: ' + ((r && r.reason) || 'فشلت') + ')';
+                  msg.style.color = '#b45309';
+                }
+              });
+            }, 400);
+          } else if (typeof scheduleCloudPush === 'function') {
+            scheduleCloudPush();
+          }
+        } catch (eSync) { console.warn(eSync); }
       } catch (e) {
         console.error('saveSchoolInfo error:', e);
         msg.textContent = '❌ حدث خطأ أثناء الحفظ: ' + e.message;
