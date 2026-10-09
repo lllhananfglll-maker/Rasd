@@ -206,6 +206,19 @@ window.addEventListener('offline', updateOnlineStatus);
 //  الصيغة القديمة (صف 'main') مدعومة للقراءة فقط للترحيل التلقائي.
 // ─────────────────────────────────────────────────────────────────────────
 
+
+/** STEP 54b: هل الطابع البعيد أحدث فعلياً من المحلي؟ (هامش ثانيتين لتفاوت الساعة) */
+function isCloudTimestampNewer(remoteTs, localTs, skewMs) {
+  skewMs = typeof skewMs === 'number' ? skewMs : 2000;
+  if (!remoteTs) return false;
+  if (!localTs) return true;
+  var r = new Date(remoteTs).getTime();
+  var l = new Date(localTs).getTime();
+  if (!Number.isFinite(r)) return false;
+  if (!Number.isFinite(l)) return true;
+  return r > (l + skewMs);
+}
+
 const ROOT_PUBLIC_ID = 'root_public';
 const ROOT_SECURE_ID = 'root_secure';
 const ROOT_META_LEGACY_ID = 'root_meta';
@@ -215,7 +228,9 @@ function buildRootPublic(root) {
   return {
     stages: (root.stages || []).map(({ id, name, section }) => ({ id, name, section })),
     systemClosure: root.systemClosure || { enabled: false, message: '', updatedAt: null },
-    lastUpdated: root.lastUpdated || null
+    lastUpdated: root.lastUpdated || null,
+    // STEP 56: روزنامة المدرسة على مستوى الجذر (تبقى حتى لو فشلت كتابة stage_* بسبب RLS)
+    schoolCalendarVault: root.schoolCalendarVault || null
   };
 }
 
@@ -286,6 +301,24 @@ function applyRemoteRootMeta(root, publicData, secureData, legacyData) {
 
   const lu = pub.lastUpdated || sec.lastUpdated || src.lastUpdated;
   if (lu) root.lastUpdated = lu;
+
+  // STEP 56: خزنة الروزنامة من root_public
+  try {
+    var remoteVault = (pub && pub.schoolCalendarVault) || (src && src.schoolCalendarVault) || null;
+    if (remoteVault && (remoteVault.first || remoteVault.second)) {
+      var localVault = root.schoolCalendarVault;
+      var remoteTs = remoteVault.updatedAt ? new Date(remoteVault.updatedAt).getTime() : 0;
+      var localTs = localVault && localVault.updatedAt ? new Date(localVault.updatedAt).getTime() : 0;
+      if (!localVault || remoteTs >= localTs) {
+        root.schoolCalendarVault = remoteVault;
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('gsp_school_calendar_vault_v1', JSON.stringify(remoteVault));
+          }
+        } catch (_) {}
+      }
+    }
+  } catch (_) {}
 }
 
 // يجلب صفاً واحداً من grade_system_state بمعرّفه
@@ -692,7 +725,9 @@ GSP.softRefreshAfterCloudPull = softRefreshAfterCloudPull;
 async function pullFromCloud(refreshUi) {
   if (!cloudAvailable || !isOnline) return false;
   if (!(await ensureCloudSession())) { setConnBadge(); return false; }
-
+  var _pullSuppressWas = !!window.__gspSuppressCloudPush;
+  window.__gspSuppressCloudPush = true;
+  try {
   // جلب الصف العام + الحساس بالتوازي (الحساس قد يفشل لغير superadmin بعد RLS — هذا متوقع)
   const [publicRow, secureRow, legacyMetaRow] = await Promise.all([
     cloudFetchRow(ROOT_PUBLIC_ID),
@@ -728,7 +763,7 @@ async function pullFromCloud(refreshUi) {
     (secureRow && secureRow.updated_at) ||
     (legacyMetaRow && legacyMetaRow.updated_at);
   const remoteMetaIsNewer = !localMetaUpdated ||
-    (remoteTs && new Date(remoteTs) > new Date(localMetaUpdated));
+    (remoteTs && isCloudTimestampNewer(remoteTs, localMetaUpdated, 2000));
 
   if (remoteMetaIsNewer) {
     applyRemoteRootMeta(
@@ -746,7 +781,7 @@ async function pullFromCloud(refreshUi) {
       const st = root.stages.find(s => s.id === currentStageId);
       const localStageUpdated = st && st.updatedAt;
       const remoteStageIsNewer = !localStageUpdated ||
-        (stageRow.updated_at && new Date(stageRow.updated_at) > new Date(localStageUpdated));
+        (stageRow.updated_at && isCloudTimestampNewer(stageRow.updated_at, localStageUpdated, 2000));
       if (remoteStageIsNewer) {
         // لا تستبدل بيانات محلية غنية بنسخة سحابية شبه فارغة
         var remoteEmpty = !stageRow.data || (
@@ -761,8 +796,36 @@ async function pullFromCloud(refreshUi) {
         );
         if (remoteEmpty && localRich) {
           console.warn('pullFromCloud: skip empty remote stage overwrite', currentStageId);
+          // زامن الطابع فقط حتى لا تتكرر نافذة «نسخة أحدث» بلا نهاية
+          if (st && stageRow.updated_at) {
+            st.updatedAt = stageRow.updated_at;
+            changed = true;
+          }
         } else if (st) {
+          // STEP 56: احفظ روزنامة محلية غنية قبل الاستبدال إن كانت السحابة بلا روزنامة
+          var _localSi = st.data && st.data.schoolInfo;
+          var _localTc = _localSi && _localSi.termCalendar;
+          var _localRp = _localSi && _localSi.recordingPeriods;
+          var _localHasCal = !!(
+            _localTc && (
+              (_localTc.first && _localTc.first.months && _localTc.first.months.length) ||
+              (_localTc.second && _localTc.second.months && _localTc.second.months.length)
+            )
+          );
+          var _remoteSi = stageRow.data && stageRow.data.schoolInfo;
+          var _remoteTc = _remoteSi && _remoteSi.termCalendar;
+          var _remoteHasCal = !!(
+            _remoteTc && (
+              (_remoteTc.first && _remoteTc.first.months && _remoteTc.first.months.length) ||
+              (_remoteTc.second && _remoteTc.second.months && _remoteTc.second.months.length)
+            )
+          );
           st.data = stageRow.data;
+          if (_localHasCal && !_remoteHasCal) {
+            st.data.schoolInfo = st.data.schoolInfo || {};
+            st.data.schoolInfo.termCalendar = JSON.parse(JSON.stringify(_localTc));
+            if (_localRp) st.data.schoolInfo.recordingPeriods = JSON.parse(JSON.stringify(_localRp));
+          }
           st.updatedAt = stageRow.updated_at;
           changed = true;
         } else {
@@ -811,6 +874,16 @@ async function pullFromCloud(refreshUi) {
       try { softRefreshAfterCloudPull(); } catch (e) { applyRoleUI(); }
     }
   } else { setConnBadge(); }
+  } finally {
+    window.__gspSuppressCloudPush = _pullSuppressWas;
+    // STEP 56: بعد أي سحب — أعد تطبيق خزنة الروزنامة حتى لا تُفقد بعد الدخول
+    try {
+      if (typeof restoreCalendarVaultToAllStages === 'function') restoreCalendarVaultToAllStages();
+      else if (window.GSP && GSP.calendarBridge && GSP.calendarBridge.restoreCalendarVaultToAllStages) {
+        GSP.calendarBridge.restoreCalendarVaultToAllStages();
+      }
+    } catch (eVault) { console.warn('post-pull calendar vault restore', eVault); }
+  }
 }
 
 // يسحب كل المراحل من السحابة بالتوازي — يُستخدم عند تسجيل الدخول لضمان اكتمال البيانات محلياً
@@ -861,6 +934,12 @@ async function pullAllStagesFromCloud() {
     }
   });
   persistRootDB(root);
+    try {
+      if (typeof restoreCalendarVaultToAllStages === 'function') restoreCalendarVaultToAllStages();
+      else if (window.GSP && GSP.calendarBridge && GSP.calendarBridge.restoreCalendarVaultToAllStages) {
+        GSP.calendarBridge.restoreCalendarVaultToAllStages();
+      }
+    } catch (_) {}
   setConnBadge('تم تحميل بيانات جميع المراحل من السحابة (' + stageIds.length + ' مراحل)');
 }
 
@@ -972,33 +1051,60 @@ async function runCloudPush() {
           var staleCooldownUntil = (typeof window.__gspStaleCooldownUntil === 'number') ? window.__gspStaleCooldownUntil : 0;
           if (Date.now() < staleCooldownUntil) {
             // خلال فترة التهدئة نتابع الرفع دون سؤال مجدداً
-          } else if (stageRow && stageRow.updated_at && new Date(stageRow.updated_at) > new Date(localUpdated)) {
-            // السحابة أحدث — اسأل المستخدم
+          } else if (stageRow && stageRow.updated_at && isCloudTimestampNewer(stageRow.updated_at, localUpdated, 2000)) {
+            // السحابة أحدث فعلياً (بهامش ثانيتين) — اسأل المستخدم
             cloudPushInFlight = false;
             setConnBadge('تنبيه: توجد نسخة أحدث على السحابة');
             const choice = await showStalePushModal();
-            // تأكيد إخفاء النافذة بعد الاختيار
             try { hideStalePushModal(); } catch (e) {}
-            // امنع إعادة فتح النافذة لمدة 15 ثانية بعد أي اختيار
-            window.__gspStaleCooldownUntil = Date.now() + 15000;
+            // تهدئة أطول بعد أي اختيار لمنع إعادة ظهور النافذة فوراً
+            window.__gspStaleCooldownUntil = Date.now() + 90000;
             if (choice === 'pull') {
-              await pullFromCloud(true);
-              // بعد السحب: اجعل updatedAt المحلي مطابقاً للسحابة حتى لا يُعاد كشف التعارض
+              // امنع أي scheduleCloudPush ناتج عن persist أثناء/بعد السحب
+              window.__gspSuppressCloudPush = true;
               try {
-                const rootAfter = getRootDB();
-                const stAfter = rootAfter && rootAfter.stages && rootAfter.stages.find(s => s.id === currentStageId);
-                if (stAfter && stageRow && stageRow.updated_at) {
-                  stAfter.updatedAt = stageRow.updated_at;
+                await pullFromCloud(true);
+                // أعد الجلب بعد السحب لاعتماد الطابع الفعلي على السحابة
+                var freshRow = null;
+                try { freshRow = await cloudFetchRow('stage_' + currentStageId); } catch (e2) {}
+                var rootAfter = getRootDB();
+                var stAfter = rootAfter && rootAfter.stages && rootAfter.stages.find(function (s) { return s.id === currentStageId; });
+                var ts = (freshRow && freshRow.updated_at) || (stageRow && stageRow.updated_at);
+                if (stAfter && ts) {
+                  stAfter.updatedAt = ts;
                   if (typeof persistRootDB === 'function') persistRootDB(rootAfter);
                 }
-              } catch (e) {}
-              setConnBadge('تم تحميل النسخة الأحدث — راجع بياناتك ثم احفظ مجدداً إن لزم');
-              if (cloudPushPending) setTimeout(runCloudPush, 1500);
+                // امسح علامات الـ dirty لهذه المرحلة حتى لا يُعاد الرفع فوراً بنفس البيانات
+                try {
+                  if (_rootDBCache && _rootDBCache._cloudDirtyStageIds) {
+                    delete _rootDBCache._cloudDirtyStageIds[String(currentStageId)];
+                  }
+                  if (typeof consumeDirtyStageIds === 'function') {
+                    var left = (consumeDirtyStageIds() || []).filter(function (id) { return String(id) !== String(currentStageId); });
+                    left.forEach(function (id) {
+                      if (typeof markStageCloudDirty === 'function') markStageCloudDirty(id);
+                    });
+                  }
+                } catch (eDirty) {}
+              } finally {
+                window.__gspSuppressCloudPush = false;
+              }
+              cloudPushPending = false;
+              setConnBadge('تم تحميل النسخة الأحدث من السحابة');
+              // لا تعِد runCloudPush تلقائياً بعد السحب — انتظر تعديلاً محلياً جديداً من المستخدم
               return;
             }
-            // choice === 'force' → نكمل الرفع
+            // choice === 'force' → نكمل الرفع فوق السحابة
             cloudPushInFlight = true;
             setConnBadge(null, 'syncing');
+          } else if (stageRow && stageRow.updated_at && st) {
+            // طوابع متقاربة أو المحلي أحدث: زامن الطابع المحلي إن كان قديماً قليلاً دون فتح النافذة
+            try {
+              if (!isCloudTimestampNewer(localUpdated, stageRow.updated_at, 0) &&
+                  isCloudTimestampNewer(stageRow.updated_at, localUpdated, -1)) {
+                /* equal-ish — keep local */
+              }
+            } catch (_) {}
           }
         }
       }

@@ -1,19 +1,24 @@
 /**
  * features/calendar/calendar-bridge.js
- * جسر الروزنامة المركزية → واجهات الرصد والغياب والطباعة.
+ * STEP 55 — إعادة كتابة كاملة لمصدر فترات الرصد / الروزنامة.
  *
- * المصدر: domain/calendar/term-calendar.js
- * التخزين: schoolInfo.termCalendar[term] داخل قاعدة المرحلة
+ * المصدر الوحيد للحقيقة: schoolInfo.termCalendar[term]
+ * عند كل حفظ:
+ *   1) تُكتب في المرحلة الحالية (saveDB)
+ *   2) تُنسَخ لكل المراحل (persistRootDB)
+ *   3) تُشتق recordingPeriods / months / week1Dates للتوافق
  *
- * قواعد المنتج (PRODUCT-RULES-REAL-DATA):
- * - أسابيع حقيقية من الروزنامة (تواريخ + أرقام أسابيع الفصل)
- * - الغياب اليومي بمفتاح dateISO
- * - لا أسابيع وهمية ثابتة بمعزل عن التقويم
+ * قواعد صارمة:
+ * - القراءة لا تكتب أبداً على التخزين
+ * - ensureCalendarSeeded يزرع الافتراضي مرة واحدة فقط إن لم يوجد شيء محفوظ
+ * - لا يُستبدل محفوظ المستخدم بالافتراضي عند التحميل أو الخروج
  */
 'use strict';
 (function (root) {
   const GSP = root.GSP || (root.GSP = {});
-  const cal = (GSP.domain && GSP.domain.calendar) || GSP.termCalendar || null;
+  const cal = function () {
+    return (GSP.domain && GSP.domain.calendar) || GSP.termCalendar || null;
+  };
 
   function loadDbSafe() {
     try {
@@ -29,14 +34,153 @@
     return false;
   }
 
-  function getCentralCalendar(term) {
-    const t = term === 'second' ? 'second' : 'first';
-    const db = loadDbSafe();
-    const stored = db && db.schoolInfo && db.schoolInfo.termCalendar && db.schoolInfo.termCalendar[t];
-    if (cal && typeof cal.normalizeCalendar === 'function') {
-      return cal.normalizeCalendar(stored || null, t);
+  function termKey(term) {
+    return term === 'second' ? 'second' : 'first';
+  }
+
+
+  // ─── STEP 56: خزنة روزنامة مستقلة لا تُمسَح بالسحب السحابي ولا بتبديل المرحلة ───
+  const CALENDAR_VAULT_LS = 'gsp_school_calendar_vault_v1';
+  const CALENDAR_VAULT_IDB = 'gsp_school_calendar_vault_v1';
+
+  function readCalendarVault() {
+    try {
+      const raw = root.localStorage && root.localStorage.getItem(CALENDAR_VAULT_LS);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object' && (parsed.first || parsed.second)) return parsed;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  function writeCalendarVault(payload) {
+    try {
+      const data = {
+        first: payload.first || null,
+        second: payload.second || null,
+        recordingPeriods: payload.recordingPeriods || null,
+        updatedAt: new Date().toISOString()
+      };
+      if (root.localStorage) {
+        root.localStorage.setItem(CALENDAR_VAULT_LS, JSON.stringify(data));
+      }
+      // نسخة في الجذر أيضاً
+      try {
+        if (typeof root.getRootDB === 'function' && typeof root.persistRootDB === 'function') {
+          const rootDb = root.getRootDB();
+          if (rootDb) {
+            rootDb.schoolCalendarVault = data;
+            // لا تشغّل scheduleCloudPush من هنا إن كنا داخل حفظ
+            var prev = root.__gspSuppressCloudPush;
+            root.__gspSuppressCloudPush = true;
+            try { root.persistRootDB(rootDb); } finally { root.__gspSuppressCloudPush = prev; }
+          }
+        }
+      } catch (_) {}
+      return data;
+    } catch (e) {
+      console.warn('writeCalendarVault', e);
+      return null;
     }
-    // fallback minimal
+  }
+
+  function snapshotVaultFromSchoolInfo(schoolInfo) {
+    if (!schoolInfo) return null;
+    const tc = schoolInfo.termCalendar || {};
+    if (!tc.first && !tc.second) return null;
+    return writeCalendarVault({
+      first: tc.first || null,
+      second: tc.second || null,
+      recordingPeriods: schoolInfo.recordingPeriods || null
+    });
+  }
+
+  /** تطبيق الخزنة على schoolInfo لأي مرحلة (بدون save) */
+  function applyVaultToSchoolInfo(schoolInfo, vault) {
+    if (!schoolInfo || !vault) return false;
+    let changed = false;
+    if (!schoolInfo.termCalendar) schoolInfo.termCalendar = {};
+    ['first', 'second'].forEach(function (t) {
+      if (vault[t] && vault[t].months && vault[t].months.length) {
+        schoolInfo.termCalendar[t] = JSON.parse(JSON.stringify(vault[t]));
+        applyLegacyMirrors(schoolInfo, t, schoolInfo.termCalendar[t]);
+        changed = true;
+      }
+    });
+    return changed;
+  }
+
+  /** استعادة الخزنة على كل المراحل + المرحلة الحالية */
+  function restoreCalendarVaultToAllStages() {
+    const vault = readCalendarVault();
+    if (!vault) {
+      // جرّب من الجذر
+      try {
+        const rootDb = typeof root.getRootDB === 'function' ? root.getRootDB() : null;
+        if (rootDb && rootDb.schoolCalendarVault) {
+          return restoreFromVaultObject(rootDb.schoolCalendarVault);
+        }
+      } catch (_) {}
+      return false;
+    }
+    return restoreFromVaultObject(vault);
+  }
+
+  function restoreFromVaultObject(vault) {
+    if (!vault) return false;
+    let any = false;
+    try {
+      const db = loadDbSafe();
+      if (db) {
+        if (!db.schoolInfo) db.schoolInfo = {};
+        if (applyVaultToSchoolInfo(db.schoolInfo, vault)) {
+          saveDbSafe(db);
+          any = true;
+        }
+      }
+    } catch (_) {}
+    try {
+      if (typeof root.getRootDB === 'function' && typeof root.persistRootDB === 'function') {
+        const rootDb = root.getRootDB();
+        let n = 0;
+        (rootDb.stages || []).forEach(function (st) {
+          if (!st) return;
+          if (!st.data) st.data = typeof root.emptyStageData === 'function' ? root.emptyStageData() : { schoolInfo: {} };
+          if (!st.data.schoolInfo) st.data.schoolInfo = {};
+          if (applyVaultToSchoolInfo(st.data.schoolInfo, vault)) n++;
+        });
+        if (n) {
+          var prev = root.__gspSuppressCloudPush;
+          root.__gspSuppressCloudPush = true;
+          try { root.persistRootDB(rootDb); } finally { root.__gspSuppressCloudPush = prev; }
+          any = true;
+        }
+      }
+    } catch (e) { console.warn('restoreCalendarVaultToAllStages', e); }
+    return any;
+  }
+
+
+  /** قراءة الروزنامة المحفوظة فقط — بدون كتابة */
+  function readStoredCalendar(term) {
+    const t = termKey(term);
+    const db = loadDbSafe();
+    if (!db || !db.schoolInfo || !db.schoolInfo.termCalendar) return null;
+    const stored = db.schoolInfo.termCalendar[t];
+    if (!stored || typeof stored !== 'object') return null;
+    if (!stored.startDate && !(stored.months && stored.months.length)) return null;
+    const c = cal();
+    return c && c.normalizeCalendar ? c.normalizeCalendar(stored, t) : stored;
+  }
+
+  /** روزنامة للعرض/الحساب — محفوظ أو افتراضي (بدون كتابة) */
+  function getCentralCalendar(term) {
+    const t = termKey(term);
+    const stored = readStoredCalendar(t);
+    if (stored) return stored;
+    const c = cal();
+    if (c && c.defaultCalendar) return c.defaultCalendar(t);
     return {
       startDate: t === 'first' ? '2026-09-13' : '2027-02-07',
       totalWeeks: t === 'first' ? 16 : 14,
@@ -44,182 +188,202 @@
     };
   }
 
-  function saveCentralCalendar(term, raw) {
-    const t = term === 'second' ? 'second' : 'first';
-    const db = loadDbSafe();
-    if (!db) return null;
-    if (!db.schoolInfo) db.schoolInfo = {};
-    if (!db.schoolInfo.termCalendar) db.schoolInfo.termCalendar = {};
-    const normalized = cal && cal.normalizeCalendar
-      ? cal.normalizeCalendar(raw, t)
-      : raw;
-    db.schoolInfo.termCalendar[t] = normalized;
-    // مزامنة البنية القديمة للتوافق
-    syncLegacyFromCalendar(db, t, normalized);
-    saveDbSafe(db);
-    return normalized;
-  }
+  /** اشتقاق البنية القديمة من الروزنامة (في الذاكرة على كائن schoolInfo فقط) */
+  function applyLegacyMirrors(schoolInfo, term, normalized) {
+    const c = cal();
+    const t = termKey(term);
+    const periods = (c && c.getRecordingPeriods)
+      ? c.getRecordingPeriods(normalized, t)
+      : (normalized.months || []).map(function (m, i) {
+          const prefix = t === 'second' ? 's' : 'f';
+          return {
+            id: prefix + (i + 1),
+            name: m.name || ('الفترة ' + (i + 1)),
+            weeks: Math.max(0, (m.endWeek || 0) - (m.startWeek || 0) + 1),
+            excludedWeeks: [],
+            week1: c && c.weekStartISO ? c.weekStartISO(normalized, m.startWeek) : '',
+            hasExam: !!m.hasExam,
+            examAfterWeek: Number(m.examAfterWeek) || m.endWeek || 0,
+            startWeek: m.startWeek,
+            endWeek: m.endWeek,
+            holidays: '',
+            enabled: true
+          };
+        });
 
-  function syncLegacyFromCalendar(db, term, c) {
-    if (!db.schoolInfo) db.schoolInfo = {};
-    const periods = (c.months || []).map(function (m, i) {
-      const prefix = term === 'second' ? 's' : 'f';
-      const week1 = cal && cal.weekStartISO
-        ? cal.weekStartISO(c, m.startWeek)
-        : '';
-      return {
-        id: prefix + (i + 1),
-        name: m.name || ('الفترة ' + (i + 1)),
-        weeks: Math.max(0, (m.endWeek || 0) - (m.startWeek || 0) + 1),
-        excludedWeeks: [],
-        week1: week1,
-        hasExam: !!m.hasExam,
-        examAfterWeek: Number(m.examAfterWeek) || m.endWeek || 0,
-        startWeek: m.startWeek,
-        endWeek: m.endWeek,
-        holidays: '',
-        enabled: true
-      };
-    });
-    if (!db.schoolInfo.recordingPeriods) db.schoolInfo.recordingPeriods = {};
-    db.schoolInfo.recordingPeriods[term] = periods;
+    if (!schoolInfo.termCalendar) schoolInfo.termCalendar = {};
+    schoolInfo.termCalendar[t] = JSON.parse(JSON.stringify(normalized));
 
-    if (!db.schoolInfo.week1Dates) db.schoolInfo.week1Dates = {};
-    if (!db.schoolInfo.week1Dates[term]) db.schoolInfo.week1Dates[term] = {};
-    periods.forEach(function (p, i) {
-      db.schoolInfo.week1Dates[term][i] = p.week1 || '';
-    });
+    if (!schoolInfo.recordingPeriods) schoolInfo.recordingPeriods = {};
+    schoolInfo.recordingPeriods[t] = periods;
 
-    if (!db.schoolInfo.months) db.schoolInfo.months = {};
-    db.schoolInfo.months[term] = periods.map(function (p) { return p.name; });
+    if (!schoolInfo.week1Dates) schoolInfo.week1Dates = {};
+    schoolInfo.week1Dates[t] = periods.map(function (p) { return p.week1 || ''; });
+
+    if (!schoolInfo.months) schoolInfo.months = {};
+    schoolInfo.months[t] = periods.map(function (p) { return p.name; });
+
+    schoolInfo.calendarUpdatedAt = new Date().toISOString();
+    return periods;
   }
 
   /**
-   * STEP 54: بناء الروزنامة المركزية من فترات الرصد المحفوظة (الاتجاه العكسي).
-   * يحفظ أسماء الفترات والتواريخ وامتحان الشهر بشكل دائم في termCalendar
-   * حتى لا تُستبدل بالافتراضي عند إعادة التحميل أو تسجيل الخروج.
+   * حفظ روزنامة فصل واحد في المرحلة الحالية + كل المراحل.
+   * هذا هو المسار الوحيد المسموح لكتابة termCalendar.
    */
-  function syncCalendarFromPeriods(db, term, periodsList) {
+  function saveCentralCalendar(term, raw) {
+    const t = termKey(term);
+    const c = cal();
+    const normalized = c && c.normalizeCalendar ? c.normalizeCalendar(raw, t) : raw;
+    const db = loadDbSafe();
+    if (!db) return null;
     if (!db.schoolInfo) db.schoolInfo = {};
-    if (!db.schoolInfo.termCalendar) db.schoolInfo.termCalendar = {};
-    const list = Array.isArray(periodsList) ? periodsList.filter(function (p) { return p && p.enabled !== false; }) : [];
-    if (!list.length) return null;
+    applyLegacyMirrors(db.schoolInfo, t, normalized);
+    saveDbSafe(db);
 
-    const existing = db.schoolInfo.termCalendar[term] || {};
-    let cursor = 1;
-    const months = list.map(function (p, i) {
-      let startWeek = Number(p.startWeek);
-      let endWeek = Number(p.endWeek);
-      const weeks = Math.max(1, Number(p.weeks) || 4);
-      if (!Number.isFinite(startWeek) || startWeek < 1) startWeek = cursor;
-      if (!Number.isFinite(endWeek) || endWeek < startWeek) endWeek = startWeek + weeks - 1;
-      cursor = endWeek + 1;
-      return {
-        name: (p.name || '').trim() || ('الفترة ' + (i + 1)),
-        startWeek: startWeek,
-        endWeek: endWeek,
-        hasExam: !!p.hasExam,
-        examAfterWeek: p.hasExam ? (Number(p.examAfterWeek) || endWeek) : 0
-      };
-    });
-
-    const firstWeek1 = (list[0] && list[0].week1) || existing.startDate || '';
-    const totalWeeks = months.length ? months[months.length - 1].endWeek : (existing.totalWeeks || 16);
-    const raw = {
-      startDate: firstWeek1 || existing.startDate || (term === 'second' ? '2027-02-07' : '2026-09-13'),
-      totalWeeks: Math.max(totalWeeks, months.length ? months[months.length - 1].endWeek : 1),
-      months: months
-    };
-    const normalized = cal && cal.normalizeCalendar ? cal.normalizeCalendar(raw, term) : raw;
-    db.schoolInfo.termCalendar[term] = normalized;
-    // حدّث البنية القديمة من الروزنامة المحدَّثة (مع الحفاظ على holidays/excluded من المسودة إن وُجدت)
-    syncLegacyFromCalendar(db, term, normalized);
-    if (db.schoolInfo.recordingPeriods && db.schoolInfo.recordingPeriods[term]) {
-      db.schoolInfo.recordingPeriods[term] = db.schoolInfo.recordingPeriods[term].map(function (rp, i) {
-        const src = list[i] || {};
-        return Object.assign({}, rp, {
-          holidays: src.holidays != null ? src.holidays : (rp.holidays || ''),
-          excludedWeeks: Array.isArray(src.excludedWeeks) ? src.excludedWeeks.slice() : (rp.excludedWeeks || []),
-          enabled: src.enabled !== false
+    // تعميم على كل المراحل
+    try {
+      if (typeof root.getRootDB === 'function' && typeof root.persistRootDB === 'function') {
+        const rootDb = root.getRootDB();
+        const currentId = root.currentStageId;
+        let n = 0;
+        (rootDb.stages || []).forEach(function (st) {
+          if (!st) return;
+          if (currentId && st.id === currentId) return; // الحالية حُفظت عبر saveDB
+          if (!st.data) {
+            st.data = typeof root.emptyStageData === 'function' ? root.emptyStageData() : { schoolInfo: {} };
+          }
+          if (!st.data.schoolInfo) st.data.schoolInfo = {};
+          applyLegacyMirrors(st.data.schoolInfo, t, normalized);
+          // انسخ أيضاً حقول المدرسة العامة إن وُجدت في الحالية
+          try {
+            const cur = db.schoolInfo || {};
+            ['governorate', 'educationAdmin', 'schoolName', 'principalName', 'academicYear', 'term'].forEach(function (k) {
+              if (cur[k] != null && cur[k] !== '') st.data.schoolInfo[k] = cur[k];
+            });
+          } catch (_) {}
+          st.updatedAt = new Date().toISOString();
+          n++;
         });
-      });
+        if (n) root.persistRootDB(rootDb);
+      }
+    } catch (eProp) {
+      console.warn('calendar propagate all stages', eProp);
     }
+    // خزنة دائمة مستقلة عن السحابة وتبديل المرحلة
+    try {
+      const db2 = loadDbSafe();
+      if (db2 && db2.schoolInfo) snapshotVaultFromSchoolInfo(db2.schoolInfo);
+    } catch (_) {}
     return normalized;
   }
 
+  /** بناء روزنامة من فترات الرصد ثم حفظها */
+  function syncCalendarFromPeriods(dbOrNull, term, periodsList) {
+    const t = termKey(term);
+    const c = cal();
+    const existing = readStoredCalendar(t);
+    const normalized = c && c.calendarFromPeriods
+      ? c.calendarFromPeriods(periodsList, t, existing)
+      : getCentralCalendar(t);
+    // إن مُرّر db نطبّق عليه مباشرة ثم saveCentralCalendar يعيد الحفظ والتعميم
+    if (dbOrNull && dbOrNull.schoolInfo) {
+      applyLegacyMirrors(dbOrNull.schoolInfo, t, normalized);
+    }
+    return saveCentralCalendar(t, normalized);
+  }
+
+  /**
+   * بذر لمرة واحدة فقط: إن لم توجد روزنامة ولا فترات محفوظة.
+   * لا يمس أي بيانات موجودة.
+   */
   function ensureCalendarSeeded() {
+    // أولاً: استعد من الخزنة إن وُجدت (أقوى من الافتراضي ومن سحابة قديمة)
+    try { restoreCalendarVaultToAllStages(); } catch (_) {}
     const db = loadDbSafe();
     if (!db) return;
     if (!db.schoolInfo) db.schoolInfo = {};
     let changed = false;
+    const c = cal();
     ['first', 'second'].forEach(function (term) {
-      const hasCal = db.schoolInfo.termCalendar && db.schoolInfo.termCalendar[term]
-        && db.schoolInfo.termCalendar[term].startDate;
-      const existingPeriods = db.schoolInfo.recordingPeriods && db.schoolInfo.recordingPeriods[term];
-      const hasPeriods = Array.isArray(existingPeriods) && existingPeriods.length > 0;
+      const hasCal = db.schoolInfo.termCalendar &&
+        db.schoolInfo.termCalendar[term] &&
+        (db.schoolInfo.termCalendar[term].startDate ||
+          (db.schoolInfo.termCalendar[term].months && db.schoolInfo.termCalendar[term].months.length));
+      const hasPeriods = db.schoolInfo.recordingPeriods &&
+        Array.isArray(db.schoolInfo.recordingPeriods[term]) &&
+        db.schoolInfo.recordingPeriods[term].length > 0;
 
-      if (!hasCal && hasPeriods) {
-        // فترات محفوظة بدون روزنامة → ابنِ الروزنامة منها (لا تستخدم الافتراضي)
-        syncCalendarFromPeriods(db, term, existingPeriods);
-        changed = true;
-      } else if (!hasCal) {
-        const def = cal && cal.defaultCalendar ? cal.defaultCalendar(term) : getCentralCalendar(term);
-        if (!db.schoolInfo.termCalendar) db.schoolInfo.termCalendar = {};
-        db.schoolInfo.termCalendar[term] = def;
-        syncLegacyFromCalendar(db, term, def);
-        changed = true;
-      } else if (!hasPeriods) {
-        // روزنامة موجودة وperiods فارغة فقط → املأ periods من الروزنامة
-        const c = getCentralCalendar(term);
-        syncLegacyFromCalendar(db, term, c);
-        changed = true;
+      if (hasCal) {
+        // مزامنة المرايا فقط إن كانت recordingPeriods فارغة
+        if (!hasPeriods) {
+          const normalized = c && c.normalizeCalendar
+            ? c.normalizeCalendar(db.schoolInfo.termCalendar[term], term)
+            : db.schoolInfo.termCalendar[term];
+          applyLegacyMirrors(db.schoolInfo, term, normalized);
+          changed = true;
+        }
+        return;
       }
-      // إن وُجدت الروزنامة والفترات معاً: لا تعِد الكتابة — احفظ ما أدخله المستخدم
+      if (hasPeriods) {
+        // فترات بلا روزنامة → ابنِ الروزنامة منها
+        const normalized = c && c.calendarFromPeriods
+          ? c.calendarFromPeriods(db.schoolInfo.recordingPeriods[term], term, null)
+          : null;
+        if (normalized) {
+          applyLegacyMirrors(db.schoolInfo, term, normalized);
+          changed = true;
+        }
+        return;
+      }
+      // لا شيء محفوظ → افتراضي لمرة واحدة
+      const def = c && c.defaultCalendar ? c.defaultCalendar(term) : getCentralCalendar(term);
+      applyLegacyMirrors(db.schoolInfo, term, def);
+      changed = true;
     });
     if (changed) saveDbSafe(db);
   }
 
   function getRecordingPeriods(term) {
-    const t = term === 'second' ? 'second' : 'first';
-    // STEP 54: فضّل الفترات المحفوظة صراحة إن وُجدت (ثبات بعد الخروج/إعادة التحميل)
+    const t = termKey(term);
+    // 1) من الروزنامة المحفوظة
+    const stored = readStoredCalendar(t);
+    if (stored && stored.months && stored.months.length) {
+      const c = cal();
+      if (c && c.getRecordingPeriods) return c.getRecordingPeriods(stored, t);
+    }
+    // 2) من recordingPeriods المحفوظة
     try {
       const db = loadDbSafe();
-      const stored = db && db.schoolInfo && db.schoolInfo.recordingPeriods && db.schoolInfo.recordingPeriods[t];
-      if (Array.isArray(stored) && stored.length) {
-        const enabled = stored.filter(function (p) { return p && p.enabled !== false; });
-        if (enabled.length) {
-          return enabled.map(function (p, i) {
-            const prefix = t === 'second' ? 's' : 'f';
-            const weeks = Math.max(0, Number(p.weeks) || (p.endWeek && p.startWeek ? (p.endWeek - p.startWeek + 1) : 4));
-            return {
-              id: p.id || (prefix + (i + 1)),
-              name: p.name || ('الفترة ' + (i + 1)),
-              weeks: weeks,
-              excludedWeeks: Array.isArray(p.excludedWeeks) ? p.excludedWeeks.slice() : [],
-              week1: p.week1 || '',
-              hasExam: !!p.hasExam,
-              examAfterWeek: Number(p.examAfterWeek) || 0,
-              startWeek: p.startWeek,
-              endWeek: p.endWeek,
-              holidays: p.holidays || '',
-              enabled: true
-            };
-          });
-        }
+      const list = db && db.schoolInfo && db.schoolInfo.recordingPeriods && db.schoolInfo.recordingPeriods[t];
+      if (Array.isArray(list) && list.length) {
+        return list.filter(function (p) { return p && p.enabled !== false; }).map(function (p, i) {
+          const prefix = t === 'second' ? 's' : 'f';
+          return {
+            id: p.id || (prefix + (i + 1)),
+            name: p.name || ('الفترة ' + (i + 1)),
+            weeks: Math.max(0, Number(p.weeks) || 4),
+            excludedWeeks: Array.isArray(p.excludedWeeks) ? p.excludedWeeks.slice() : [],
+            week1: p.week1 || '',
+            hasExam: !!p.hasExam,
+            examAfterWeek: Number(p.examAfterWeek) || 0,
+            startWeek: p.startWeek,
+            endWeek: p.endWeek,
+            holidays: p.holidays || '',
+            enabled: true
+          };
+        });
       }
-    } catch (e) { /* fall through */ }
-
-    const c = getCentralCalendar(t);
-    if (cal && typeof cal.getRecordingPeriods === 'function') {
-      return cal.getRecordingPeriods(c, t);
-    }
-    return (c.months || []).map(function (m, i) {
+    } catch (_) {}
+    // 3) افتراضي للقراءة فقط
+    return getCentralCalendar(t).months.map(function (m, i) {
       const prefix = t === 'second' ? 's' : 'f';
+      const c = cal();
       return {
         id: prefix + (i + 1),
         name: m.name,
         weeks: m.endWeek - m.startWeek + 1,
-        week1: cal ? cal.weekStartISO(c, m.startWeek) : '',
+        week1: c && c.weekStartISO ? c.weekStartISO(getCentralCalendar(t), m.startWeek) : '',
         hasExam: !!m.hasExam,
         examAfterWeek: Number(m.examAfterWeek) || 0,
         startWeek: m.startWeek,
@@ -232,56 +396,52 @@
   function getFourWeekDates(term, monthIndex0) {
     const c = getCentralCalendar(term);
     const m = c.months[monthIndex0];
-    if (!m || !cal) return ['', '', '', ''];
+    const domain = cal();
+    if (!m || !domain) return ['', '', '', ''];
     const out = [];
     for (let w = m.startWeek; w <= Math.min(c.totalWeeks, m.endWeek); w++) {
-      out.push(cal.weekStartISO(c, w));
+      out.push(domain.weekStartISO(c, w));
     }
-    // للتوافق مع كود يتوقع حتى 4؛ إن زاد العدد يُرجَع كاملاً
     while (out.length < 4) out.push('');
     return out;
   }
 
-  /** كل تواريخ بداية الأسابيع الفعلية للفترة (قد تكون أكثر أو أقل من 4) */
   function getPeriodWeekStartDates(term, monthIndex0) {
     const c = getCentralCalendar(term);
     const m = c.months[monthIndex0];
-    if (!m || !cal) return [];
+    const domain = cal();
+    if (!m || !domain) return [];
     const out = [];
     for (let w = m.startWeek; w <= Math.min(c.totalWeeks, m.endWeek); w++) {
       out.push({
         globalWeek: w,
         localWeek: w - m.startWeek + 1,
-        startISO: cal.weekStartISO(c, w)
+        startISO: domain.weekStartISO(c, w)
       });
     }
     return out;
   }
 
   function getPeriodWeekCountBridge(term, monthIndex0Or1) {
-    // بعض الاستدعاءات 0-based وبعضها 1-based عبر weekly-period
     const c = getCentralCalendar(term);
     let idx = Number(monthIndex0Or1);
     if (!Number.isFinite(idx)) idx = 0;
-    // إن كان 1..N وليس 0.. نعتبره 1-based
-    if (idx >= 1 && idx <= (c.months || []).length && (c.months[idx] == null || idx === (c.months || []).length)) {
-      // heuristic: weekly-period passes month 1-based
+    // دعم 1-based
+    if (idx >= 1 && idx <= (c.months || []).length && !c.months[idx] && c.months[idx - 1]) {
+      idx = idx - 1;
     }
-    // weekly-period.getPeriodWeekCount(term, month) uses 1-based month
-    // attendance uses month-1 for 0-based
-    // ندعم الاثنين: إن كان idx ضمن 0..len-1 استخدمه، وإلا idx-1
-    let m = c.months[idx];
-    if (!m && idx >= 1) m = c.months[idx - 1];
-    if (!m) return 0;
-    return Math.max(0, m.endWeek - m.startWeek + 1);
+    if (idx >= 1 && idx <= (c.months || []).length && c.months[idx - 1] && !c.months[idx]) {
+      // heuristic: caller used 1-based
+      const m1 = c.months[idx - 1];
+      return m1 ? Math.max(0, m1.endWeek - m1.startWeek + 1) : 0;
+    }
+    const m = c.months[idx];
+    return m ? Math.max(0, m.endWeek - m.startWeek + 1) : 0;
   }
 
-  function isWeekExcluded(term, monthIndex0, weekIndex0) {
-    const c = getCentralCalendar(term);
-    const m = c.months[monthIndex0];
-    if (!m) return true;
-    const globalWeek = m.startWeek + weekIndex0;
-    return globalWeek > m.endWeek || globalWeek > c.totalWeeks;
+  function isWeekExcluded(/* term, monthIndex0, weekIndex0 */) {
+    // الأسابيع خارج نطاق الفترة تُحسب خارج الرصد عبر getPeriodWeekStartDates
+    return false;
   }
 
   function getMonthLabels(term) {
@@ -289,35 +449,29 @@
   }
 
   function getWeek1DateISO(term, monthIndex0) {
-    const dates = getPeriodWeekStartDates(term, monthIndex0);
-    return dates.length ? dates[0].startISO : '';
+    const dates = getFourWeekDates(term, monthIndex0);
+    return dates[0] || '';
   }
 
-  /**
-   * أعمدة الأيام الحقيقية لفترة الرصد (للغياب الأسبوعي/اليومي).
-   * ليست محدودة بـ 4 أسابيع — تتبع عدد أسابيع الفترة في الروزنامة.
-   */
-  function buildMonthDayColumns(term, month1Based, options) {
-    const opts = options || {};
-    const monthIndex0 = Math.max(0, (Number(month1Based) || 1) - 1);
-    const c = getCentralCalendar(term);
-    const m = c.months[monthIndex0];
-    const weeks = getPeriodWeekStartDates(term, monthIndex0);
-    const activeJsDays = opts.activeJsDays || [0, 1, 2, 3, 4];
-    const holidaySet = opts.holidaySet || new Set();
-    const DAY_LABELS = opts.dayLabels || ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'];
+  function buildMonthDayColumns(term, monthIndex0, activeJsDays, holidays) {
+    const domain = cal();
     const columns = [];
-    if (!m || !cal) return columns;
-
+    const weeks = getPeriodWeekStartDates(term, monthIndex0);
+    const holidaySet = {};
+    (holidays || []).forEach(function (h) {
+      if (typeof h === 'string') holidaySet[h] = true;
+      else if (h && h.date) holidaySet[h.date] = true;
+    });
+    const DAY_LABELS = ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'];
+    if (!weeks.length) return columns;
     weeks.forEach(function (winfo) {
-      const base = cal.parseISO(winfo.startISO);
-      if (!base) {
-        activeJsDays.forEach(function (jsDay, di) {
+      if (!winfo.startISO || !domain) {
+        (activeJsDays || [0, 1, 2, 3, 4]).forEach(function (_js, di) {
           columns.push({
             week: winfo.localWeek,
             globalWeek: winfo.globalWeek,
             dayIdx: di,
-            jsDay: jsDay,
+            jsDay: (activeJsDays || [])[di],
             dateISO: '',
             label: DAY_LABELS[di] || '',
             dateLabel: '—',
@@ -328,13 +482,15 @@
         });
         return;
       }
+      const base = domain.parseISO(winfo.startISO);
+      if (!base) return;
       const startJs = base.getDay();
-      activeJsDays.forEach(function (jsDay, di) {
+      (activeJsDays || [0, 1, 2, 3, 4]).forEach(function (jsDay, di) {
         let delta = jsDay - startJs;
         if (delta < 0) delta += 7;
         const d = new Date(base.getTime());
         d.setDate(d.getDate() + delta);
-        const iso = cal.toISO(d);
+        const iso = domain.toISO(d);
         columns.push({
           week: winfo.localWeek,
           globalWeek: winfo.globalWeek,
@@ -342,8 +498,8 @@
           jsDay: jsDay,
           dateISO: iso,
           label: DAY_LABELS[di] || '',
-          dateLabel: cal.formatAr ? cal.formatAr(iso) : iso,
-          isHoliday: holidaySet.has(iso),
+          dateLabel: domain.formatAr ? domain.formatAr(iso) : iso,
+          isHoliday: !!holidaySet[iso],
           hasDate: true,
           outOfScope: false
         });
@@ -352,7 +508,14 @@
     return columns;
   }
 
-  // —— تصدير عالمي (للتوافق مع attendance-system / grades / print) ——
+  // توافق الاسم القديم
+  function syncLegacyFromCalendar(db, term, c) {
+    if (!db) return;
+    if (!db.schoolInfo) db.schoolInfo = {};
+    applyLegacyMirrors(db.schoolInfo, term, c);
+  }
+
+  // —— تصدير عالمي ——
   root.getCentralCalendar = getCentralCalendar;
   root.getRecordingPeriods = getRecordingPeriods;
   root.getFourWeekDates = getFourWeekDates;
@@ -363,9 +526,10 @@
   root.saveCentralCalendar = saveCentralCalendar;
   root.ensureCalendarSeeded = ensureCalendarSeeded;
   root.syncCalendarFromPeriods = syncCalendarFromPeriods;
+  root.restoreCalendarVaultToAllStages = restoreCalendarVaultToAllStages;
+  root.readCalendarVault = readCalendarVault;
   root.buildMonthDayColumns = buildMonthDayColumns;
 
-  // لا نستبدل getPeriodWeekCount إن weekly-period عرّفه؛ نوفّر GSP
   GSP.getCentralCalendar = getCentralCalendar;
   GSP.getRecordingPeriods = getRecordingPeriods;
   GSP.getFourWeekDates = getFourWeekDates;
@@ -381,15 +545,18 @@
     isWeekExcluded: isWeekExcluded,
     getMonthLabels: getMonthLabels,
     buildMonthDayColumns: buildMonthDayColumns,
-    syncLegacyFromCalendar: syncLegacyFromCalendar
+    syncLegacyFromCalendar: syncLegacyFromCalendar,
+    readStoredCalendar: readStoredCalendar,
+    restoreCalendarVaultToAllStages: restoreCalendarVaultToAllStages,
+    readCalendarVault: readCalendarVault,
+    snapshotVaultFromSchoolInfo: snapshotVaultFromSchoolInfo
   };
 
-  // بذر الروزنامة عند التحميل
   if (typeof root.document !== 'undefined') {
     root.document.addEventListener('DOMContentLoaded', function () {
       setTimeout(function () {
         try { ensureCalendarSeeded(); } catch (e) { console.warn('calendar seed', e); }
-      }, 200);
+      }, 300);
     });
   }
 })(typeof window !== 'undefined' ? window : globalThis);
