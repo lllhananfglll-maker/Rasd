@@ -147,19 +147,26 @@
           })()
         });
 
-        // [إصلاح] الروزنامة المركزية هي المصدر الوحيد للفترات (ensureCalendarSeeded يعيد بناء recordingPeriods منها عند كل تحميل)،
-        // لذلك نعيد اشتقاق البنية القديمة منها حتى لا تكتب مسودة قديمة فوق ما حُفظ من الروزنامة.
+        // STEP 54: بعد حفظ فترات الرصد من المحرر، حدّث الروزنامة المركزية منها (وليس العكس)
+        // حتى تبقى الأسماء/التواريخ/امتحان الشهر ثابتة بعد الخروج وإعادة الدخول.
         try {
           const br = window.GSP && window.GSP.calendarBridge;
-          if (br && db.schoolInfo.termCalendar) {
+          const draft = GSP._siPeriodsDraft || db.schoolInfo.recordingPeriods;
+          if (br && typeof br.syncCalendarFromPeriods === 'function' && draft) {
             ['first', 'second'].forEach(function (t) {
-              if (db.schoolInfo.termCalendar[t] && db.schoolInfo.termCalendar[t].startDate) {
-                br.syncLegacyFromCalendar(db, t, db.schoolInfo.termCalendar[t]);
+              if (Array.isArray(draft[t]) && draft[t].length) {
+                br.syncCalendarFromPeriods(db, t, draft[t]);
               }
             });
-            GSP._siPeriodsDraft = null;
+          } else if (typeof window.syncCalendarFromPeriods === 'function' && draft) {
+            ['first', 'second'].forEach(function (t) {
+              if (Array.isArray(draft[t]) && draft[t].length) {
+                window.syncCalendarFromPeriods(db, t, draft[t]);
+              }
+            });
           }
-        } catch (eCal) { console.warn('legacy periods re-derive', eCal); }
+          GSP._siPeriodsDraft = null;
+        } catch (eCal) { console.warn('periods→calendar sync', eCal); }
 
         // عند تفعيل شهر ثالث مع اختيار «حذف التقييم الشهري»: إزالة مكوّنات الامتحان من مواد هذه المرحلة
         let examRemoved = 0;
@@ -329,10 +336,17 @@
     }
 
     function getRecordingPeriods(term) {
+      const t = term === 'second' ? 'second' : 'first';
       const db = loadDB();
-      const all = migrateMonthsToPeriods(db.schoolInfo || {});
-      const list = (all[term] || []).filter(p => p && p.enabled !== false);
-      return list.length ? list : (defaultRecordingPeriods()[term] || []);
+      const info = db.schoolInfo || {};
+      // STEP 54: اقرأ المحفوظ أولاً دون إعادة توليد افتراضي يمحو تعديلات المستخدم
+      if (info.recordingPeriods && Array.isArray(info.recordingPeriods[t]) && info.recordingPeriods[t].length) {
+        const list = info.recordingPeriods[t].filter(p => p && p.enabled !== false);
+        if (list.length) return list;
+      }
+      const all = migrateMonthsToPeriods(info);
+      const list = (all[t] || []).filter(p => p && p.enabled !== false);
+      return list.length ? list : (defaultRecordingPeriods()[t] || []);
     }
 
     function getRecordingPeriod(term, monthIndex0) {
