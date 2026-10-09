@@ -104,9 +104,17 @@ async function ensureCloudSession(options = {}) {
   return cloudSessionCheckPromise;
 }
 
+var _lastBadgeKey = '';
+var _lastBadgeAt = 0;
 function setConnBadge(text, kind) {
   const badge = document.getElementById('connStatusBadge');
   if (!badge) return;
+  // منع وميض الشارة عند استدعاءات متتالية متطابقة أو متقاربة جداً
+  var key = String(kind || '') + '|' + String(text || '');
+  var now = Date.now();
+  if (key === _lastBadgeKey && (now - _lastBadgeAt) < 800) return;
+  _lastBadgeKey = key;
+  _lastBadgeAt = now;
   if (!cloudAvailable) {
     badge.textContent = '⚪ وضع محلي فقط — عميل Supabase غير متاح';
     badge.style.background = '#64748b';
@@ -806,11 +814,11 @@ async function pullAllStagesFromCloud() {
 
 function scheduleCloudPush() {
   if (!cloudAvailable) return;
+  if (window.__gspSuppressCloudPush) return;
   cloudPushPending = true;
   ensureCloudSession().then(ok => { if (!ok) { updateSyncPendingStatus(); setConnBadge(); } });
   const service = getCloudSyncService();
   const queue = getSyncQueueService();
-  // Queue only references to local records; the local DB remains the source of truth.
   const queueIds = [currentStageId ? 'stage_' + currentStageId : null].filter(Boolean);
   if (currentAccountType === 'superadmin' || currentAccountType === 'stageadmin' || currentAccountType === 'monitor') {
     queueIds.push(ROOT_PUBLIC_ID);
@@ -819,16 +827,19 @@ function scheduleCloudPush() {
   if (service && typeof service.enqueue === 'function') service.enqueue(queueIds);
   else if (queue) queue.enqueue(queueIds);
   if (!isOnline) { setConnBadge(); updateSyncPendingStatus(); return; }
-  // أثناء الكتابة المحلية: انتظر آخر كتابة IndexedDB (الأحدث)، وليس لقطة قديمة
+
+  // debounce قوي: لا تشغّل الرفع أكثر من مرة كل 3 ثوانٍ
   clearTimeout(cloudSyncTimer);
-  if (typeof GSP.isLocalPersistenceHealthy === 'function' && !GSP.isLocalPersistenceHealthy()) {
-    setConnBadge('جاري الحفظ المحلي...');
-  }
-  cloudSyncTimer = setTimeout(() => {
+  cloudSyncTimer = setTimeout(function () {
+    if (cloudPushInFlight) {
+      cloudPushPending = true;
+      updateSyncPendingStatus();
+      return;
+    }
     const waitLatest = typeof GSP.whenLocalPersistenceSettled === 'function'
       ? GSP.whenLocalPersistenceSettled()
       : Promise.resolve(true);
-    Promise.resolve(waitLatest).then(ok => {
+    Promise.resolve(waitLatest).then(function (ok) {
       if (ok === false) {
         setConnBadge('الحفظ المحلي لم يكتمل — ستُؤجَّل المزامنة لحماية البيانات');
         updateSyncPendingStatus();
@@ -838,11 +849,11 @@ function scheduleCloudPush() {
         if (typeof GSP.refreshLocalPersistenceHealth === 'function') GSP.refreshLocalPersistenceHealth();
       } catch (_) {}
       runCloudPush();
-    }).catch(() => {
+    }).catch(function () {
       setConnBadge('الحفظ المحلي لم يكتمل — ستُؤجَّل المزامنة لحماية البيانات');
       updateSyncPendingStatus();
     });
-  }, 400);
+  }, 3000);
   updateSyncPendingStatus();
 }
 
@@ -997,7 +1008,7 @@ async function runCloudPush() {
         console.error('Supabase push error:', error);
         if (syncService && typeof syncService.recordFailure === 'function') syncService.recordFailure(error, rows.map(r => r.id));
         setConnBadge(null, 'error');
-        if (reliability) reliability.scheduleRetry(runCloudPush);
+        setTimeout(function(){ if (reliability) reliability.scheduleRetry(runCloudPush); }, 5000);
       }
       else {
         // تحديث updatedAt محلياً دون إعادة إطلاق scheduleCloudPush (يمنع وميض الشارة)
@@ -1026,13 +1037,12 @@ async function runCloudPush() {
   updateSyncPendingStatus();
   if (cloudPushPending || (syncQueue && syncQueue.ids().length)) {
     // تأخير أطول قليلاً لتقليل وميض الشارة عند إعادة المحاولة
-    if (reliability) reliability.scheduleRetry(runCloudPush);
-    else setTimeout(runCloudPush, 3000);
+    setTimeout(function(){ if (reliability) reliability.scheduleRetry(runCloudPush); else runCloudPush(); }, 5000);
   }
 }
 
 // فحص دوري خفيف كل 25 ثانية — يجلب root_meta + المرحلة الحالية فقط
-setInterval(() => { if (isOnline && !cloudPushInFlight) pullFromCloud(true); }, 25000);
+setInterval(() => { if (isOnline && !cloudPushInFlight && !window.__gspSuppressCloudPush) pullFromCloud(true); }, 60000);
 
 // ============================================================
 //  رفع/تنزيل/حذف نسخ ملفات Excel الأصلية من Supabase Storage

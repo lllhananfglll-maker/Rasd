@@ -94,7 +94,7 @@
       const items = queue.peek();
       const timestamps = items.map(x => Date.parse(x.nextRetryAt || '')).filter(Number.isFinite);
       const next = timestamps.length ? Math.min(...timestamps) : at;
-      const delay = Math.max(0, next - at);
+      const delay = Math.max(2000, next - at); // لا إعادة فورية (تمنع وميض الشارة)
       retryTimer = later(() => { retryTimer = null; callback(); }, delay);
       if (typeof status.markRetryScheduled === 'function') status.markRetryScheduled(next ? new Date(next).toISOString() : null);
       return delay;
