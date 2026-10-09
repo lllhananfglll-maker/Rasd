@@ -1035,9 +1035,21 @@ async function runCloudPush() {
     cloudPushInFlight = false;
   }
   updateSyncPendingStatus();
+  // لا تعِد المحاولة تلقائياً أكثر من مرة كل 15 ثانية — المزامنة الجذرية عبر forceFullCloudSync
   if (cloudPushPending || (syncQueue && syncQueue.ids().length)) {
-    // تأخير أطول قليلاً لتقليل وميض الشارة عند إعادة المحاولة
-    setTimeout(function(){ if (reliability) reliability.scheduleRetry(runCloudPush); else runCloudPush(); }, 5000);
+    if (!window.__gspNextAutoPushAt || Date.now() >= window.__gspNextAutoPushAt) {
+      window.__gspNextAutoPushAt = Date.now() + 15000;
+      setTimeout(function () {
+        if (cloudPushInFlight) return;
+        if (typeof forceFullCloudSync === 'function' && (currentAccountType === 'superadmin')) {
+          forceFullCloudSync({ reason: 'auto-drain' });
+        } else if (reliability) {
+          reliability.scheduleRetry(runCloudPush);
+        } else {
+          runCloudPush();
+        }
+      }, 15000);
+    }
   }
 }
 
@@ -1362,6 +1374,122 @@ GSP.getSyncQueue = function(){ const q=getSyncQueueService(); return q ? q.peek(
 GSP.getSyncDiagnostics = function(){ const s=getSyncStatusService(); const q=getSyncQueueService(); return { status:s ? s.get() : null, queue:q ? q.peek() : [], localPersistenceHealthy: typeof GSP.isLocalPersistenceHealthy === 'function' ? GSP.isLocalPersistenceHealthy() : true }; };
 GSP.getCloudSessionState = function(){ return Object.assign({}, cloudSessionState); };
 GSP.ensureCloudSession = ensureCloudSession;
+
+/**
+ * مزامنة جذرية مباشرة: ترفع root + كل المراحل دفعة واحدة،
+ * تتجاوز فحص التعارض وطابور إعادة المحاولة المعقّد، ثم تفرّغ الطابور.
+ */
+async function forceFullCloudSync(options) {
+  options = options || {};
+  if (!cloudAvailable) {
+    setConnBadge('لا يوجد اتصال سحابي');
+    return { ok: false, reason: 'cloud-unavailable' };
+  }
+  if (!isOnline) {
+    setConnBadge('غير متصل — الحفظ المحلي فقط');
+    return { ok: false, reason: 'offline' };
+  }
+  if (!(await ensureCloudSession())) {
+    setConnBadge();
+    return { ok: false, reason: 'not-authenticated' };
+  }
+  // انتظر اكتمال أي كتابة محلية
+  try {
+    if (typeof GSP.whenLocalPersistenceSettled === 'function') {
+      const settled = await GSP.whenLocalPersistenceSettled();
+      if (settled === false) {
+        setConnBadge('الحفظ المحلي لم يكتمل');
+        return { ok: false, reason: 'local-save-failed' };
+      }
+    }
+  } catch (_) {}
+
+  if (cloudPushInFlight) {
+    setConnBadge('مزامنة أخرى قيد التنفيذ — انتظر قليلاً');
+    return { ok: false, reason: 'in-flight' };
+  }
+  cloudPushInFlight = true;
+  cloudPushPending = false;
+  setConnBadge(null, 'syncing');
+
+  const syncQueue = getSyncQueueService();
+  const syncService = getCloudSyncService();
+  const syncStatus = getSyncStatusService();
+  if (syncStatus && typeof syncStatus.markSyncing === 'function') syncStatus.markSyncing();
+
+  try {
+    const root = (typeof getRootDB === 'function') ? getRootDB() : _rootDBCache;
+    if (!root) throw new Error('لا توجد بيانات محلية للرفع');
+
+    const now = new Date().toISOString();
+    const rows = [];
+    if (currentAccountType === 'superadmin' || currentAccountType === 'stageadmin' || currentAccountType === 'monitor') {
+      rows.push({ id: ROOT_PUBLIC_ID, data: buildRootPublic(root), updated_at: now });
+    }
+    if (currentAccountType === 'superadmin') {
+      rows.push({ id: ROOT_SECURE_ID, data: buildRootSecure(root), updated_at: now });
+    }
+    (root.stages || []).forEach(function (st) {
+      if (!st || !st.id || !st.data) return;
+      st.updatedAt = now;
+      rows.push({ id: 'stage_' + st.id, data: st.data, updated_at: now });
+    });
+    root.lastUpdated = now;
+
+    if (!rows.length) throw new Error('لا توجد صفوف للرفع');
+
+    const service = getCloudSyncGateway();
+    if (!service) throw new Error('بوابة المزامنة غير متاحة — تحقق من تحميل supabase');
+
+    // رفع على دفعات صغيرة لتجنب payload ضخم جداً
+    const chunkSize = 5;
+    for (let i = 0; i < rows.length; i += chunkSize) {
+      const chunk = rows.slice(i, i + chunkSize);
+      setConnBadge('مزامنة ' + Math.min(i + chunkSize, rows.length) + '/' + rows.length + '...');
+      const result = await withCloudTimeout(service.upsertRows(chunk), 25000, 'forceUpsert');
+      if (result && result.error) {
+        console.error('forceFullCloudSync upsert error', result.error);
+        throw new Error(result.error.message || String(result.error));
+      }
+    }
+
+    // تفريغ الطابور بالكامل
+    try {
+      const allIds = rows.map(function (r) { return r.id; });
+      if (syncQueue && typeof syncQueue.ids === 'function') {
+        const pending = syncQueue.ids().slice();
+        pending.forEach(function (id) { if (allIds.indexOf(id) < 0) allIds.push(id); });
+      }
+      if (syncService && typeof syncService.complete === 'function') syncService.complete(allIds);
+      else if (syncQueue && typeof syncQueue.remove === 'function') syncQueue.remove(allIds);
+      if (syncService && typeof syncService.recordSuccess === 'function') syncService.recordSuccess();
+      if (syncStatus && typeof syncStatus.markSuccess === 'function') syncStatus.markSuccess(0, 0, null);
+    } catch (e) { console.warn('queue clear', e); }
+
+    try {
+      window.__gspSuppressCloudPush = true;
+      if (typeof persistRootDB === 'function') persistRootDB(root);
+    } finally {
+      window.__gspSuppressCloudPush = false;
+    }
+
+    setConnBadge('تمت المزامنة الكاملة ' + new Date().toLocaleTimeString('ar-EG'));
+    updateSyncPendingStatus();
+    return { ok: true, count: rows.length };
+  } catch (e) {
+    console.error('forceFullCloudSync failed', e);
+    setConnBadge(null, 'error');
+    updateSyncPendingStatus();
+    return { ok: false, reason: e && e.message ? e.message : String(e) };
+  } finally {
+    cloudPushInFlight = false;
+  }
+}
+
+GSP.forceFullCloudSync = forceFullCloudSync;
+window.forceFullCloudSync = forceFullCloudSync;
+
+
 GSP.retryCloudSync = function(){ const r=getSyncReliabilityService(); if (r) return r.retryNow(function(){ scheduleCloudPush(); }); scheduleCloudPush(); };
 GSP.safeStorageToken = safeStorageToken;
 GSP.workbookStorageKey = workbookStorageKey;
