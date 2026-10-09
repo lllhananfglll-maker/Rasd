@@ -781,7 +781,10 @@ async function pullFromCloud(refreshUi) {
           st.data.schoolInfo = st.data.schoolInfo || {};
           if (remote.schoolInfo.week1Dates) { st.data.schoolInfo.week1Dates = remote.schoolInfo.week1Dates; merged = true; }
           if (remote.schoolInfo.months) { st.data.schoolInfo.months = remote.schoolInfo.months; merged = true; }
-          ['governorate','educationAdmin','schoolName','principalName','academicYear'].forEach(k => {
+          // STEP 54: دمج فترات الرصد والروزنامة المركزية حتى لا تُفقد بعد الخروج/جهاز آخر
+          if (remote.schoolInfo.recordingPeriods) { st.data.schoolInfo.recordingPeriods = remote.schoolInfo.recordingPeriods; merged = true; }
+          if (remote.schoolInfo.termCalendar) { st.data.schoolInfo.termCalendar = remote.schoolInfo.termCalendar; merged = true; }
+          ['governorate','educationAdmin','schoolName','principalName','academicYear','term'].forEach(k => {
             if (remote.schoolInfo[k] != null && remote.schoolInfo[k] !== '') { st.data.schoolInfo[k] = remote.schoolInfo[k]; merged = true; }
           });
         }

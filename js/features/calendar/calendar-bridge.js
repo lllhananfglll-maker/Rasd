@@ -94,36 +94,127 @@
     db.schoolInfo.months[term] = periods.map(function (p) { return p.name; });
   }
 
+  /**
+   * STEP 54: بناء الروزنامة المركزية من فترات الرصد المحفوظة (الاتجاه العكسي).
+   * يحفظ أسماء الفترات والتواريخ وامتحان الشهر بشكل دائم في termCalendar
+   * حتى لا تُستبدل بالافتراضي عند إعادة التحميل أو تسجيل الخروج.
+   */
+  function syncCalendarFromPeriods(db, term, periodsList) {
+    if (!db.schoolInfo) db.schoolInfo = {};
+    if (!db.schoolInfo.termCalendar) db.schoolInfo.termCalendar = {};
+    const list = Array.isArray(periodsList) ? periodsList.filter(function (p) { return p && p.enabled !== false; }) : [];
+    if (!list.length) return null;
+
+    const existing = db.schoolInfo.termCalendar[term] || {};
+    let cursor = 1;
+    const months = list.map(function (p, i) {
+      let startWeek = Number(p.startWeek);
+      let endWeek = Number(p.endWeek);
+      const weeks = Math.max(1, Number(p.weeks) || 4);
+      if (!Number.isFinite(startWeek) || startWeek < 1) startWeek = cursor;
+      if (!Number.isFinite(endWeek) || endWeek < startWeek) endWeek = startWeek + weeks - 1;
+      cursor = endWeek + 1;
+      return {
+        name: (p.name || '').trim() || ('الفترة ' + (i + 1)),
+        startWeek: startWeek,
+        endWeek: endWeek,
+        hasExam: !!p.hasExam,
+        examAfterWeek: p.hasExam ? (Number(p.examAfterWeek) || endWeek) : 0
+      };
+    });
+
+    const firstWeek1 = (list[0] && list[0].week1) || existing.startDate || '';
+    const totalWeeks = months.length ? months[months.length - 1].endWeek : (existing.totalWeeks || 16);
+    const raw = {
+      startDate: firstWeek1 || existing.startDate || (term === 'second' ? '2027-02-07' : '2026-09-13'),
+      totalWeeks: Math.max(totalWeeks, months.length ? months[months.length - 1].endWeek : 1),
+      months: months
+    };
+    const normalized = cal && cal.normalizeCalendar ? cal.normalizeCalendar(raw, term) : raw;
+    db.schoolInfo.termCalendar[term] = normalized;
+    // حدّث البنية القديمة من الروزنامة المحدَّثة (مع الحفاظ على holidays/excluded من المسودة إن وُجدت)
+    syncLegacyFromCalendar(db, term, normalized);
+    if (db.schoolInfo.recordingPeriods && db.schoolInfo.recordingPeriods[term]) {
+      db.schoolInfo.recordingPeriods[term] = db.schoolInfo.recordingPeriods[term].map(function (rp, i) {
+        const src = list[i] || {};
+        return Object.assign({}, rp, {
+          holidays: src.holidays != null ? src.holidays : (rp.holidays || ''),
+          excludedWeeks: Array.isArray(src.excludedWeeks) ? src.excludedWeeks.slice() : (rp.excludedWeeks || []),
+          enabled: src.enabled !== false
+        });
+      });
+    }
+    return normalized;
+  }
+
   function ensureCalendarSeeded() {
     const db = loadDbSafe();
     if (!db) return;
     if (!db.schoolInfo) db.schoolInfo = {};
     let changed = false;
     ['first', 'second'].forEach(function (term) {
-      const has = db.schoolInfo.termCalendar && db.schoolInfo.termCalendar[term]
+      const hasCal = db.schoolInfo.termCalendar && db.schoolInfo.termCalendar[term]
         && db.schoolInfo.termCalendar[term].startDate;
-      if (!has) {
+      const existingPeriods = db.schoolInfo.recordingPeriods && db.schoolInfo.recordingPeriods[term];
+      const hasPeriods = Array.isArray(existingPeriods) && existingPeriods.length > 0;
+
+      if (!hasCal && hasPeriods) {
+        // فترات محفوظة بدون روزنامة → ابنِ الروزنامة منها (لا تستخدم الافتراضي)
+        syncCalendarFromPeriods(db, term, existingPeriods);
+        changed = true;
+      } else if (!hasCal) {
         const def = cal && cal.defaultCalendar ? cal.defaultCalendar(term) : getCentralCalendar(term);
         if (!db.schoolInfo.termCalendar) db.schoolInfo.termCalendar = {};
         db.schoolInfo.termCalendar[term] = def;
         syncLegacyFromCalendar(db, term, def);
         changed = true;
-      } else {
-        // تأكد من مزامنة legacy حتى لو وُجدت الروزنامة
+      } else if (!hasPeriods) {
+        // روزنامة موجودة وperiods فارغة فقط → املأ periods من الروزنامة
         const c = getCentralCalendar(term);
         syncLegacyFromCalendar(db, term, c);
+        changed = true;
       }
+      // إن وُجدت الروزنامة والفترات معاً: لا تعِد الكتابة — احفظ ما أدخله المستخدم
     });
     if (changed) saveDbSafe(db);
   }
 
   function getRecordingPeriods(term) {
-    const c = getCentralCalendar(term);
+    const t = term === 'second' ? 'second' : 'first';
+    // STEP 54: فضّل الفترات المحفوظة صراحة إن وُجدت (ثبات بعد الخروج/إعادة التحميل)
+    try {
+      const db = loadDbSafe();
+      const stored = db && db.schoolInfo && db.schoolInfo.recordingPeriods && db.schoolInfo.recordingPeriods[t];
+      if (Array.isArray(stored) && stored.length) {
+        const enabled = stored.filter(function (p) { return p && p.enabled !== false; });
+        if (enabled.length) {
+          return enabled.map(function (p, i) {
+            const prefix = t === 'second' ? 's' : 'f';
+            const weeks = Math.max(0, Number(p.weeks) || (p.endWeek && p.startWeek ? (p.endWeek - p.startWeek + 1) : 4));
+            return {
+              id: p.id || (prefix + (i + 1)),
+              name: p.name || ('الفترة ' + (i + 1)),
+              weeks: weeks,
+              excludedWeeks: Array.isArray(p.excludedWeeks) ? p.excludedWeeks.slice() : [],
+              week1: p.week1 || '',
+              hasExam: !!p.hasExam,
+              examAfterWeek: Number(p.examAfterWeek) || 0,
+              startWeek: p.startWeek,
+              endWeek: p.endWeek,
+              holidays: p.holidays || '',
+              enabled: true
+            };
+          });
+        }
+      }
+    } catch (e) { /* fall through */ }
+
+    const c = getCentralCalendar(t);
     if (cal && typeof cal.getRecordingPeriods === 'function') {
-      return cal.getRecordingPeriods(c, term);
+      return cal.getRecordingPeriods(c, t);
     }
     return (c.months || []).map(function (m, i) {
-      const prefix = term === 'second' ? 's' : 'f';
+      const prefix = t === 'second' ? 's' : 'f';
       return {
         id: prefix + (i + 1),
         name: m.name,
@@ -271,6 +362,7 @@
   root.getWeek1DateISO = getWeek1DateISO;
   root.saveCentralCalendar = saveCentralCalendar;
   root.ensureCalendarSeeded = ensureCalendarSeeded;
+  root.syncCalendarFromPeriods = syncCalendarFromPeriods;
   root.buildMonthDayColumns = buildMonthDayColumns;
 
   // لا نستبدل getPeriodWeekCount إن weekly-period عرّفه؛ نوفّر GSP
@@ -281,6 +373,7 @@
     getCentralCalendar: getCentralCalendar,
     saveCentralCalendar: saveCentralCalendar,
     ensureCalendarSeeded: ensureCalendarSeeded,
+    syncCalendarFromPeriods: syncCalendarFromPeriods,
     getRecordingPeriods: getRecordingPeriods,
     getFourWeekDates: getFourWeekDates,
     getPeriodWeekStartDates: getPeriodWeekStartDates,
