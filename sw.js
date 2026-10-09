@@ -1,5 +1,5 @@
 /* رصد — Service Worker */
-const CACHE_NAME = 'rasd-static-v5';
+const CACHE_NAME = 'rasd-static-v6';
 const APP_SHELL = [
   './',
   './index.html',
