@@ -113,6 +113,16 @@ function setConnBadge(text, kind) {
   var key = String(kind || '') + '|' + String(text || '');
   var now = Date.now();
   if (key === _lastBadgeKey && (now - _lastBadgeAt) < 800) return;
+  // بعد مزامنة ناجحة: لا تُظهر رسائل «بانتظار/جارٍ» لمدة 20 ثانية
+  try {
+    var okAt = window.__gspLastCloudSyncOkAt || 0;
+    if (okAt && (now - okAt) < 20000 && text) {
+      var s = String(text);
+      if (s.indexOf('بانتظار') >= 0 || s.indexOf('جارٍ المزامنة عند') >= 0 || s.indexOf('جاري الحفظ المحلي') >= 0) {
+        return;
+      }
+    }
+  } catch (_) {}
   _lastBadgeKey = key;
   _lastBadgeAt = now;
   if (!cloudAvailable) {
@@ -154,6 +164,7 @@ function markCloudSyncSuccess() {
   try {
     var iso = new Date().toISOString();
     localStorage.setItem('rasd_last_cloud_sync_at', iso);
+    window.__gspLastCloudSyncOkAt = Date.now();
   } catch (_) {}
 }
 
@@ -1513,6 +1524,7 @@ async function forceFullCloudSync(options) {
     }
 
     markCloudSyncSuccess();
+    _lastBadgeKey = '';
     setConnBadge('تمت المزامنة الكاملة ' + new Date().toLocaleTimeString('ar-EG'));
     updateSyncPendingStatus();
     return { ok: true, count: rows.length };

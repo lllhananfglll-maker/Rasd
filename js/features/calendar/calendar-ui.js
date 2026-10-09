@@ -151,7 +151,11 @@
         setTimeout(function () {
           forceFullCloudSync({ reason: 'after-calendar-save' }).then(function (r) {
             console.log('forceFullCloudSync after calendar', r);
-            if (!r || !r.ok) console.warn('مزامنة الروزنامة لم تكتمل', r);
+            if (r && r.ok && typeof setConnBadge === 'function') {
+              setConnBadge('تمت المزامنة الكاملة — ' + r.count + ' صف');
+            } else if (!r || !r.ok) {
+              console.warn('مزامنة الروزنامة لم تكتمل', r);
+            }
           });
         }, 600);
       }
