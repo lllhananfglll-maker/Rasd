@@ -14,7 +14,7 @@
       if (currentRole === 'teacher' && currentTeacher) { const tSubjects = teacherSubjectNames(currentTeacher);
         subjects = subjects.filter(s => tSubjects.includes(s.name)); }
       if (subjects.length === 0) {
-        container.innerHTML = '<p style="color:#94a3b8; text-align:center;">لا توجد مواد مسجلة بعد. ارفع ملف Excel أولاً، أو أضف مادة يدوياً.</p>';
+        container.innerHTML = '<p style="color:var(--rasd-text-subtle); text-align:center;">لا توجد مواد مسجلة بعد. ارفع ملف Excel أولاً، أو أضف مادة يدوياً.</p>';
         document.getElementById('subjectsCount').textContent = '';
         return;
       }
@@ -27,8 +27,8 @@
         (sub.components || []).forEach((comp, ci) => {
           compsHtml += `
             <div class="component-item" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <span>${escapeHtml(comp.name)} <span style="color:#94a3b8; font-size:12px;">(${compMaxLabel(comp)})</span>${comp.type === 'passfail' ? ' <span style="color:#0b5e42; font-size:11px; background:#dcfce7; padding:1px 6px; border-radius:4px;">اجتاز/لم يجتز</span>' : ''}</span>
-              <label style="font-size:11px; color:${comp.isMonthlyGrade ? '#0b5e42' : '#94a3b8'}; display:flex; align-items:center; gap:3px; cursor:${isAdmin ? 'pointer' : 'default'};">
+              <span>${escapeHtml(comp.name)} <span style="color:var(--rasd-text-subtle); font-size:12px;">(${compMaxLabel(comp)})</span>${comp.type === 'passfail' ? ' <span style="color:var(--rasd-brand); font-size:11px; background:var(--rasd-brand-soft); padding:1px 6px; border-radius:4px;">اجتاز/لم يجتز</span>' : ''}</span>
+              <label style="font-size:11px; color:${comp.isMonthlyGrade ? 'var(--rasd-brand)' : 'var(--rasd-text-subtle)'}; display:flex; align-items:center; gap:3px; cursor:${isAdmin ? 'pointer' : 'default'};">
                 <input type="checkbox" ${comp.isMonthlyGrade ? 'checked' : ''} ${isAdmin ? '' : 'disabled'}
                   data-event-type="change" data-event-action="toggleMonthlyComponent" data-event-arg="checked" data-args='${gspArgs([realIdx,ci])}'> 🧮 الدرجة الشهرية (للتصدير)
               </label>
@@ -42,10 +42,10 @@
           <div class="flex justify-between items-center flex-wrap gap-12">
             <div>
               <h4>${escapeHtml(sub.name)}</h4>
-              <div style="font-size:12px; color:#64748b;">اسم التصدير لنظام الكنترول: <b>${escapeHtml(sub.exportName || sub.name)}</b></div>
+              <div style="font-size:12px; color:var(--rasd-text-muted);">اسم التصدير لنظام الكنترول: <b>${escapeHtml(sub.exportName || sub.name)}</b></div>
             </div>
             <div class="flex gap-12 items-center">
-              <span style="font-size:12px; color:#64748b;">${(sub.components || []).length} مكون</span>
+              <span style="font-size:12px; color:var(--rasd-text-muted);">${(sub.components || []).length} مكون</span>
               ${isAdmin ? `
                 <button class="btn btn-outline btn-sm" data-action="editSubjectMeta" data-args='${gspArgs([realIdx])}'>✏️ تعديل المادة</button>
                 <button class="btn btn-outline btn-sm" data-action="addComponent" data-args='${gspArgs([realIdx])}'>➕ مكوّن</button>
@@ -53,7 +53,7 @@
               ` : ''}
             </div>
           </div>
-          <div class="component-row mt-16">${compsHtml || '<span style="color:#94a3b8; font-size:13px;">لا توجد مكونات بعد</span>'}</div>
+          <div class="component-row mt-16">${compsHtml || '<span style="color:var(--rasd-text-subtle); font-size:13px;">لا توجد مكونات بعد</span>'}</div>
         `;
         container.appendChild(div);
       });
@@ -299,7 +299,7 @@
       document.getElementById('finalResultsArea').style.display = 'block';
       const status = document.getElementById('gradesStatus');
       status.textContent = `✅ تم عرض النتيجة النهائية لـ ${students.length} طالب`;
-      status.style.color = '#0b5e42';
+      status.style.color = 'var(--rasd-brand)';
     }
 
     // ============================================================
@@ -348,7 +348,7 @@
           `<div class="card" style="padding:10px 16px; margin:0; flex:1; min-width:120px; text-align:center;">
              <div>${langBadgeHtml(e.label)}</div>
              <div style="font-size:22px; font-weight:700; margin-top:6px;">${e.count}</div>
-           </div>`).join('') || '<div style="color:#94a3b8; font-size:13px;">لا يوجد طلاب بعد.</div>';
+           </div>`).join('') || '<div style="color:var(--rasd-text-subtle); font-size:13px;">لا يوجد طلاب بعد.</div>';
       }
 
       const compDiv = document.getElementById('subjectCompletion');
@@ -357,7 +357,7 @@
         if (!subj.components || subj.components.length === 0) {
           const row = document.createElement('div');
           row.style.marginBottom = '10px';
-          row.innerHTML = `<div class="flex justify-between" style="color:#94a3b8;font-size:13px;"><span>${escapeHtml(subj.name)}</span><span>لا توجد مكونات</span></div>`;
+          row.innerHTML = `<div class="flex justify-between" style="color:var(--rasd-text-subtle);font-size:13px;"><span>${escapeHtml(subj.name)}</span><span>لا توجد مكونات</span></div>`;
           compDiv.appendChild(row);
           return;
         }
@@ -385,7 +385,7 @@
           const sub = document.createElement('div');
           sub.style.cssText = 'margin:4px 0 16px; padding:10px 14px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;';
           if (byLang.size === 0) {
-            sub.innerHTML = `<div style="font-size:12px; color:#94a3b8;">لا توجد بيانات لغة ثانية مسجَّلة للطلاب بعد.</div>`;
+            sub.innerHTML = `<div style="font-size:12px; color:var(--rasd-text-subtle);">لا توجد بيانات لغة ثانية مسجَّلة للطلاب بعد.</div>`;
           } else {
             sub.innerHTML = Array.from(byLang.values()).sort((a, b) => a.label.localeCompare(b.label)).map(entry => {
               const lslots = entry.students.length * subj.components.length * numMonths;
@@ -394,7 +394,7 @@
               const lp = lslots > 0 ? Math.min(100, Math.round((lfilled / lslots) * 100)) : 0;
               return `<div style="margin-bottom:6px;">
                 <div class="flex justify-between items-center" style="font-size:13px;">
-                  <span>${langBadgeHtml(entry.label)} <span style="color:#64748b;">(${entry.students.length} طالب)</span></span>
+                  <span>${langBadgeHtml(entry.label)} <span style="color:var(--rasd-text-muted);">(${entry.students.length} طالب)</span></span>
                   <span>${lp}%</span>
                 </div>
                 <div class="bar-outer" style="height:6px;"><div class="bar-inner" style="width:${lp}%; background:${getLangColor(entry.label).fg};"></div></div>
@@ -419,7 +419,7 @@
      } catch (e) {
        console.error('loadStatsUI error:', e);
        const cards = document.getElementById('statsCards');
-       if (cards) cards.innerHTML = '<div style="color:#b91c1c; font-size:13px;">⚠️ حدث خطأ أثناء تحميل الإحصائيات. جرّب إعادة تحميل الصفحة، وإن استمرت المشكلة أرسل نص الخطأ من Console للدعم الفني.</div>';
+       if (cards) cards.innerHTML = '<div style="color:var(--rasd-danger); font-size:13px;">⚠️ حدث خطأ أثناء تحميل الإحصائيات. جرّب إعادة تحميل الصفحة، وإن استمرت المشكلة أرسل نص الخطأ من Console للدعم الفني.</div>';
      }
     }
 
@@ -466,14 +466,14 @@
       const term = document.getElementById('statsTermSelect').value;
       const cls = document.getElementById('statsClassSelect').value;
       const subjectName = document.getElementById('statsSubjectSelect').value;
-      if (!cls || !subjectName) { area.innerHTML = '<div style="color:#94a3b8; font-size:13px;">اختر فصلاً ومادة أعلاه لعرض مخططات الأداء.</div>'; return; }
+      if (!cls || !subjectName) { area.innerHTML = '<div style="color:var(--rasd-text-subtle); font-size:13px;">اختر فصلاً ومادة أعلاه لعرض مخططات الأداء.</div>'; return; }
       const subject = db.subjects.find(s => s.name === subjectName);
       if (!subject) { area.innerHTML = ''; return; }
       const stageType = (db.schoolInfo && db.schoolInfo.stageType) || '';
 
       let students = db.students.filter(s => classSectionKey(s.class, s.section) === cls);
       students = filterStudentsForTeacherLanguage(students, subjectName, cls);
-      if (!students.length) { area.innerHTML = '<div style="color:#94a3b8; font-size:13px;">لا يوجد طلاب في هذا الفصل.</div>'; return; }
+      if (!students.length) { area.innerHTML = '<div style="color:var(--rasd-text-subtle); font-size:13px;">لا يوجد طلاب في هذا الفصل.</div>'; return; }
 
       // توزيع الطلاب حسب فئة الأداء (مجموع الفصل الدراسي الكامل)
       const tierOrder = gradeTierOrder(stageType);

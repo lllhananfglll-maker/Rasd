@@ -16,19 +16,19 @@
       const editingId = document.getElementById('editingTeacherId').value;
 
       if (!name) { msg.textContent = '⚠️ يرجى إدخال اسم المعلم';
-        msg.style.color = '#b91c1c'; return; }
+        msg.style.color = 'var(--rasd-danger)'; return; }
 
       // إن كانت هناك مادة/فصول مختارة في الحقول أعلاه ولم يتم الضغط على "➕ إضافة هذا التخصيص" بعد،
       // نُضيفها تلقائياً كتخصيص أخير قبل الحفظ، تسهيلاً على من يضيف معلماً بتخصيص واحد فقط.
       const pending = getCurrentAssignmentFields();
       if (pending.subjectName || pending.classes.length) {
         if (!pending.subjectName) { msg.textContent = '⚠️ يرجى اختيار المادة';
-          msg.style.color = '#b91c1c'; return; }
+          msg.style.color = 'var(--rasd-danger)'; return; }
         if (pending.classes.length === 0) { msg.textContent = '⚠️ يرجى اختيار فصل واحد على الأقل';
-          msg.style.color = '#b91c1c'; return; }
+          msg.style.color = 'var(--rasd-danger)'; return; }
         if (pending.isSecondLang && !pending.languageType) {
           msg.textContent = '⚠️ يرجى تحديد نوع اللغة الأجنبية التي يدرّسها هذا المعلم (فرنسي/الماني...)';
-          msg.style.color = '#b91c1c'; return;
+          msg.style.color = 'var(--rasd-danger)'; return;
         }
         const existing = teacherAssignmentsDraft.find(a => a.subjectName === pending.subjectName && (a.languageType ||
             '') === (pending.languageType || ''));
@@ -42,7 +42,7 @@
 
       if (teacherAssignmentsDraft.length === 0) {
         msg.textContent = '⚠️ يرجى إضافة تخصيص واحد على الأقل (مادة + فصل) لهذا المعلم';
-        msg.style.color = '#b91c1c'; return;
+        msg.style.color = 'var(--rasd-danger)'; return;
       }
 
       const assignments = teacherAssignmentsDraft.map(a => ({ subjectName: a.subjectName, classes: [...a.classes],
@@ -53,7 +53,7 @@
       if (editingId) {
         const t = db.teachers.find(x => x.id === editingId);
         if (!t) { msg.textContent = '⚠️ المعلم غير موجود (ربما تم حذفه من قبل).';
-          msg.style.color = '#b91c1c'; cancelTeacherEdit(); loadTeachersUI(); return; }
+          msg.style.color = 'var(--rasd-danger)'; cancelTeacherEdit(); loadTeachersUI(); return; }
         t.name = name;
         t.assignments = assignments;
         {
@@ -71,7 +71,7 @@
         }
         saveDB(db);
         msg.textContent = `✅ تم تحديث بيانات المعلم "${name}" بنجاح.`;
-        msg.style.color = '#0b5e42';
+        msg.style.color = 'var(--rasd-brand)';
         // لا يُعاد إرسال كلمة السر السحابية عند تعديل الاسم فقط — الرقم لم يعد مخزّناً كنص صريح
         cancelTeacherEdit();
         loadTeachersUI();
@@ -100,7 +100,7 @@
       clearCurrentAssignmentFields();
       renderTeacherAssignmentsDraft();
 
-      msg.style.color = '#0b5e42';
+      msg.style.color = 'var(--rasd-brand)';
       const basePts = periods * 100;
       const printHint = ' <button type="button" class="btn btn-primary btn-sm" style="margin-right:8px;" data-action="printTeacherCardWithPin" data-args=\'' + (typeof gspArgs === 'function' ? gspArgs([newTeacherId, pin]) : JSON.stringify([newTeacherId, pin])) + '\'>🖨️ طباعة البطاقة الآن</button>';
       msg.innerHTML = formatPinOnceHtml(pin, name, printHint) + (periods ? (' — رصيد جودة ابتدائي: <b>' + basePts + '</b> نقطة (' + periods + ' حصة × 100)') : '');
@@ -166,7 +166,7 @@
       saveDB(db);
       loadTeachersUI();
       const msg = document.getElementById('teacherFormMsg');
-      msg.style.color = '#0b5e42';
+      msg.style.color = 'var(--rasd-brand)';
       const printHint = ' <button type="button" class="btn btn-primary btn-sm" style="margin-right:8px;" data-action="printTeacherCardWithPin" data-args=\'' + (typeof gspArgs === 'function' ? gspArgs([t.id, pin]) : JSON.stringify([t.id, pin])) + '\'>🖨️ طباعة البطاقة الآن</button>';
       msg.innerHTML = formatPinOnceHtml(pin, t.name, printHint);
       const cloudRes = await provisionCloudAccount({
@@ -193,14 +193,14 @@
       const pinCheck = validatePinStrength(newPin, { role: 'teacher' });
       if (!pinCheck.valid) {
         msg.textContent = pinCheck.reason;
-        msg.style.color = '#b91c1c';
+        msg.style.color = 'var(--rasd-danger)';
         return;
       }
       delete t.pin;
       t.pinHash = await sha256Hex(newPin);
       saveDB(db);
       loadTeachersUI();
-      msg.style.color = '#0b5e42';
+      msg.style.color = 'var(--rasd-brand)';
       const printHint = ' <button type="button" class="btn btn-primary btn-sm" style="margin-right:8px;" data-action="printTeacherCardWithPin" data-args=\'' + (typeof gspArgs === 'function' ? gspArgs([t.id, newPin]) : JSON.stringify([t.id, newPin])) + '\'>🖨️ طباعة البطاقة الآن</button>';
       msg.innerHTML = formatPinOnceHtml(newPin, t.name, printHint);
       const cloudRes = await provisionCloudAccount({
@@ -312,7 +312,7 @@
       const input = document.getElementById('teacherImportFile');
       const msg = document.getElementById('teacherImportMsg');
       if (!input.files || !input.files[0]) {
-        msg.style.color = '#b91c1c';
+        msg.style.color = 'var(--rasd-danger)';
         msg.textContent = '⚠️ يرجى اختيار ملف أولاً';
         return;
       }
@@ -326,9 +326,9 @@
 
       const targetStageId = document.getElementById('teacherImportStageSelect').value;
       const targetSection = document.getElementById('teacherImportSectionSelect').value;
-      if (!targetStageId) { msg.style.color = '#b91c1c';
+      if (!targetStageId) { msg.style.color = 'var(--rasd-danger)';
         msg.textContent = '⚠️ يرجى اختيار المرحلة التي سيتم تسكين هؤلاء المعلمين بها أولاً'; return; }
-      if (!targetSection) { msg.style.color = '#b91c1c';
+      if (!targetSection) { msg.style.color = 'var(--rasd-danger)';
         msg.textContent = '⚠️ يرجى اختيار القسم (عربي/لغات) الذي سيتم تسكين هؤلاء المعلمين به أولاً'; return; }
       // تحقق أمان إضافي بجانب تقييد القائمة نفسها: يمنع مدير المرحلة من تسكين معلمين في مرحلة أو
       // قسم غير مسندين له فعلياً، حتى لو تم التلاعب بالقائمة المنسدلة في المتصفح.
@@ -336,7 +336,7 @@
         const allowedStageIds = currentStageAdmin.stageIds || [];
         const allowedSections = currentStageAdmin.sections || [];
         if (!allowedStageIds.includes(targetStageId) || !allowedSections.includes(targetSection)) {
-          msg.style.color = '#b91c1c';
+          msg.style.color = 'var(--rasd-danger)';
           msg.textContent = '⚠️ غير مصرح لك بتسكين معلمين في هذه المرحلة أو هذا القسم.';
           return;
         }
@@ -344,7 +344,7 @@
 
       const rootCheck = getRootDB();
       const targetStageRecord = rootCheck.stages.find(s => s.id === targetStageId);
-      if (!targetStageRecord) { msg.style.color = '#b91c1c';
+      if (!targetStageRecord) { msg.style.color = 'var(--rasd-danger)';
         msg.textContent = '⚠️ المرحلة المختارة لم تعد موجودة.'; return; }
       const targetStageName = targetStageRecord.name;
 
@@ -360,7 +360,7 @@
         db.teachers = db.teachers || [];
         const rows = parseTeachersWorkbook(wb, db);
         if (!rows.length) {
-          msg.style.color = '#b91c1c';
+          msg.style.color = 'var(--rasd-danger)';
           msg.textContent = '⚠️ لم يتم العثور على بيانات صالحة في الملف';
           return;
         }
@@ -471,7 +471,7 @@
         let summary = `✅ تم تحديث ${updated} معلم، وإضافة ${added} معلم جديد في مرحلة "${targetStageName}" (${sectionLabel})` +
           (skipped ? `، وتم تجاهل ${skipped} صف بسبب أخطاء` : '') + '.';
         if (errors.length) {
-          summary += '<br><span style="color:#b91c1c;">' + errors.slice(0, 10).join('<br>') +
+          summary += '<br><span style="color:var(--rasd-danger);">' + errors.slice(0, 10).join('<br>') +
             (errors.length > 10 ? '<br>...' : '') + '</span>';
         }
         if (pinIssues.length) {
@@ -479,9 +479,9 @@
             (pinIssues.length > 10 ? '<br>...' : '') + '</span>';
         }
         msg.innerHTML = summary;
-        msg.style.color = (updated + added) > 0 ? '#0b5e42' : '#b91c1c';
+        msg.style.color = (updated + added) > 0 ? 'var(--rasd-brand)' : 'var(--rasd-danger)';
       } catch (err) {
-        msg.style.color = '#b91c1c';
+        msg.style.color = 'var(--rasd-danger)';
         msg.textContent = '❌ خطأ أثناء معالجة الملف: ' + err.message;
         console.error(err);
       } finally {
@@ -618,12 +618,12 @@
       (db.teachers || []).filter(t => !sectionFilter || t.section === sectionFilter).forEach((t, idx) => {
         const row = document.createElement('tr');
         const assignmentsHtml = (t.assignments || []).map(a =>
-          `<div style="margin-bottom:4px;"><span class="badge badge-subject">${escapeHtml(a.subjectName)}</span>${a.languageType ? ' ' + langBadgeHtml(a.languageType) : ''} <span style="color:#64748b; font-size:12px;">🏫 ${(a.classes || []).map(c => escapeHtml(typeof classSectionLabel === 'function' ? classSectionLabel(c) : c)).join('، ')}</span></div>`
-        ).join('') || '<span style="color:#b91c1c;">⚠️ بدون تخصيص</span>';
+          `<div style="margin-bottom:4px;"><span class="badge badge-subject">${escapeHtml(a.subjectName)}</span>${a.languageType ? ' ' + langBadgeHtml(a.languageType) : ''} <span style="color:var(--rasd-text-muted); font-size:12px;">🏫 ${(a.classes || []).map(c => escapeHtml(typeof classSectionLabel === 'function' ? classSectionLabel(c) : c)).join('، ')}</span></div>`
+        ).join('') || '<span style="color:var(--rasd-danger);">⚠️ بدون تخصيص</span>';
         const sectionLabel = t.section === 'arabic' ? 'عربي' : t.section === 'languages' ? 'لغات' : '';
         row.innerHTML = `
           <td class="col-index">${idx + 1}</td>
-          <td class="col-name" data-label="الاسم">${escapeHtml(t.name)}${sectionLabel ? ` <span class="badge" style="background:#334155; color:#fff; font-size:11px;">🗂️ ${sectionLabel}</span>` : ''}${(t.assignedPeriods!=null && t.assignedPeriods!=='') ? ` <span class="badge" style="background:#0b5e42; color:#fff; font-size:11px;" title="رصيد جودة ابتدائي = الحصص × 100">📚 ${Number(t.assignedPeriods)||0} حصة · ${(Number(t.assignedPeriods)||0)*100} نقطة</span>` : ''}</td>
+          <td class="col-name" data-label="الاسم">${escapeHtml(t.name)}${sectionLabel ? ` <span class="badge" style="background:#334155; color:#fff; font-size:11px;">🗂️ ${sectionLabel}</span>` : ''}${(t.assignedPeriods!=null && t.assignedPeriods!=='') ? ` <span class="badge" style="background:var(--rasd-brand); color:#fff; font-size:11px;" title="رصيد جودة ابتدائي = الحصص × 100">📚 ${Number(t.assignedPeriods)||0} حصة · ${(Number(t.assignedPeriods)||0)*100} نقطة</span>` : ''}</td>
           <td class="col-info" data-label="المواد والفصول">${assignmentsHtml}</td>
           <td class="col-pin" data-label="الرقم السري">${maskedPinHtml()}</td>
           <td class="col-actions" data-label="إجراء">
@@ -642,7 +642,7 @@
      } catch (e) {
        console.error('loadTeachersUI error:', e);
        const tbody = document.getElementById('teachersTableBody');
-       if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="color:#b91c1c; font-size:13px; text-align:center; padding:16px;">⚠️ حدث خطأ أثناء تحميل بيانات المعلمين. جرّب إعادة تحميل الصفحة، وإن استمرت المشكلة أرسل نص الخطأ من Console للدعم الفني.</td></tr>';
+       if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="color:var(--rasd-danger); font-size:13px; text-align:center; padding:16px;">⚠️ حدث خطأ أثناء تحميل بيانات المعلمين. جرّب إعادة تحميل الصفحة، وإن استمرت المشكلة أرسل نص الخطأ من Console للدعم الفني.</td></tr>';
      }
     }
 

@@ -200,21 +200,21 @@
       const statusEl = document.getElementById('auditCloudStatus');
       if (!body) return;
       if (currentAccountType && currentAccountType !== 'superadmin') {
-        body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;">سجل دخول المدراء والعمليات متاح لرئيس الكنترول فقط.</td></tr>';
+        body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--rasd-text-muted);">سجل دخول المدراء والعمليات متاح لرئيس الكنترول فقط.</td></tr>';
         if (statusEl) statusEl.textContent = '';
         return;
       }
-      body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;">⏳ جارٍ الجلب من السحابة...</td></tr>';
-      if (statusEl) { statusEl.textContent = '⏳ جارٍ التحميل...'; statusEl.style.color = '#64748b'; }
+      body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--rasd-text-muted);">⏳ جارٍ الجلب من السحابة...</td></tr>';
+      if (statusEl) { statusEl.textContent = '⏳ جارٍ التحميل...'; statusEl.style.color = 'var(--rasd-text-muted)'; }
       try {
         const rows = await fetchCloudAuditLog(AUDIT_FETCH_LIMIT);
         if (!rows.length) {
-          body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8;">لا توجد عمليات مسجّلة في السحابة بعد. تأكد من إنشاء جدول audit_events في Supabase.</td></tr>';
-          if (statusEl) { statusEl.textContent = '✅ تم الاتصال — السجل فارغ'; statusEl.style.color = '#0b5e42'; }
+          body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--rasd-text-subtle);">لا توجد عمليات مسجّلة في السحابة بعد. تأكد من إنشاء جدول audit_events في Supabase.</td></tr>';
+          if (statusEl) { statusEl.textContent = '✅ تم الاتصال — السجل فارغ'; statusEl.style.color = 'var(--rasd-brand)'; }
           return;
         }
         body.innerHTML = rows.map(r => {
-          const stageBit = r.stageName ? ` <span style="color:#64748b;font-size:12px;">(${escapeHtml(r.stageName)})</span>` : '';
+          const stageBit = r.stageName ? ` <span style="color:var(--rasd-text-muted);font-size:12px;">(${escapeHtml(r.stageName)})</span>` : '';
           return `<tr>
             <td>${new Date(r.at).toLocaleString('ar-EG')}</td>
             <td>${escapeHtml(r.user)}${stageBit}</td>
@@ -226,11 +226,11 @@
         if (statusEl) {
           statusEl.textContent = '✅ آخر ' + rows.length + ' حدثاً من السحابة' +
             ((getAuditService() && typeof getAuditService().pendingCount === 'function' && getAuditService().pendingCount()) ? ' — ⏳ ' + getAuditService().pendingCount() + ' بانتظار الرفع' : '');
-          statusEl.style.color = '#0b5e42';
+          statusEl.style.color = 'var(--rasd-brand)';
         }
       } catch (e) {
-        body.innerHTML = '<tr><td colspan="5" style="color:#b91c1c;text-align:center;">❌ ' + escapeHtml(e.message || e) + '</td></tr>';
-        if (statusEl) { statusEl.textContent = '❌ ' + (e.message || e); statusEl.style.color = '#b91c1c'; }
+        body.innerHTML = '<tr><td colspan="5" style="color:var(--rasd-danger);text-align:center;">❌ ' + escapeHtml(e.message || e) + '</td></tr>';
+        if (statusEl) { statusEl.textContent = '❌ ' + (e.message || e); statusEl.style.color = 'var(--rasd-danger)'; }
       }
     }
 
@@ -284,7 +284,7 @@
         const result = dm.createBackupFromCurrent({ source: 'ui-security-tab' });
         if (!result.ok) {
           const el = document.getElementById('backupStatus');
-          if (el) { el.textContent = '❌ ' + (result.error || 'تعذر إنشاء النسخة'); el.style.color = '#b91c1c'; }
+          if (el) { el.textContent = '❌ ' + (result.error || 'تعذر إنشاء النسخة'); el.style.color = 'var(--rasd-danger)'; }
           return;
         }
         payload = result.payload;
@@ -298,7 +298,7 @@
         'application/json;charset=utf-8'
       );
       const el = document.getElementById('backupStatus');
-      if (el) { el.textContent = '✅ تم إنشاء نسخة احتياطية كاملة من بيانات النظام.'; el.style.color = '#0b5e42'; }
+      if (el) { el.textContent = '✅ تم إنشاء نسخة احتياطية كاملة من بيانات النظام.'; el.style.color = 'var(--rasd-brand)'; }
       recordAudit('إنشاء نسخة احتياطية', 'تم تنزيل نسخة كاملة من بيانات النظام');
       renderAuditLog();
     }
@@ -326,7 +326,7 @@
           recordAudit('استعادة نسخة احتياطية', 'تم استعادة ملف: ' + file.name + summary, 'warning');
           if (el) {
             el.textContent = '✅ تمت الاستعادة بنجاح' + summary + '. سيتم إعادة تحميل النظام.';
-            el.style.color = '#0b5e42';
+            el.style.color = 'var(--rasd-brand)';
           }
         } else {
           const root = payload.data || payload;
@@ -334,11 +334,11 @@
           await idbSet(ROOT_DB_KEY, root);
           _rootDBCache = root;
           recordAudit('استعادة نسخة احتياطية', 'تم استعادة ملف: ' + file.name, 'warning');
-          if (el) { el.textContent = '✅ تمت الاستعادة بنجاح. سيتم إعادة تحميل النظام.'; el.style.color = '#0b5e42'; }
+          if (el) { el.textContent = '✅ تمت الاستعادة بنجاح. سيتم إعادة تحميل النظام.'; el.style.color = 'var(--rasd-brand)'; }
         }
         setTimeout(() => location.reload(), 700);
       } catch (e) {
-        if (el) { el.textContent = '❌ تعذر الاستعادة: ' + e.message; el.style.color = '#b91c1c'; }
+        if (el) { el.textContent = '❌ تعذر الاستعادة: ' + e.message; el.style.color = 'var(--rasd-danger)'; }
       }
     }
 
@@ -442,7 +442,7 @@
     async function createManualVersionSnapshot() {
       const el = document.getElementById('versionsStatus');
       const ok = await createVersionSnapshot('manual');
-      if (el) { el.textContent = ok ? '✅ تم حفظ نسخة إصدار جديدة يدوياً.' : '❌ تعذر حفظ النسخة.'; el.style.color = ok ? '#0b5e42' : '#b91c1c'; }
+      if (el) { el.textContent = ok ? '✅ تم حفظ نسخة إصدار جديدة يدوياً.' : '❌ تعذر حفظ النسخة.'; el.style.color = ok ? 'var(--rasd-brand)' : 'var(--rasd-danger)'; }
       if (ok) { recordAudit('حفظ إصدار', 'تم حفظ نسخة إصدار يدوية من كامل بيانات النظام'); renderAuditLog(); }
       renderVersionsList();
     }
@@ -453,7 +453,7 @@
       const body = document.getElementById('versionsListBody');
       if (!body) return;
       const versions = await getVersionsList();
-      if (!versions.length) { body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:16px">لا توجد إصدارات محفوظة بعد.</td></tr>'; return; }
+      if (!versions.length) { body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--rasd-text-subtle);padding:16px">لا توجد إصدارات محفوظة بعد.</td></tr>'; return; }
       body.innerHTML = versions.map(v => `
         <tr>
           <td>${new Date(v.at).toLocaleString('ar-EG')}</td>
@@ -474,7 +474,7 @@
       await idbSet(ROOT_DB_KEY, v.data);
       _rootDBCache = v.data;
       const el = document.getElementById('versionsStatus');
-      if (el) { el.textContent = '✅ تمت الاستعادة. سيتم إعادة تحميل النظام.'; el.style.color = '#0b5e42'; }
+      if (el) { el.textContent = '✅ تمت الاستعادة. سيتم إعادة تحميل النظام.'; el.style.color = 'var(--rasd-brand)'; }
       setTimeout(() => location.reload(), 700);
     }
 
@@ -730,7 +730,7 @@
           subRows.push(`<tr><td>${mdcEsc(sub.name)}</td><td>${mdcHindi(n)} معلم</td></tr>`);
         });
         extraHtml += `<table class="mdc-table"><thead><tr><th>المادة</th><th>المعلمون</th></tr></thead><tbody>${subRows.join('')||'<tr><td colspan="2">—</td></tr>'}</tbody></table>`;
-        extraHtml += '<p style="font-size:12px;color:#64748b;margin-top:8px">يُظهر أين يوجد تركيز أو نقص في إسناد المعلمين للمواد.</p>';
+        extraHtml += '<p style="font-size:12px;color:var(--rasd-text-muted);margin-top:8px">يُظهر أين يوجد تركيز أو نقص في إسناد المعلمين للمواد.</p>';
       } else if (key === 'progress') {
         title = 'حالة الكنترول والرصد الحالية';
         headers = ['المادة','الفصل','الاكتمال','الحالة'];

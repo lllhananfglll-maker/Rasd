@@ -14,13 +14,13 @@
       document.getElementById('uploadArea').style.background = '#f1f5f9';
     });
     document.getElementById('uploadArea').addEventListener('dragleave', () => {
-      document.getElementById('uploadArea').style.borderColor = '#94a3b8';
-      document.getElementById('uploadArea').style.background = '#f8fafc';
+      document.getElementById('uploadArea').style.borderColor = 'var(--rasd-text-subtle)';
+      document.getElementById('uploadArea').style.background = 'var(--rasd-surface-2)';
     });
     document.getElementById('uploadArea').addEventListener('drop', e => {
       e.preventDefault();
-      document.getElementById('uploadArea').style.borderColor = '#94a3b8';
-      document.getElementById('uploadArea').style.background = '#f8fafc';
+      document.getElementById('uploadArea').style.borderColor = 'var(--rasd-text-subtle)';
+      document.getElementById('uploadArea').style.background = 'var(--rasd-surface-2)';
       const files = e.dataTransfer.files;
       if (files.length > 0) {
         document.getElementById('fileInput').files = files;
@@ -224,7 +224,7 @@
         const gradesPresent = [...new Set(Object.values(db.classGrade || {}))].filter(Boolean);
         document.getElementById('uploadStatus').textContent =
           `✅ تم تحميل بيانات سابقة: ${db.students.length} طالب، ${db.subjects.length} مادة، ${gradesPresent.length} صف (${gradesPresent.join('، ')})`;
-        document.getElementById('uploadStatus').style.color = '#0b5e42';
+        document.getElementById('uploadStatus').style.color = 'var(--rasd-brand)';
         if (db.metaByGrade && Object.keys(db.metaByGrade).length) {
           document.getElementById('uploadMessages').innerHTML =
             '<div class="success-box">💾 توجد نسخ محفوظة من ملفات Excel الأصلية يمكن تنزيلها محدثة (اختر الصف أولاً من القائمة بجانب زرَّي "الفصل الأول/الثاني")، بالإضافة لأزرار التصدير الشهري والسنوي التي تغطي كل الصفوف معاً، دون الحاجة لإعادة رفع أي ملف.</div>';

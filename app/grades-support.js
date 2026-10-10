@@ -124,7 +124,7 @@
           + '<td style="border:1px solid #94a3b8;padding:6px;text-align:right">' + escapeHtml(st.name || '') + '</td>'
           + '<td style="border:1px solid #94a3b8;padding:6px;text-align:center">' + escapeHtml(st.seat || '') + '</td>'
           + '<td style="border:1px solid #94a3b8;padding:6px;text-align:center">' + escapeHtml(st.class || '') + '</td>'
-          + '<td style="border:1px solid #94a3b8;padding:6px;text-align:right;font-size:11px;color:#b91c1c">' + escapeHtml((r.absentSubjects || []).join('، ')) + '</td>'
+          + '<td style="border:1px solid #94a3b8;padding:6px;text-align:right;font-size:11px;color:var(--rasd-danger)">' + escapeHtml((r.absentSubjects || []).join('، ')) + '</td>'
           + '<td style="border:1px solid #94a3b8;padding:6px;text-align:right;font-size:11px;color:#1d4ed8">' + escapeHtml((r.numericSubjects || []).join('، ')) + '</td>'
           + '</tr>';
       }).join('');
@@ -140,7 +140,7 @@
         + '<div style="font-size:16px;font-weight:800">تقرير خلاف رصد الغياب والدرجات</div>'
         + '<div style="font-size:13px;margin-top:4px;font-weight:700">' + escapeHtml(stageName) + '</div>'
         + '<div style="font-size:12px;color:#475569;margin-top:4px">' + escapeHtml(info.schoolName || '') + ' — ' + escapeHtml(termLabel) + ' — ' + escapeHtml(monthLabel) + '</div>'
-        + '<div style="font-size:11px;color:#64748b;margin-top:4px">لرئيس الكنترول ومدير المرحلة — للمتابعة</div></div>'
+        + '<div style="font-size:11px;color:var(--rasd-text-muted);margin-top:4px">لرئيس الكنترول ومدير المرحلة — للمتابعة</div></div>'
         + '<p style="font-size:12px;line-height:1.7;margin:8px 0 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:8px 10px">'
         + 'الطلاب أدناه رُصد لهم <strong>غياب (غ)</strong> في بعض المواد و<strong>درجات رقمية</strong> في مواد أخرى خلال نفس الشهر. يُرجى متابعة الحالة مع المعلمين.</p>'
         + '<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#fee2e2">'
@@ -151,7 +151,7 @@
         + '<th style="border:1px solid #94a3b8;padding:6px">مواد رُصدت غ كامل</th>'
         + '<th style="border:1px solid #94a3b8;padding:6px">مواد برصد رقمي / مختلط</th>'
         + '</tr></thead><tbody>' + rows + '</tbody></table>'
-        + '<div style="margin-top:14px;font-size:11px;color:#64748b">عدد الطلاب: ' + list.length + ' — تاريخ الطباعة: ' + new Date().toLocaleDateString('ar-EG') + '</div></div>';
+        + '<div style="margin-top:14px;font-size:11px;color:var(--rasd-text-muted)">عدد الطلاب: ' + list.length + ' — تاريخ الطباعة: ' + new Date().toLocaleDateString('ar-EG') + '</div></div>';
       area.style.display = 'block';
       try { if (typeof fitPrintPagesToA4 === 'function') fitPrintPagesToA4(area, '.grade-sheet-page'); } catch (e) {}
       window.print();
@@ -170,7 +170,7 @@
       const conflicts = all.filter(r => r.kind === 'conflict');
       const agreed = all.filter(r => r.kind === 'agreed_absent');
       if (!conflicts.length && !agreed.length) {
-        host.innerHTML = '<div style="padding:10px;color:#64748b;font-size:13px">لا توجد خلافات غياب/درجات لهذا الشهر.</div>';
+        host.innerHTML = '<div style="padding:10px;color:var(--rasd-text-muted);font-size:13px">لا توجد خلافات غياب/درجات لهذا الشهر.</div>';
         return;
       }
       host.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px">'
@@ -240,9 +240,9 @@
         return circle;
       }).join('');
       const centerText = total > 0 ?
-        `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="22" font-weight="700" fill="#1e293b">${total}</text>
-         <text x="${cx}" y="${cy + 16}" text-anchor="middle" font-size="11" fill="#64748b">طالب</text>` :
-        `<text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="12" fill="#94a3b8">لا توجد بيانات</text>`;
+        `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="22" font-weight="700" fill="var(--rasd-text)">${total}</text>
+         <text x="${cx}" y="${cy + 16}" text-anchor="middle" font-size="11" fill="var(--rasd-text-muted)">طالب</text>` :
+        `<text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="12" fill="var(--rasd-text-subtle)">لا توجد بيانات</text>`;
       return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">${paths}${centerText}</svg>`;
     }
     function buildBarChartSvg(bars) {
@@ -252,17 +252,17 @@
       const barW = bars.length ? (innerW - barGap * (bars.length - 1)) / bars.length : 0;
       const gridLines = [0, 25, 50, 75, 100].map(v => {
         const y = padT + innerH - (v / 100) * innerH;
-        return `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>
-          <text x="${padL - 6}" y="${y + 4}" font-size="9" fill="#94a3b8" text-anchor="end">${v}</text>`;
+        return `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="var(--rasd-border)" stroke-width="1"/>
+          <text x="${padL - 6}" y="${y + 4}" font-size="9" fill="var(--rasd-text-subtle)" text-anchor="end">${v}</text>`;
       }).join('');
       const barsHtml = bars.map((b, i) => {
         const bh = Math.max(0, (Math.min(100, b.value) / 100) * innerH);
         const x = padL + i * (barW + barGap);
         const y = padT + innerH - bh;
-        const color = b.value >= 65 ? '#15803d' : (b.value >= 50 ? '#eab308' : '#b91c1c');
+        const color = b.value >= 65 ? '#15803d' : (b.value >= 50 ? '#eab308' : 'var(--rasd-danger)');
         return `<rect x="${x}" y="${y}" width="${barW}" height="${bh}" fill="${color}" rx="3"></rect>
           <text x="${x + barW / 2}" y="${padT + innerH + 14}" font-size="10" fill="#475569" text-anchor="middle">${b.label}</text>
-          ${b.hasData ? `<text x="${x + barW / 2}" y="${y - 4}" font-size="10" fill="#1e293b" text-anchor="middle" font-weight="600">${Math.round(b.value)}%</text>` : ''}`;
+          ${b.hasData ? `<text x="${x + barW / 2}" y="${y - 4}" font-size="10" fill="var(--rasd-text)" text-anchor="middle" font-weight="600">${Math.round(b.value)}%</text>` : ''}`;
       }).join('');
       return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}">${gridLines}${barsHtml}</svg>`;
     }
@@ -422,7 +422,7 @@
         GSP.renderMonthlyExportButtons();
       }
       document.getElementById('uploadStatus').textContent = `🗑️ تم حذف بيانات "${label}" بنجاح`;
-      document.getElementById('uploadStatus').style.color = '#64748b';
+      document.getElementById('uploadStatus').style.color = 'var(--rasd-text-muted)';
      } catch (e) {
        console.error('deleteGradeData failed:', e);
        alert('⚠️ حدث خطأ أثناء حذف بيانات الصف. قد تكون العملية توقفت في منتصفها — يُنصح بمراجعة البيانات فوراً قبل المتابعة.\n' + (e && e.message ? e.message : e));
@@ -455,7 +455,7 @@
       document.getElementById('fileSummary').innerHTML = '';
       document.getElementById('uploadMessages').innerHTML = '';
       document.getElementById('uploadStatus').textContent = '🗑️ تم مسح جميع البيانات';
-      document.getElementById('uploadStatus').style.color = '#64748b';
+      document.getElementById('uploadStatus').style.color = 'var(--rasd-text-muted)';
       document.getElementById('studentsCount').textContent = '';
       document.getElementById('subjectsCount').textContent = '';
       document.getElementById('processBtn').disabled = true;

@@ -109,10 +109,10 @@ function formatCloudProvisionNote(result, kindLabel) {
   if (result.error) {
     return '<div style="margin-top:8px;font-size:12.5px;color:#991b1b;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;">❌ تعذّر إنشاء/تحديث الحساب السحابي لـ' +
       kindLabel + ': ' + result.error +
-      '<br><span style="color:#64748b">يمكنك إضافته لاحقاً يدوياً أو إعادة توليد الرقم السري بعد نشر Edge Function.</span></div>';
+      '<br><span style="color:var(--rasd-text-muted)">يمكنك إضافته لاحقاً يدوياً أو إعادة توليد الرقم السري بعد نشر Edge Function.</span></div>';
   }
   if (result.ok) {
-    return '<div style="margin-top:8px;font-size:12.5px;color:#166534;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:8px 12px;">☁️ الحساب السحابي ' +
+    return '<div style="margin-top:8px;font-size:12.5px;color:#166534;background:var(--rasd-brand-wash);border:1px solid #86efac;border-radius:8px;padding:8px 12px;">☁️ الحساب السحابي ' +
       (result.created ? 'أُنشئ' : 'حُدّث') + ' بنجاح' +
       (result.email ? ' — <code dir="ltr">' + result.email + '</code>' : '') + '</div>';
   }

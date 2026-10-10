@@ -74,7 +74,7 @@
     function saveGrid() {
       const liveDb = loadDB(); const f = getFilterState();
       if (isAttendanceMonthLocked(liveDb, f.term, f.month)) {
-        const status=document.getElementById('attStatusMsg'); if(status){status.textContent='🔒 لا يمكن الحفظ — الشهر مقفول';status.style.color='#b91c1c';} return;
+        const status=document.getElementById('attStatusMsg'); if(status){status.textContent='🔒 لا يمكن الحفظ — الشهر مقفول';status.style.color='var(--rasd-danger)';} return;
       }
       const apply = (db) => {
         const att = ensureAttendance(db);
@@ -95,7 +95,7 @@
       } else {
         result = apply(liveDb); saveDB(liveDb); if(typeof scheduleCloudPush==='function') scheduleCloudPush();
       }
-      const status=document.getElementById('attStatusMsg'); if(status){status.textContent='✅ تم حفظ سجل الغياب'+(result.n?` (${result.n} علامة)`:'');status.style.color='#0b5e42';}
+      const status=document.getElementById('attStatusMsg'); if(status){status.textContent='✅ تم حفظ سجل الغياب'+(result.n?` (${result.n} علامة)`:'');status.style.color='var(--rasd-brand)';}
       if(typeof renderAttendanceGrid==='function') renderAttendanceGrid();
       if(result.markedAbsentToday && typeof notifyIfSkipSuspectsAfterSave==='function') notifyIfSkipSuspectsAfterSave({subjectName:f.subjectName,classKey:f.classKey});
     }
