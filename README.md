@@ -2,7 +2,7 @@
 
 **Offline-first SPA** (Vanilla JS) · IndexedDB + مزامنة Supabase اختيارية
 
-**الإصدار:** 26.0.0-dev-stepC · **الهوية:** أخضر رصد · **جاهزية:** تعدد مدارس (أساس)
+**الإصدار:** 26.0.0-dev-stepC · **الهوية:** أخضر زيتي + برتقالي مطفأ + رمادي · **جاهزية:** تعدد مدارس (أساس)
 
 > خطة إعادة الهيكلة: [`docs/REFACTOR-FULL-PLAN.md`](./docs/REFACTOR-FULL-PLAN.md)  
 > نشر GitHub + Supabase مجاني: [`docs/DEPLOY-GITHUB-SUPABASE.md`](./docs/DEPLOY-GITHUB-SUPABASE.md)

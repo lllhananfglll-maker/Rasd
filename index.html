@@ -51,7 +51,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icons/rasd-icon-192.png">
   <link rel="apple-touch-icon" href="icons/rasd-icon-192.png">
 
-  <meta name="theme-color" content="#0b5e42">
+  <meta name="theme-color" content="#5a6b3a">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="رصد">
@@ -481,7 +481,7 @@
               </div>
               <div class="form-group mt-16">
                 <label>صلاحيات التشغيل (يحددها رئيس الكنترول لكل مسؤول حاسب)</label>
-                <div id="newStageAdminPermsBox" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;background:#f8fafc;">
+                <div id="newStageAdminPermsBox" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;background:var(--rasd-surface-2);">
                   <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;"><input type="checkbox" id="saPermSubjects" checked> 📚 المواد والمكونات</label>
                   <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;"><input type="checkbox" id="saPermStudents" checked> 👨‍🎓 الطلاب</label>
                   <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;"><input type="checkbox" id="saPermTeachers" checked> 🧑‍🏫 المعلمون</label>
@@ -962,7 +962,7 @@
           <div id="gradesTabPerformancePanel" style="display:none; margin-top:12px;"></div>
         </div>
 
-        <div class="card" style="margin-top:16px; background:#f8fafc;">
+        <div class="card" style="margin-top:16px; background:var(--rasd-surface-2);">
           <div style="font-weight:700; color:#334155; margin-bottom:8px;">🖨️ طباعة متوسطات الفصل الدراسي (نهاية الفصل)</div>
           <p style="color:#64748b; font-size:13px; margin-bottom:10px;">يطبع كشفاً بشكل رسمي: للمكوّنات العادية ش1/ش2/ش3/متوسط (توزيع المتوسط)، وللتقييم الشهري/الامتحانات ش1/ش2/متوسط فقط (امتحانان). اختر الفصل الدراسي من الفلتر أعلاه. ورقة واحدة طولية A4.</p>
           <div class="flex gap-12 flex-wrap items-center">
@@ -1121,7 +1121,7 @@
         </div>
         <div id="teacherFormMsg" class="mt-16" style="font-size:13px;"></div>
 
-        <div class="mt-16" style="border:2px dashed #94a3b8; border-radius:12px; padding:16px 20px; background:#f8fafc;">
+        <div class="mt-16" style="border:2px dashed #94a3b8; border-radius:12px; padding:16px 20px; background:var(--rasd-surface-2);">
           <div style="font-weight:700; color:#0f172a; margin-bottom:8px;">📥 رفع ملف Excel لإضافة/تحديث المعلمين</div>
           <p style="color:#64748b; font-size:13px; margin-bottom:10px;">استخدم نفس تنسيق ملف التصدير (زر "📊 تصدير بيانات المعلمين"): كل فصل في عمود مستقل يوضع فيه أي علامة (مثل ✔) للفصول التي يدرّسها المعلم في هذا الصف تحديداً. إذا كان المعلم يدرّس أكثر من مادة، أو نفس المادة لكن بفصول/لغة مختلفة، ضع له أكثر من صف بنفس عمودَي "المعرف" و"الاسم" (اترك "المعرف" فارغاً إذا كان معلماً جديداً)، وكل صف يمثل تخصيصاً واحداً (مادة واحدة + فصولها). إذا كان عمود "المعرف" يطابق معلماً موجوداً، سيتم استبدال كل تخصيصاته بالتخصيصات الجديدة من كل صفوفه في هذا الملف، وإذا كان فارغاً سيُضاف معلم جديد بكل الصفوف التي تحمل نفس اسمه متتالية. تأكد أن اسم المادة وأسماء الفصول مطابقة تماماً للمسجلة في النظام. عمود "نوع اللغة" مطلوب فقط في الصف الذي تكون مادته هي مادة اللغة الثانية، ويجب أن يطابق القيمة المسجَّلة لدى الطلاب تماماً.</p>
           <div class="grid-2">
@@ -1183,7 +1183,7 @@
           </div>
         </div>
 
-        <div class="card" id="attScheduleCard" style="background:#f8fafc; margin-bottom:14px;">
+        <div class="card" id="attScheduleCard" style="background:var(--rasd-surface-2); margin-bottom:14px;">
           <h3 style="margin:0 0 10px; font-size:15px;">🗓️ أيام حصص المادة في هذا الفصل</h3>
           <p style="font-size:13px; color:#64748b; margin-bottom:10px;">يضبطها المعلم مرة واحدة وتُحفظ مع المادة/الفصل.</p>
           <div id="attDaysCheckboxes" class="flex flex-wrap gap-12" style="margin-bottom:10px;"></div>
@@ -1226,9 +1226,9 @@
           </div>
         </div>
 
-        <div class="card" id="attReportsCard" style="display:none; background:#eff6ff; border:1px solid #bfdbfe; margin-bottom:14px;">
-          <h3 style="margin:0 0 8px; font-size:15px; color:#1e40af;">📊 تقارير الحصر ومنحنى الحضور</h3>
-          <p style="font-size:13px; color:#1e3a8a; margin-bottom:12px; line-height:1.7;">
+        <div class="card" id="attReportsCard" style="display:none; background:var(--rasd-brand-wash); border:1px solid var(--rasd-brand-soft); margin-bottom:14px;">
+          <h3 style="margin:0 0 8px; font-size:15px; color:var(--rasd-brand-dark);">📊 تقارير الحصر ومنحنى الحضور</h3>
+          <p style="font-size:13px; color:var(--rasd-brand-deeper); margin-bottom:12px; line-height:1.7;">
             حصر حسب <strong>الفصل</strong> (نسبة حضور + اتجاه ارتفاع/انخفاض) بدون أسماء طلاب.
             يعتمد على فلاتر الفصل الدراسي والشهر أعلاه. متاح لرئيس الكنترول ومدير المرحلة.
           </p>
@@ -1248,7 +1248,7 @@
             <button type="button" class="btn btn-outline btn-sm" data-action="openTodaySkipSuspectsModal" data-args='[]'>⚠️ خارج الفصول الآن</button>
             <button type="button" class="btn btn-outline btn-sm" data-action="printTodaySkipSuspectsReport" data-args='[]'>🖨️ طباعة بدون إذن (اليوم)</button>
           </div>
-          <div style="margin-top:14px;padding-top:12px;border-top:1px dashed #93c5fd;">
+          <div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--rasd-brand-muted);">
             <div class="flex flex-wrap gap-12 items-center" style="margin-bottom:10px;">
               <div class="form-group" style="margin:0;">
                 <label style="font-size:12px;">نوع المنحنى</label>
@@ -1260,7 +1260,7 @@
               </div>
               <button type="button" class="btn btn-outline btn-sm" data-action="refreshAttendanceTrendChart" data-args='[]'>🔄 تحديث المنحنى</button>
             </div>
-            <div id="attTrendChartHost" style="background:#fff;border:1px solid #dbeafe;border-radius:12px;padding:12px 14px;min-height:80px;">
+            <div id="attTrendChartHost" style="background:#fff;border:1px solid var(--rasd-brand-soft);border-radius:12px;padding:12px 14px;min-height:80px;">
               <div style="color:#94a3b8;font-size:13px;text-align:center;padding:12px;">اختر نوع المنحنى أو اضغط تحديث لعرض منحنى الحضور.</div>
             </div>
           </div>
@@ -1311,7 +1311,7 @@
         </details>
 
         <div class="table-wrap" id="attGridWrap" style="max-height:70vh;">
-          <div id="attGridEmpty" style="padding:24px; text-align:center; color:#64748b; background:#f8fafc; border-radius:10px;">اختر المادة والفصل ثم اضغط «عرض / تحديث الكشف».</div>
+          <div id="attGridEmpty" style="padding:24px; text-align:center; color:#64748b; background:var(--rasd-surface-2); border-radius:10px;">اختر المادة والفصل ثم اضغط «عرض / تحديث الكشف».</div>
           <table class="hidden" id="attGridTable">
             <thead id="attGridHead"></thead>
             <tbody id="attGridBody"></tbody>
@@ -1321,7 +1321,7 @@
     </div>
 
     <div id="tab-printcenter" class="tab-content">
-      <div class="card" style="border:1px solid #bfdbfe;background:linear-gradient(180deg,#eff6ff,#fff)">
+      <div class="card" style="border:1px solid var(--rasd-brand-soft);background:linear-gradient(180deg,var(--rasd-brand-wash),#fff)">
         <h2 style="border:none;margin:0 0 6px;color:#1e3a5f">🖨️ مركز الطباعة</h2>
         <p style="margin:0;color:#64748b;font-size:13.5px;line-height:1.7">جميع أزرار الطباعة في مكان واحد حسب صلاحية حسابك. الأزرار ما زالت متاحة أيضاً في أماكنها الأصلية (الدرجات، المواظبة، التقارير…).</p>
       </div>
@@ -1364,7 +1364,7 @@
                 <button type="button" class="btn btn-outline btn-sm" data-action="pcToggleAll" data-args='["pcClassList", false]'>مسح الكل</button>
               </span>
             </div>
-            <div id="pcClassList" style="max-height:240px;overflow:auto;border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:#f8fafc"></div>
+            <div id="pcClassList" style="max-height:240px;overflow:auto;border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:var(--rasd-surface-2)"></div>
           </div>
           <div>
             <div class="flex justify-between items-center" style="margin-bottom:8px">
@@ -1374,7 +1374,7 @@
                 <button type="button" class="btn btn-outline btn-sm" data-action="pcToggleAll" data-args='["pcSubjectList", false]'>مسح الكل</button>
               </span>
             </div>
-            <div id="pcSubjectList" style="max-height:240px;overflow:auto;border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:#f8fafc"></div>
+            <div id="pcSubjectList" style="max-height:240px;overflow:auto;border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:var(--rasd-surface-2)"></div>
           </div>
         </div>
         <div class="mt-16">
@@ -1431,7 +1431,7 @@
                 <button type="button" class="btn btn-outline btn-sm" data-action="pcToggleAll" data-args='["pcAttClassList", false]'>مسح الكل</button>
               </span>
             </div>
-            <div id="pcAttClassList" style="max-height:200px;overflow:auto;border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:#f8fafc"></div>
+            <div id="pcAttClassList" style="max-height:200px;overflow:auto;border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:var(--rasd-surface-2)"></div>
           </div>
           <div>
             <div class="flex justify-between items-center" style="margin-bottom:8px">
@@ -1441,7 +1441,7 @@
                 <button type="button" class="btn btn-outline btn-sm" data-action="pcToggleAll" data-args='["pcAttSubjectList", false]'>مسح الكل</button>
               </span>
             </div>
-            <div id="pcAttSubjectList" style="max-height:200px;overflow:auto;border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:#f8fafc"></div>
+            <div id="pcAttSubjectList" style="max-height:200px;overflow:auto;border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:var(--rasd-surface-2)"></div>
           </div>
         </div>
         <div class="mt-16">
