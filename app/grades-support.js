@@ -125,7 +125,7 @@
           + '<td style="border:1px solid #94a3b8;padding:6px;text-align:center">' + escapeHtml(st.seat || '') + '</td>'
           + '<td style="border:1px solid #94a3b8;padding:6px;text-align:center">' + escapeHtml(st.class || '') + '</td>'
           + '<td style="border:1px solid #94a3b8;padding:6px;text-align:right;font-size:11px;color:var(--rasd-danger)">' + escapeHtml((r.absentSubjects || []).join('، ')) + '</td>'
-          + '<td style="border:1px solid #94a3b8;padding:6px;text-align:right;font-size:11px;color:#1d4ed8">' + escapeHtml((r.numericSubjects || []).join('، ')) + '</td>'
+          + '<td style="border:1px solid #94a3b8;padding:6px;text-align:right;font-size:11px;color:var(--rasd-brand-dark)">' + escapeHtml((r.numericSubjects || []).join('، ')) + '</td>'
           + '</tr>';
       }).join('');
       let area = document.getElementById('printArea');
