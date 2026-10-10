@@ -147,25 +147,29 @@
           })()
         });
 
-        // STEP 54: بعد حفظ فترات الرصد من المحرر، حدّث الروزنامة المركزية منها (وليس العكس)
-        // حتى تبقى الأسماء/التواريخ/امتحان الشهر ثابتة بعد الخروج وإعادة الدخول.
+        // STEP 55: الفترات → روزنامة مركزية (مصدر الحقيقة) ثم تعميم على كل المراحل
         try {
           const br = window.GSP && window.GSP.calendarBridge;
           const draft = GSP._siPeriodsDraft || db.schoolInfo.recordingPeriods;
-          if (br && typeof br.syncCalendarFromPeriods === 'function' && draft) {
+          if (draft && br && typeof br.syncCalendarFromPeriods === 'function') {
             ['first', 'second'].forEach(function (t) {
               if (Array.isArray(draft[t]) && draft[t].length) {
                 br.syncCalendarFromPeriods(db, t, draft[t]);
               }
             });
-          } else if (typeof window.syncCalendarFromPeriods === 'function' && draft) {
-            ['first', 'second'].forEach(function (t) {
-              if (Array.isArray(draft[t]) && draft[t].length) {
-                window.syncCalendarFromPeriods(db, t, draft[t]);
+            // أعد قراءة ما كُتب فعلياً إلى db بعد الحفظ
+            try {
+              const fresh = typeof loadDB === 'function' ? loadDB() : db;
+              if (fresh && fresh.schoolInfo) {
+                db.schoolInfo.termCalendar = fresh.schoolInfo.termCalendar;
+                db.schoolInfo.recordingPeriods = fresh.schoolInfo.recordingPeriods;
+                db.schoolInfo.months = fresh.schoolInfo.months;
+                db.schoolInfo.week1Dates = fresh.schoolInfo.week1Dates;
               }
-            });
+            } catch (_) {}
           }
           GSP._siPeriodsDraft = null;
+          try { window._termCalendarDraft = {}; } catch (_) {}
         } catch (eCal) { console.warn('periods→calendar sync', eCal); }
 
         // عند تفعيل شهر ثالث مع اختيار «حذف التقييم الشهري»: إزالة مكوّنات الامتحان من مواد هذه المرحلة
@@ -337,9 +341,18 @@
 
     function getRecordingPeriods(term) {
       const t = term === 'second' ? 'second' : 'first';
+      // STEP 55: فضّل جسر الروزنامة (المصدر الوحيد)
+      try {
+        if (window.GSP && GSP.calendarBridge && typeof GSP.calendarBridge.getRecordingPeriods === 'function') {
+          const fromBridge = GSP.calendarBridge.getRecordingPeriods(t);
+          if (Array.isArray(fromBridge) && fromBridge.length) return fromBridge;
+        }
+        if (typeof window.getRecordingPeriods === 'function' && window.getRecordingPeriods !== getRecordingPeriods) {
+          // تجنب الاستدعاء الذاتي إن كان الجسر قد ثبّت نفسه على window
+        }
+      } catch (_) {}
       const db = loadDB();
       const info = db.schoolInfo || {};
-      // STEP 54: اقرأ المحفوظ أولاً دون إعادة توليد افتراضي يمحو تعديلات المستخدم
       if (info.recordingPeriods && Array.isArray(info.recordingPeriods[t]) && info.recordingPeriods[t].length) {
         const list = info.recordingPeriods[t].filter(p => p && p.enabled !== false);
         if (list.length) return list;
@@ -533,10 +546,17 @@
       document.getElementById('siAcademicYear').value = info.academicYear || '';
       document.getElementById('siTerm').value = info.term || 'first';
       try {
-        GSP._siPeriodsDraft = migrateMonthsToPeriods(info);
+        // STEP 55: امسح المسودات ثم اقرأ من التخزين الفعلي
+        GSP._siPeriodsDraft = null;
+        try { window._termCalendarDraft = {}; } catch (_) {}
+        if (typeof ensureCalendarSeeded === 'function') ensureCalendarSeeded();
+        const info2 = (loadDB().schoolInfo) || info;
+        GSP._siPeriodsDraft = migrateMonthsToPeriods(info2);
         const pt = document.getElementById('siPeriodsTerm');
-        if (pt) pt.value = info.term === 'second' ? 'second' : 'first';
+        if (pt) pt.value = info2.term === 'second' ? 'second' : 'first';
         renderRecordingPeriodsEditor();
+        if (typeof initCalendarUI === 'function') initCalendarUI();
+        else if (window.GSP && GSP.calendarUI && GSP.calendarUI.init) GSP.calendarUI.init();
       } catch (e) { console.warn('periods editor', e); }
       // تعديل بيانات المدرسة أصبح حصراً على رئيس الكنترول (بما أن حقلَي "نوع الصف" و"القسم"
       // صاراً يُستنتَجان تلقائياً من المرحلة الحالية، ولم يعد هناك داعٍ يُذكر لتعديل مدير المرحلة

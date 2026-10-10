@@ -628,11 +628,11 @@
           <td class="col-pin" data-label="الرقم السري">${maskedPinHtml()}</td>
           <td class="col-actions" data-label="إجراء">
             <div class="flex gap-12" style="gap:6px;">
-              <button class="btn btn-outline btn-sm" data-action="startEditTeacher" data-args='${gspArgs(['t.id'])}'>✏️ تعديل</button>
-              <button class="btn btn-outline btn-sm" data-action="printSingleTeacherCard" data-args='${gspArgs(['t.id'])}'>🖨️ طباعة</button>
-              <button class="btn btn-outline btn-sm" data-action="regenerateTeacherPin" data-args='${gspArgs(['t.id'])}'>🔄 رقم جديد</button>
-              <button class="btn btn-outline btn-sm" data-action="editTeacherPinManually" data-args='${gspArgs(['t.id'])}'>✏️ تعديل يدوي</button>
-              <button class="btn btn-danger btn-sm" data-action="deleteTeacher" data-args='${gspArgs(['t.id'])}'>🗑️ حذف</button>
+              <button class="btn btn-outline btn-sm" data-action="startEditTeacher" data-args='${gspArgs([t.id])}'>✏️ تعديل</button>
+              <button class="btn btn-outline btn-sm" data-action="printSingleTeacherCard" data-args='${gspArgs([t.id])}'>🖨️ طباعة</button>
+              <button class="btn btn-outline btn-sm" data-action="regenerateTeacherPin" data-args='${gspArgs([t.id])}'>🔄 رقم جديد</button>
+              <button class="btn btn-outline btn-sm" data-action="editTeacherPinManually" data-args='${gspArgs([t.id])}'>✏️ تعديل يدوي</button>
+              <button class="btn btn-danger btn-sm" data-action="deleteTeacher" data-args='${gspArgs([t.id])}'>🗑️ حذف</button>
             </div>
           </td>
         `;
@@ -647,3 +647,18 @@
     }
 
     // ============================================================
+
+// تصدير دوال المعلمين لـ GSP/dom-actions
+GSP.startEditTeacher = startEditTeacher;
+GSP.cancelTeacherEdit = cancelTeacherEdit;
+GSP.printSingleTeacherCard = printSingleTeacherCard;
+GSP.printAllTeacherCards = printAllTeacherCards;
+GSP.printTeacherCardWithPin = printTeacherCardWithPin;
+GSP.regenerateTeacherPin = regenerateTeacherPin;
+GSP.editTeacherPinManually = editTeacherPinManually;
+GSP.deleteTeacher = deleteTeacher;
+GSP.loadTeachersUI = loadTeachersUI;
+GSP.addOrUpdateTeacher = addOrUpdateTeacher;
+GSP.exportTeachersExcel = exportTeachersExcel;
+GSP.handleTeacherImportClick = handleTeacherImportClick;
+

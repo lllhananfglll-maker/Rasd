@@ -458,7 +458,7 @@
           <td>${new Date(v.at).toLocaleString('ar-EG')}</td>
           <td>${v.type === 'auto' ? '🔄 تلقائية' : '📌 يدوية'}</td>
           <td>${v.stagesCount}</td>
-          <td><button class="btn btn-outline btn-sm" data-action="restoreVersionSnapshot" data-args='${gspArgs(['v.id'])}'>♻️ استعادة هذا الإصدار</button></td>
+          <td><button class="btn btn-outline btn-sm" data-action="restoreVersionSnapshot" data-args='${gspArgs([v.id])}'>♻️ استعادة هذا الإصدار</button></td>
         </tr>
       `).join('');
     }

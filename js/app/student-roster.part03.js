@@ -51,7 +51,7 @@ function loadStagesMgmtUI() {
               <td>${adminCount}</td>
               <td>
                 <div class="stage-actions">
-                  <button class="btn btn-outline btn-sm" data-action="switchToStage" data-args='${gspArgs(['s.id'])}'>📂 إدارة</button>
+                  <button class="btn btn-outline btn-sm" data-action="switchToStage" data-args='${gspArgs([s.id])}'>📂 إدارة</button>
                   ${!(typeof FIXED_STAGE_IDS !== 'undefined' && FIXED_STAGE_IDS.has(s.id)) ? `<button class="btn btn-danger btn-sm" data-action="deleteStage" data-args='${gspArgs([s.id])}'>🗑️ حذف مكرر</button>` : ''}
                 </div>
               </td>
@@ -94,7 +94,7 @@ function loadStagesMgmtUI() {
               <td>${maskedPinHtml()}</td>
               <td>
                 <div class="stage-actions">
-                  <button class="btn btn-outline btn-sm" data-action="startEditStageAdmin" data-args='${gspArgs(['a.id'])}'>✏️ تعديل</button>
+                  <button class="btn btn-outline btn-sm" data-action="startEditStageAdmin" data-args='${gspArgs([a.id])}'>✏️ تعديل</button>
                   <div class="stage-more-wrap">
                     <button type="button" class="btn btn-outline btn-sm" data-action="toggleStageMoreMenuFromButton" data-with-event data-args='${gspArgs([`adminMore_${a.id}`])}'>⋯</button>
                     <div class="stage-more-menu" id="adminMore_${a.id}">
@@ -143,11 +143,11 @@ function loadStagesMgmtUI() {
               <td>${maskedPinHtml()}</td>
               <td>
                 <div class="stage-actions">
-                  <button class="btn btn-outline btn-sm" data-action="printSingleStageMonitorCard" data-args='${gspArgs(['a.id'])}'>🖨️ طباعة البطاقة</button>
-                  <button class="btn btn-outline btn-sm" data-action="startEditStageMonitor" data-args='${gspArgs(['a.id'])}'>✏️ تعديل</button>
-                  <button class="btn btn-outline btn-sm" data-action="resetStageMonitorPin" data-args='${gspArgs(['a.id'])}'>🔑 رقم سري جديد</button>
-                  <button class="btn btn-outline btn-sm" data-action="editStageMonitorPinManually" data-args='${gspArgs(['a.id'])}'>✏️ تعديل الرقم يدوياً</button>
-                  <button class="btn btn-danger btn-sm" data-action="deleteStageMonitor" data-args='${gspArgs(['a.id'])}'>🗑️</button>
+                  <button class="btn btn-outline btn-sm" data-action="printSingleStageMonitorCard" data-args='${gspArgs([a.id])}'>🖨️ طباعة البطاقة</button>
+                  <button class="btn btn-outline btn-sm" data-action="startEditStageMonitor" data-args='${gspArgs([a.id])}'>✏️ تعديل</button>
+                  <button class="btn btn-outline btn-sm" data-action="resetStageMonitorPin" data-args='${gspArgs([a.id])}'>🔑 رقم سري جديد</button>
+                  <button class="btn btn-outline btn-sm" data-action="editStageMonitorPinManually" data-args='${gspArgs([a.id])}'>✏️ تعديل الرقم يدوياً</button>
+                  <button class="btn btn-danger btn-sm" data-action="deleteStageMonitor" data-args='${gspArgs([a.id])}'>🗑️</button>
                 </div>
               </td>
             </tr>`;

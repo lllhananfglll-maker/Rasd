@@ -942,7 +942,7 @@ function loadGradesUI() {
       <td class="col-name"><span class="idx-badge">${idx + 1}</span>${escapeHtml(s.name)}${tierDotHtml}</td>
       ${secondLangCellHtml}
       ${cellsHtml}
-      <td class="col-action" data-label="إجراء"><button class="btn btn-primary btn-sm" ${isLocked ? 'disabled' : ''} data-action="saveStudentRow" data-args='${gspArgs(['s.id'])}'>💾 حفظ</button></td>
+      <td class="col-action" data-label="إجراء"><button class="btn btn-primary btn-sm" ${isLocked ? 'disabled' : ''} data-action="saveStudentRow" data-args='${gspArgs([s.id])}'>💾 حفظ</button></td>
     `;
     fragment.appendChild(row);
   });
