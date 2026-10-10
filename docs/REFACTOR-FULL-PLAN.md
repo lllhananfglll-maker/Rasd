@@ -65,22 +65,24 @@ grade-sys-pro-v2/
 
 ### المرحلة A — الأساس (هذه الدفعة)
 - [x] وثيقة الخطة
-- [ ] `css/tokens.css` — هوية خضراء كاملة
-- [ ] ربط `base.css` بالمتغيرات
-- [ ] تحديث `configuration-service` لمشروع Supabase الحالي + `schoolId`
-- [ ] `domain/school/tenant-context.js` — سياق المدرسة
-- [ ] رفع الإصدار إلى 26.0.0-dev
-- [ ] PWA ملفات في الجذر
+- [x] `css/tokens.css` — هوية خضراء كاملة
+- [x] ربط `base.css` بالمتغيرات
+- [x] تحديث `configuration-service` لمشروع Supabase الحالي + `schoolId`
+- [x] `domain/school/tenant-context.js` — سياق المدرسة
+- [x] رفع الإصدار إلى 26.0.0-dev
+- [x] PWA ملفات في الجذر
 
 ### المرحلة B — الروزنامة والغياب
-- نقل منطق الروزنامة المركزية من الـ monolith → `domain/calendar` + `features/calendar`
-- ربط الغياب الأسبوعي والطباعة بالروزنامة
-- اختبارات domain للتقويم
+- [x] نقل منطق الروزنامة المركزية من الـ monolith → `domain/calendar` + `features/calendar`
+- [x] ربط الغياب الأسبوعي والطباعة بالروزنامة
+- [x] اختبارات domain للتقويم
+- [x] Steps 54–56: ثبات الفترات، إعادة كتابة الروزنامة، خزنة دائمة + حماية RLS
 
-### المرحلة C — تنظيف الواجهة
-- دمج أجزاء `grades-ui.part0x` و`print-sheets.part0x` و`import-export.part0x`
-- تحويل باقي `onclick` → `data-action`
-- إزالة تكرار الألوان لصالح tokens
+### المرحلة C — تنظيف الواجهة ✅ مكتملة
+- [x] دمج أجزاء `grades-ui.part0x` و`print-sheets.part0x` و`import-export.part0x` (وحذف الملفات اليتيمة)
+- [x] دمج `auth-audit.part0x` و`student-roster.part0x`
+- [x] تحويل `onclick` المضمّن في `index.html` → `data-action` (0 متبقي)
+- [x] إزالة تكرار الألوان لصالح tokens في `css/base.css` وملفات CSS الأخرى وJS
 
 ### المرحلة D — تعدد المدارس (جاهزية)
 - عمود/`school_id` في نماذج البيانات المحلية والسحابية
