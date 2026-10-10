@@ -5,17 +5,13 @@
   <!--
     Content-Security-Policy: طبقة دفاع إضافية (defense in depth) وليست بديلاً عن تعقيم المدخلات.
 
-    حالة التقدّم في إزالة الاعتماد على unsafe-inline (آخر تحديث 2026-09-04):
+    حالة التقدّم في إزالة الاعتماد على unsafe-inline (آخر تحديث 2026-10-10 — المرحلة C):
     - onclick المضمّن مباشرة في هذا الملف (index.html): تم تحويله بالكامل (كان 178، الآن 0) إلى
-      نظام تفويض أحداث موحّد عبر data-action/data-args (راجع js/core/dom-actions.js). العنصرين
+      نظام تفويض أحداث موحّد عبر data-action/data-args (راجع js/core/dom-actions.js).
       معالجة أحداث الإدخال والتغيير تتم عبر تفويض مركزي في js/core/dom-actions.js.
-    - onclick المُولَّد ديناميكياً داخل قوالب JS (باقي المشروع): 102 موضع لا يزال قائماً، موزّعة
-      أساساً على js/monitor-shell.js (32) وjs/app/student-roster.js (13) وjs/attendance-system.js (13)
-      وjs/v24-teacher-analytics.js (8) وjs/app/auth-audit.js (7) وباقي على ملفات features/*.
-      تحويلها يتطلب استبدال onclick="fn('${x}')" داخل template literals بـ
-      data-action="fn" data-args='${JSON.stringify([x])}' — نفس النمط المطبَّق فعلاً كمثال كامل
-      في js/attn-conflicts-review.js. تم إلغاء الحاجة إلى unsafe-inline في script-src
-      حتى تكتمل بقية هذه المواضع (وليس افتراضاً نظرياً كما كانت الحال سابقاً).
+    - قوالب JS الديناميكية: الملفات الأساسية (grades-ui / print-sheets / import-export /
+      student-roster / auth-audit) تستخدم data-action. ما تبقّى هو تعيينات .onclick= برمجية
+      (ليست سمات HTML مضمّنة) ولا تمنع تشديد CSP لاحقاً بنفس القدر.
     - style="..." المضمّن: تم تحويل نمط display:none المتكرر (43 موضع) إلى class="hidden" في
       css/base.css. تبقّى نحو 255 موضع style="..." أغلبها تنسيقات مرة واحدة (font-size/color/margin
       متفرقة) — تحويلها بالكامل لكلاسات CSS يحتاج مراجعة أوسع خارج نطاق هذه الجولة، لذلك 'unsafe-inline'
@@ -872,7 +868,7 @@
             <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
               <span class="grade-term-badge" id="gradeTermBadge">الفصل الأول</span>
               <span class="grade-month-badge" id="gradeMonthBadge">الشهر الأول</span>
-              <span class="grade-month-badge" id="gradeWeekBadge" style="background:#0b5e42">الأسبوع الأول</span>
+              <span class="grade-month-badge" id="gradeWeekBadge" style="background:var(--rasd-brand)">الأسبوع الأول</span>
             </div>
           </div>
         </div>
@@ -996,7 +992,7 @@
 
     <!-- ==================== STATS ==================== -->
     <div id="tab-stats" class="tab-content">
-      <div class="card" id="termTotalsPrintCard" style="border:1px solid #bbf7d0;background:linear-gradient(180deg,#f0fdf4,#fff)">
+      <div class="card" id="termTotalsPrintCard" style="border:1px solid var(--rasd-brand-muted);background:linear-gradient(180deg,#f0fdf4,#fff)">
         <h2 style="border:none;padding:0;margin:0 0 8px;color:#166534">🖨️ طباعة كشف أعمال السنة (مجاميع المواد) — من التقارير</h2>
         <p style="margin:0 0 12px;font-size:13px;color:#64748b;line-height:1.7">كشف متتالٍ: مسلسل · رقم الجلوس · الاسم · مجموع كل مادة · 40 طالباً في الصفحة · توقيع وكيل ومدير المرحلة. متاح لرئيس الكنترول ومسؤول الحاسب <strong>ومدير المرحلة</strong>.</p>
         <div class="filter-bar" style="background:#fff;margin-bottom:10px">
@@ -1387,7 +1383,7 @@
       </div>
 
       <!-- ===== أعمال السنة ===== -->
-      <div class="card pc-sec" data-pc-roles="superadmin,stageadmin,monitor" style="border:1px solid #bbf7d0">
+      <div class="card pc-sec" data-pc-roles="superadmin,stageadmin,monitor" style="border:1px solid var(--rasd-brand-muted)">
         <h2 style="color:#166534">📊 كشوف أعمال السنة (مجاميع المواد)</h2>
         <p style="color:#64748b;font-size:13px;margin-bottom:12px;line-height:1.7">مسلسل · رقم الجلوس · الاسم · مجموع كل مادة · 40 طالباً/صفحة · توقيع وكيل ومدير المرحلة.</p>
         <div class="filter-bar">
@@ -1572,7 +1568,7 @@
 
         <h2 class="mt-16">📅 ضبط فترات الرصد</h2>
         <p style="color:#64748b; margin-bottom:12px; line-height:1.8;">الفصلان الدراسيان <strong>ثابتان</strong> (أول / ثانٍ). داخل كل فصل يضيف <strong>رئيس الكنترول</strong> فترات رصد مستقلة: الاسم، عدد الأسابيع، تاريخ بداية الأسبوع الأول، هل تنتهي بامتحان شهر، وإجازات الفترة. يمكن إضافة فترات لاحقاً حسب تعليمات الوزارة. حساب الدرجات يبقى <strong>متوسط ما رُصد</strong>.</p>
-        <p style="color:#0b5e42; margin-bottom:12px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px; font-size:13px; line-height:1.8;">✅ عند الحفظ يُطبَّق <strong>ضبط الفترات كاملاً</strong> (الأسماء، التواريخ، أسابيع خارج الرصد، امتحان الشهر، الإجازات) على <strong>جميع المراحل</strong> لتوحيد الرصد والطباعة.</p>
+        <p style="color:var(--rasd-brand); margin-bottom:12px; background:var(--rasd-brand-wash); border:1px solid var(--rasd-brand-muted); border-radius:8px; padding:10px 12px; font-size:13px; line-height:1.8;">✅ عند الحفظ يُطبَّق <strong>ضبط الفترات كاملاً</strong> (الأسماء، التواريخ، أسابيع خارج الرصد، امتحان الشهر، الإجازات) على <strong>جميع المراحل</strong> لتوحيد الرصد والطباعة.</p>
         <div class="hidden" aria-hidden="true">
           <input type="text" id="siMonthF1"><input type="text" id="siMonthF2"><input type="text" id="siMonthF3">
           <input type="date" id="siWeek1F1"><input type="date" id="siWeek1F2"><input type="date" id="siWeek1F3">
