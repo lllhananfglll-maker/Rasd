@@ -23,16 +23,16 @@
   }
 
   var LANG_COLOR_PALETTE = [
-    { bg: '#dbeafe', fg: '#1e3a8a' }, { bg: '#fce7f3', fg: '#9d174d' },
-    { bg: 'var(--rasd-brand-soft)', fg: '#166534' }, { bg: '#fef3c7', fg: '#92400e' },
-    { bg: '#ede9fe', fg: '#5b21b6' }, { bg: '#ffe4e6', fg: '#9f1239' },
-    { bg: '#cffafe', fg: '#155e75' }, { bg: '#fee2e2', fg: '#991b1b' },
-    { bg: '#e0e7ff', fg: '#3730a3' }, { bg: '#fef9c3', fg: '#854d0e' }
+    { bg: 'var(--rasd-brand-soft)', fg: 'var(--rasd-brand-deeper)' }, { bg: 'var(--rasd-accent-wash)', fg: 'var(--rasd-accent-dark)' },
+    { bg: 'var(--rasd-brand-muted)', fg: 'var(--rasd-brand-dark)' }, { bg: '#fef3c7', fg: '#92400e' },
+    { bg: 'var(--rasd-accent-wash)', fg: 'var(--rasd-accent-dark)' }, { bg: 'var(--rasd-danger-bg)', fg: 'var(--rasd-danger)' },
+    { bg: 'var(--rasd-surface-3)', fg: 'var(--rasd-text)' }, { bg: '#fee2e2', fg: '#991b1b' },
+    { bg: 'var(--rasd-brand-wash)', fg: 'var(--rasd-brand-dark)' }, { bg: '#fef9c3', fg: '#854d0e' }
   ];
 
   function getLangColor(lang) {
     var key = normalizeArabicText(lang);
-    if (!key) return { bg: '#f1f5f9', fg: 'var(--rasd-text-muted)' };
+    if (!key) return { bg: 'var(--rasd-surface-3)', fg: 'var(--rasd-text-muted)' };
     var hash = 0;
     for (var i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
     return LANG_COLOR_PALETTE[hash % LANG_COLOR_PALETTE.length];
