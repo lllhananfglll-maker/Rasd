@@ -120,10 +120,10 @@ function canManageAttReports(){
       return '<tr><td style="padding:8px;border-bottom:1px solid #e2e8f0;font-weight:700">'+esc(s.name)+'</td>'
         +'<td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:center">'+esc(s.seat||'—')+'</td>'
         +'<td style="padding:8px;border-bottom:1px solid #e2e8f0">'+esc(s.classLabel)+'</td>'
-        +'<td style="padding:8px;border-bottom:1px solid #e2e8f0;font-size:12px">غ: <b>'+esc(s.absentSubject)+'</b><br><span style="color:#64748b">حضر: '+esc(s.presentSubjects.join('، '))+'</span></td>'
+        +'<td style="padding:8px;border-bottom:1px solid #e2e8f0;font-size:12px">غ: <b>'+esc(s.absentSubject)+'</b><br><span style="color:var(--rasd-text-muted)">حضر: '+esc(s.presentSubjects.join('، '))+'</span></td>'
         +'<td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:center"><button type="button" class="btn btn-outline btn-sm" data-action="excuseDaySkipStudentFromButton" data-with-element data-student-id="'+sid+'">إذن</button></td></tr>';
-    }).join('') || '<tr><td colspan="5" style="padding:16px;text-align:center;color:#64748b">لا يوجد طلاب مشتبه بهم بدون إذن حالياً.</td></tr>';
-    overlay.innerHTML = '<div class="mg-modal-box" style="max-width:720px"><div class="mg-modal-header ui-modal-header ui-type-info" style="display:flex;justify-content:space-between;align-items:center"><span>⚠️ غياب بعد حضور سابق اليوم ('+esc(data.dateISO)+')</span><button type="button" class="btn btn-outline btn-sm" data-close>إغلاق</button></div><div class="mg-modal-body" style="padding:14px 16px"><p style="margin:0 0 10px;font-size:13px;color:#64748b;line-height:1.7">طلاب غابوا بعد حضور حصة أخرى اليوم. «إذن» يستبعد لبقية اليوم فقط.</p><div style="overflow:auto;max-height:360px"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f1f5f9"><th style="padding:8px;text-align:right">الطالب</th><th style="padding:8px">جلوس</th><th style="padding:8px;text-align:right">الفصل</th><th style="padding:8px;text-align:right">التفاصيل</th><th style="padding:8px">إذن</th></tr></thead><tbody>'+rows+'</tbody></table></div></div><div class="mg-modal-footer"><button type="button" class="btn btn-outline" data-close>إغلاق</button><button type="button" class="btn btn-primary" id="daySkipPrintBtn">🖨️ طباعة بدون إذن ('+list.length+')</button></div></div>';
+    }).join('') || '<tr><td colspan="5" style="padding:16px;text-align:center;color:var(--rasd-text-muted)">لا يوجد طلاب مشتبه بهم بدون إذن حالياً.</td></tr>';
+    overlay.innerHTML = '<div class="mg-modal-box" style="max-width:720px"><div class="mg-modal-header ui-modal-header ui-type-info" style="display:flex;justify-content:space-between;align-items:center"><span>⚠️ غياب بعد حضور سابق اليوم ('+esc(data.dateISO)+')</span><button type="button" class="btn btn-outline btn-sm" data-close>إغلاق</button></div><div class="mg-modal-body" style="padding:14px 16px"><p style="margin:0 0 10px;font-size:13px;color:var(--rasd-text-muted);line-height:1.7">طلاب غابوا بعد حضور حصة أخرى اليوم. «إذن» يستبعد لبقية اليوم فقط.</p><div style="overflow:auto;max-height:360px"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f1f5f9"><th style="padding:8px;text-align:right">الطالب</th><th style="padding:8px">جلوس</th><th style="padding:8px;text-align:right">الفصل</th><th style="padding:8px;text-align:right">التفاصيل</th><th style="padding:8px">إذن</th></tr></thead><tbody>'+rows+'</tbody></table></div></div><div class="mg-modal-footer"><button type="button" class="btn btn-outline" data-close>إغلاق</button><button type="button" class="btn btn-primary" id="daySkipPrintBtn">🖨️ طباعة بدون إذن ('+list.length+')</button></div></div>';
     document.body.appendChild(overlay);
     const close=function(){try{overlay.remove();}catch(e){}};
     overlay.querySelectorAll('[data-close]').forEach(b=>b.onclick=close);
@@ -291,7 +291,7 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
   function renderHolidaysList(){
     const list = document.getElementById('attHolidaysList'); if (!list) return;
     const att = ensureAttendance(loadDB());
-    if (!att.holidays.length) { list.innerHTML = '<span style="color:#94a3b8;font-size:13px;">لا توجد إجازات مسجّلة.</span>'; return; }
+    if (!att.holidays.length) { list.innerHTML = '<span style="color:var(--rasd-text-subtle);font-size:13px;">لا توجد إجازات مسجّلة.</span>'; return; }
     list.innerHTML = att.holidays.slice().sort().map(iso =>
       `<span class="att-holiday-tag">${esc(iso)} <button type="button" title="حذف" data-action="removeAttendanceHoliday" data-args='${gspArgs(['esc(iso)'])}'>×</button></span>`
     ).join('');
@@ -344,7 +344,7 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
       msg.textContent = syncToGrades
         ? ('✅ ترحيل المواظبة مفعّل لهذه المرحلة فقط: ' + stageLabel)
         : ('✅ ترحيل المواظبة متوقف لهذه المرحلة فقط: ' + stageLabel);
-      msg.style.color = '#0b5e42';
+      msg.style.color = 'var(--rasd-brand)';
     }
     renderDayCheckboxes();
     try { renderAttendanceGrid(); } catch (e) {}
@@ -361,7 +361,7 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
     renderHolidaysList();
     try { renderAttendanceGrid(); } catch (e) {}
     const msg = document.getElementById('attSyncMsg');
-    if (msg) { msg.textContent = '✅ أُضيفت الإجازة ' + iso + ' لجميع المراحل (' + n + ')'; msg.style.color = '#0b5e42'; }
+    if (msg) { msg.textContent = '✅ أُضيفت الإجازة ' + iso + ' لجميع المراحل (' + n + ')'; msg.style.color = 'var(--rasd-brand)'; }
     if (typeof scheduleCloudPush === 'function') scheduleCloudPush();
   };
   GSP.removeAttendanceHoliday = function(iso){
@@ -377,13 +377,13 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
     const subjectName = document.getElementById('attSubjectSelect')?.value || '';
     const classKey = document.getElementById('attClassSelect')?.value || '';
     const m = document.getElementById('attScheduleMsg');
-    if (!subjectName || !classKey) { if (m) { m.textContent = '⚠️ اختر المادة والفصل أولاً'; m.style.color = '#b91c1c'; } return; }
+    if (!subjectName || !classKey) { if (m) { m.textContent = '⚠️ اختر المادة والفصل أولاً'; m.style.color = 'var(--rasd-danger)'; } return; }
     const days = [];
     document.querySelectorAll('#attDaysCheckboxes input[data-day-idx]').forEach(inp => { if (inp.checked) days.push(parseInt(inp.getAttribute('data-day-idx'), 10)); });
-    if (!days.length) { if (m) { m.textContent = '⚠️ اختر يوماً واحداً على الأقل'; m.style.color = '#b91c1c'; } return; }
+    if (!days.length) { if (m) { m.textContent = '⚠️ اختر يوماً واحداً على الأقل'; m.style.color = 'var(--rasd-danger)'; } return; }
     if (!GSP.application.attendanceAdmin) throw new Error('Attendance admin service is unavailable');
     GSP.application.attendanceAdmin.saveSubjectDays(subjectName, classKey, days);
-    if (m) { m.textContent = '✅ تم حفظ أيام الحصص'; m.style.color = '#0b5e42'; }
+    if (m) { m.textContent = '✅ تم حفظ أيام الحصص'; m.style.color = 'var(--rasd-brand)'; }
     if (typeof scheduleCloudPush === 'function') scheduleCloudPush();
     renderAttendanceGrid();
   };
@@ -545,14 +545,14 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
     if (status) {
       const weekTxt = weekFilter ? ` — الأسبوع ${weekNames[weekFilter-1]} فقط` : '';
       status.textContent = locked ? '🔒 هذا الشهر مقفول — عرض فقط' : `عرض ${students.length} طالباً${weekTxt} — أيام الحصص: ${studyDays.map(i => DAY_LABELS[i]).join('، ')}`;
-      status.style.color = locked ? '#b91c1c' : '#64748b';
+      status.style.color = locked ? 'var(--rasd-danger)' : 'var(--rasd-text-muted)';
     }
   };
   GSP.saveAttendanceGrid = function(){
     const db = loadDB(); const att = ensureAttendance(db); const f = getFilterState();
     if (isAttendanceMonthLocked(db, f.term, f.month)) {
       const status = document.getElementById('attStatusMsg');
-      if (status) { status.textContent = '🔒 لا يمكن الحفظ — الشهر مقفول'; status.style.color = '#b91c1c'; }
+      if (status) { status.textContent = '🔒 لا يمكن الحفظ — الشهر مقفول'; status.style.color = 'var(--rasd-danger)'; }
       return;
     }
     let n = 0; let markedAbsentToday = false; const today = deviceTodayISO();
@@ -569,7 +569,7 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
     }
     if (typeof scheduleCloudPush === 'function') scheduleCloudPush();
     const status = document.getElementById('attStatusMsg');
-    if (status) { status.textContent = '✅ تم حفظ سجل الغياب' + (n ? ` (${n} علامة)` : ''); status.style.color = '#0b5e42'; }
+    if (status) { status.textContent = '✅ تم حفظ سجل الغياب' + (n ? ` (${n} علامة)` : ''); status.style.color = 'var(--rasd-brand)'; }
     renderAttendanceGrid();
     if (markedAbsentToday) notifyIfSkipSuspectsAfterSave({ subjectName: f.subjectName, classKey: f.classKey });
   };
@@ -598,19 +598,19 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
   GSP.syncAttendanceScoresToGrades = function(){
     if (currentAccountType !== 'superadmin') {
       const msg = document.getElementById('attSyncMsg');
-      if (msg) { msg.textContent = '🔒 الترحيل متاح لرئيس الكنترول فقط'; msg.style.color = '#b91c1c'; }
+      if (msg) { msg.textContent = '🔒 الترحيل متاح لرئيس الكنترول فقط'; msg.style.color = 'var(--rasd-danger)'; }
       return;
     }
     const db = loadDB(); const att = ensureAttendance(db);
     if (!att.syncToGrades) {
       const msg = document.getElementById('attSyncMsg');
-      if (msg) { msg.textContent = '⚠️ فعّل خيار الترحيل أولاً'; msg.style.color = '#b91c1c'; }
+      if (msg) { msg.textContent = '⚠️ فعّل خيار الترحيل أولاً'; msg.style.color = 'var(--rasd-danger)'; }
       return;
     }
     const n = applySyncForFilter(db, getFilterState()); saveDB(db);
     if (typeof scheduleCloudPush === 'function') scheduleCloudPush();
     const msg = document.getElementById('attSyncMsg');
-    if (msg) { msg.textContent = `✅ تم ترحيل درجات المواظبة لـ ${n} طالباً`; msg.style.color = '#0b5e42'; }
+    if (msg) { msg.textContent = `✅ تم ترحيل درجات المواظبة لـ ${n} طالباً`; msg.style.color = 'var(--rasd-brand)'; }
     if (typeof loadGradesUI === 'function') try { loadGradesUI(); } catch(e) {}
   };
   /** عدد أيام الدراسة التقويمية (بعد خصم العطل ونهاية الأسبوع) — للعرض فقط */
@@ -685,7 +685,7 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
     const grid = [0, 0.25, 0.5, 0.75, 1].map(t => {
       const y = padT + plotH * (1 - t);
       const val = Math.round(minR + span * t);
-      return `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/><text x="${padL-6}" y="${y+3}" text-anchor="end" font-size="10" fill="#94a3b8">${val}</text>`;
+      return `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="var(--rasd-border)" stroke-width="1"/><text x="${padL-6}" y="${y+3}" text-anchor="end" font-size="10" fill="var(--rasd-text-subtle)">${val}</text>`;
     }).join('');
     return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:560px;display:block;margin:0 auto;background:#fff;border-radius:10px">
       <rect x="0" y="0" width="${W}" height="${H}" fill="#fff"/>
@@ -711,7 +711,7 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
       if (valid.length >= 2) {
         const first = valid[0].rate, last = valid[valid.length - 1].rate;
         const tr = trendFromRates(last, first);
-        summary = `من ${first}% إلى ${last}% — <b style="color:${tr.code==='up'?'#166534':tr.code==='down'?'#b91c1c':'#475569'}">${tr.arrow} ${tr.label}</b>`;
+        summary = `من ${first}% إلى ${last}% — <b style="color:${tr.code==='up'?'#166534':tr.code==='down'?'var(--rasd-danger)':'#475569'}">${tr.arrow} ${tr.label}</b>`;
       } else if (valid.length === 1) {
         summary = `نقطة واحدة مرصودة: ${valid[0].rate}%`;
       } else {
@@ -719,12 +719,12 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
       }
       host.innerHTML = `
         <div style="font-weight:800;color:#1e3a5f;margin-bottom:6px;font-size:13.5px">${titleMap[mode]||'منحنى الحضور'}</div>
-        <div style="font-size:12.5px;color:#64748b;margin-bottom:8px">${summary}</div>
+        <div style="font-size:12.5px;color:var(--rasd-text-muted);margin-bottom:8px">${summary}</div>
         ${renderAttendanceTrendChartSvg(series)}
-        <div style="font-size:11px;color:#94a3b8;margin-top:6px;line-height:1.6">يُحسب لحظياً من سجل المواظبة — بدون أرشيف إضافي. نسبة المرحلة = مجموع الحضور ÷ مجموع المتوقع عبر الفصول والمواد.</div>`;
+        <div style="font-size:11px;color:var(--rasd-text-subtle);margin-top:6px;line-height:1.6">يُحسب لحظياً من سجل المواظبة — بدون أرشيف إضافي. نسبة المرحلة = مجموع الحضور ÷ مجموع المتوقع عبر الفصول والمواد.</div>`;
     } catch (e) {
       attendanceReportError('attendance trend chart', e);
-      host.innerHTML = '<div style="color:#b91c1c;font-size:13px">تعذّر رسم المنحنى.</div>';
+      host.innerHTML = '<div style="color:var(--rasd-danger);font-size:13px">تعذّر رسم المنحنى.</div>';
     }
   };
 
@@ -776,7 +776,7 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
     const hindi = (typeof toHindiDigits === 'function') ? toHindiDigits : (v => String(v));
     function trendCell(tr){
       if (!tr || tr.code === 'na') return '—';
-      const col = tr.code === 'up' ? '#166534' : (tr.code === 'down' ? '#b91c1c' : '#475569');
+      const col = tr.code === 'up' ? '#166534' : (tr.code === 'down' ? 'var(--rasd-danger)' : '#475569');
       return '<span style="color:'+col+';font-weight:800">'+(tr.arrow||'')+' '+(tr.label||'')+'</span>';
     }
     let tableRows = data.rows.map((r,i) => '<tr>'
@@ -820,7 +820,7 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
       + '<th style="width:8mm;">م</th><th>الفصل</th><th>عدد الطلاب</th><th>أيام الدراسة</th><th>نسبة الحضور</th><th>الاتجاه</th>'
       + '</tr></thead><tbody>'+tableRows+totalRow+'</tbody></table>'
       + footer
-      + '<div style="text-align:center;font-size:10px;color:#64748b;margin-top:4mm;line-height:1.7">'
+      + '<div style="text-align:center;font-size:10px;color:var(--rasd-text-muted);margin-top:4mm;line-height:1.7">'
       + 'نسبة الحضور تُحسب من مجموع الحضور عبر المواد ÷ مجموع الأيام المتوقعة داخلياً (لا تُعرض). '
       + 'أيام الدراسة = أيام الفترة بعد خصم نهاية الأسبوع والإجازات. الاتجاه مقارنة بالفترة السابقة مباشرة. العذر يُحسب حضوراً.'
       + '</div></div>';
@@ -992,7 +992,7 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
         ${letterheadAtt}
         <table class="att-print-table"><thead>${thead}</thead><tbody>${tbody}</tbody></table>
         ${footerAtt}
-        <div style="text-align:center;font-size:10px;color:#64748b;margin-top:4mm;">رموز: ✓=حضور | غ=غياب | ع=عذر | إج=إجازة | المظلّل=ليس يوم حصة — نسبة الحضور = (حضور ÷ الأيام المتوقعة) × 100</div>
+        <div style="text-align:center;font-size:10px;color:var(--rasd-text-muted);margin-top:4mm;">رموز: ✓=حضور | غ=غياب | ع=عذر | إج=إجازة | المظلّل=ليس يوم حصة — نسبة الحضور = (حضور ÷ الأيام المتوقعة) × 100</div>
       </div>`;
     }).join('');
   };

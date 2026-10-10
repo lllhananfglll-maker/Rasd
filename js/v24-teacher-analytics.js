@@ -139,7 +139,7 @@
     if (donutEl) {
       const seg = [
         { value: totalDone, color: '#15803d', label: 'مرصودة' },
-        { value: Math.max(0, totalExpected - totalDone), color: '#e2e8f0', label: 'ناقصة' },
+        { value: Math.max(0, totalExpected - totalDone), color: 'var(--rasd-border)', label: 'ناقصة' },
       ];
       donutEl.innerHTML = buildDonutChartSvg(seg);
     }
@@ -153,7 +153,7 @@
         const pillClass = pct===100 ? 'v20-ok' : pct<50 ? 'v20-danger' : 'v20-warn';
         return `<div class="v20-card">
           <h3>🏷️ ${esc(classSectionLabel(key))}</h3>
-          <div style="font-size:13px;color:#64748b;margin-bottom:6px;">${esc([...agg.subjects].join('، '))}</div>
+          <div style="font-size:13px;color:var(--rasd-text-muted);margin-bottom:6px;">${esc([...agg.subjects].join('، '))}</div>
           <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>👨‍🎓 عدد الطلاب</span><strong>${agg.studentIds.size}</strong></div>
           <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>🎯 معدل الدرجات</span><strong>${avgGrade===null?'—':avgGrade+'%'}</strong></div>
           <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin:8px 0 4px;"><span>نسبة الإكمال</span><span class="v20-pill ${pillClass}">${pct}%</span></div>
@@ -177,7 +177,7 @@
       const shown = missingStudents.slice(0, 20);
       missingEl.innerHTML = shown.length ?
         shown.map(x=>`<div class="v20-item"><div class="v20-item-main"><div class="v20-item-title">${esc(x.st.name)}</div><div class="v20-item-note">${esc(x.subject)} — ${esc(classSectionLabel(x.key))}</div></div><button class="btn btn-outline btn-sm" data-action="v20OpenStudent" data-args='${gspArgs([esc(JSON.stringify(x.st.id))])}'>فتح الملف</button></div>`).join('') +
-        (missingStudents.length > 20 ? `<div style="font-size:12px;color:#64748b;margin-top:8px;text-align:center">يتم عرض أول 20 حالة فقط من إجمالي ${missingStudents.length}.</div>` : '') :
+        (missingStudents.length > 20 ? `<div style="font-size:12px;color:var(--rasd-text-muted);margin-top:8px;text-align:center">يتم عرض أول 20 حالة فقط من إجمالي ${missingStudents.length}.</div>` : '') :
         '<div class="v20-empty">🎉 لا يوجد طلاب بلا درجات في موادك حالياً.</div>';
     }
 

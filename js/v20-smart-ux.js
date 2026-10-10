@@ -206,13 +206,13 @@
         overallMax += maxPossible;
       }
       let statusLabel = 'لم تُرصد';
-      let statusColor = '#94a3b8';
+      let statusColor = 'var(--rasd-text-subtle)';
       if (hasAny) {
-        if (pct == null) { statusLabel = 'مرصود جزئياً'; statusColor = '#64748b'; }
+        if (pct == null) { statusLabel = 'مرصود جزئياً'; statusColor = 'var(--rasd-text-muted)'; }
         else if (pct >= 95) { statusLabel = 'متفوق'; statusColor = '#2563eb'; }
-        else if (pct < 50) { statusLabel = 'خط خطر'; statusColor = '#b91c1c'; }
+        else if (pct < 50) { statusLabel = 'خط خطر'; statusColor = 'var(--rasd-danger)'; }
         else if (pct < 70) { statusLabel = 'يحتاج متابعة'; statusColor = '#b45309'; }
-        else { statusLabel = 'جيد'; statusColor = '#0b5e42'; }
+        else { statusLabel = 'جيد'; statusColor = 'var(--rasd-brand)'; }
       }
       const totalCell = !hasAny ? '—' : (numericCount ? `${total}${maxPossible ? ' / ' + maxPossible : ''}` : (absentCount ? 'غ' : '—'));
       const pctCell = pct == null ? '—' : (pct + '%');
@@ -226,13 +226,13 @@
     const overallPct = overallMax > 0 ? Math.round((overallScore / overallMax) * 1000) / 10 : null;
     let overallBadge = '';
     if (overallPct != null) {
-      let lab = 'جيد', col = '#0b5e42', bg = '#ecfdf5';
+      let lab = 'جيد', col = 'var(--rasd-brand)', bg = '#ecfdf5';
       if (overallPct >= 95) { lab = 'متفوق'; col = '#1e40af'; bg = '#eff6ff'; }
-      else if (overallPct < 50) { lab = 'تحت خط الخطر'; col = '#991b1b'; bg = '#fef2f2'; }
+      else if (overallPct < 50) { lab = 'تحت خط الخطر'; col = '#991b1b'; bg = 'var(--rasd-danger-bg)'; }
       else if (overallPct < 70) { lab = 'يحتاج متابعة'; col = '#9a3412'; bg = '#fff7ed'; }
       overallBadge = `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:800;color:${col};background:${bg};border:1px solid ${col}33">${overallPct}% · ${lab}</span>`;
     } else {
-      overallBadge = `<span style="display:inline-flex;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700;color:#64748b;background:#f1f5f9">لا تقييم بعد</span>`;
+      overallBadge = `<span style="display:inline-flex;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700;color:var(--rasd-text-muted);background:#f1f5f9">لا تقييم بعد</span>`;
     }
 
     // المواظبة
@@ -294,7 +294,7 @@
     const bodyHtml = `
       ${alertHtml}
       <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
-        <div style="font-size:13px;color:#64748b">الأداء العام من المرصود</div>
+        <div style="font-size:13px;color:var(--rasd-text-muted)">الأداء العام من المرصود</div>
         ${overallBadge}
       </div>
       <div class="v20-mini-grid">
@@ -303,7 +303,7 @@
         <div class="v20-mini"><b>${attValue}</b>${esc(attLabel)}</div>
         <div class="v20-mini"><b>${esc(s.secondLanguage || '—')}</b>لغة ثانية</div>
       </div>
-      <div style="margin-top:8px;font-size:12px;color:#64748b;line-height:1.6">${esc(attNote)} · سجلات درجات: ${grades.length}</div>
+      <div style="margin-top:8px;font-size:12px;color:var(--rasd-text-muted);line-height:1.6">${esc(attNote)} · سجلات درجات: ${grades.length}</div>
       <div style="margin-top:18px">
         <h3 style="margin:0 0 10px;font-size:15px">📚 تفصيل المواد</h3>
         ${subjectRows.length

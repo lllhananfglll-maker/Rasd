@@ -22,7 +22,7 @@
       <div class="v20-item" style="align-items:flex-start;flex-direction:column;margin-bottom:10px">
         <div class="v20-item-main" style="width:100%">
           <div class="v20-item-title">${esc(c.student.name||'—')}
-            <span style="font-size:12px;color:#64748b;font-weight:400">(الصف: ${esc(c.student.class||'—')} | القسم: ${c.student.section==='languages'?'لغات':'عربي'})</span>
+            <span style="font-size:12px;color:var(--rasd-text-muted);font-weight:400">(الصف: ${esc(c.student.class||'—')} | القسم: ${c.student.section==='languages'?'لغات':'عربي'})</span>
           </div>
           <div class="v20-item-note" style="margin-top:8px">
             <div style="color:#991b1b;font-weight:600;margin-bottom:2px">🚫 مسجَّل "غ" في:</div>
