@@ -332,11 +332,11 @@ function todayISO(){
       const a = Math.max(0, Math.min(100, Number(it.avg) || 0));
       return '<div style="display:grid;grid-template-columns:96px 1fr;gap:8px;align-items:center;margin-bottom:8px">'
         + '<div style="font-size:12px;font-weight:800;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+esc(lab)+'">'+esc(lab)+'</div>'
-        + '<div><div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><div style="flex:1;height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+c+'%;background:#3b82f6;border-radius:99px"></div></div><span style="font-size:11px;font-weight:700;color:#1e40af;min-width:36px;text-align:left">'+c+'%</span></div>'
-        + '<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+a+'%;background:#22c55e;border-radius:99px"></div></div><span style="font-size:11px;font-weight:700;color:#166534;min-width:36px;text-align:left">'+(it.avg==null?'—':a+'%')+'</span></div></div></div>';
+        + '<div><div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><div style="flex:1;height:8px;background:var(--rasd-border);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+c+'%;background:var(--rasd-brand-light);border-radius:99px"></div></div><span style="font-size:11px;font-weight:700;color:var(--rasd-brand-dark);min-width:36px;text-align:left">'+c+'%</span></div>'
+        + '<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:8px;background:var(--rasd-border);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+a+'%;background:#22c55e;border-radius:99px"></div></div><span style="font-size:11px;font-weight:700;color:var(--rasd-brand-dark);min-width:36px;text-align:left">'+(it.avg==null?'—':a+'%')+'</span></div></div></div>';
     }).join('');
     return '<div><div style="display:flex;gap:14px;font-size:11px;margin-bottom:10px;color:var(--rasd-text-muted)">'
-      + '<span><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#3b82f6;margin-left:4px;vertical-align:middle"></i>اكتمال الرصد</span>'
+      + '<span><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--rasd-brand-light);margin-left:4px;vertical-align:middle"></i>اكتمال الرصد</span>'
       + '<span><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#22c55e;margin-left:4px;vertical-align:middle"></i>متوسط الدرجات</span>'
       + '</div><div style="max-height:220px;overflow-y:auto">'+rows+'</div></div>';
   }
@@ -351,7 +351,7 @@ function todayISO(){
     const root = document.getElementById('monDashboardRoot');
     if (!root || currentAccountType !== 'monitor') return;
     const a = collectStageAnalytics();
-    const colors = ['#3b82f6','#22c55e','#f59e0b','#a855f7','#ef4444','#06b6d4','#84cc16'];
+    const colors = ['var(--rasd-brand-light)','#22c55e','#f59e0b','#a855f7','#ef4444','#06b6d4','#84cc16'];
     const distSeg = Object.entries(a.classDist).map(([k,v],i) => ({
       value: v, color: colors[i%colors.length],
       label: monClassDisplayLabel(k)
@@ -389,14 +389,14 @@ function todayISO(){
     const monthTitle = ((am.termLabel || '') + (am.label ? (' · ' + am.label) : '')).trim() || 'الشهر النشط';
     const completeBanner = (am.isComplete)
       ? `<div style="margin-bottom:12px;padding:12px 14px;border-radius:12px;border:1px solid #86efac;background:linear-gradient(180deg,#f0fdf4,#fff);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-          <div style="font-weight:800;color:#166534;font-size:14px">🟢 اكتمل رصد الشهر النشط (${esc(monthTitle)}) — 100%</div>
+          <div style="font-weight:800;color:var(--rasd-brand-dark);font-size:14px">🟢 اكتمل رصد الشهر النشط (${esc(monthTitle)}) — 100%</div>
           <div style="font-size:12px;color:var(--rasd-text-muted)">لا خانات متبقية لهذه الفترة</div>
         </div>`
-      : `<div style="margin-bottom:12px;padding:10px 14px;border-radius:12px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;font-size:13px">
+      : `<div style="margin-bottom:12px;padding:10px 14px;border-radius:12px;border:1px solid var(--rasd-border);background:var(--rasd-surface-2);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;font-size:13px">
           <div style="font-weight:700;color:#0f172a">📅 ${esc(monthTitle)}</div>
-          <div style="display:flex;flex-wrap:wrap;gap:14px;color:#475569">
+          <div style="display:flex;flex-wrap:wrap;gap:14px;color:var(--rasd-text-muted)">
             <span>اكتمال: <b style="color:var(--rasd-brand)">${am.actualPct != null ? am.actualPct : a.overallPct}%</b></span>
-            <span>متوقع حتى اليوم: <b style="color:#1d4ed8">${am.expectedPct != null ? am.expectedPct : 0}%</b></span>
+            <span>متوقع حتى اليوم: <b style="color:var(--rasd-brand-dark)">${am.expectedPct != null ? am.expectedPct : 0}%</b></span>
             <span>الفجوة: <b style="color:${gapColor}">${gapTxt}</b></span>
             ${am.missing ? `<span style="color:#b45309">متبقٍ ≈ ${am.missing}</span>` : ''}
           </div>
@@ -406,7 +406,7 @@ function todayISO(){
       <div class="mon-page">
         ${completeBanner}
         <div class="mon-card" id="monTermTotalsPrintCard" style="margin-bottom:14px;border:1px solid #86efac;background:linear-gradient(180deg,#f0fdf4,#fff)">
-          <h3 style="margin:0 0 8px;color:#166534">🖨️ طباعة كشف أعمال السنة</h3>
+          <h3 style="margin:0 0 8px;color:var(--rasd-brand-dark)">🖨️ طباعة كشف أعمال السنة</h3>
           <p style="margin:0 0 10px;font-size:12.5px;color:var(--rasd-text-muted);line-height:1.7">كشف متتالٍ بمجاميع المواد (مسلسل · رقم الجلوس · الاسم) مع توقيع وكيل ومدير المرحلة.</p>
           <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px">
             <label style="font-weight:700;font-size:13px;color:#334155">الصف</label>
@@ -419,7 +419,7 @@ function todayISO(){
           </div>
         </div>
         <div class="mon-kpi-row">
-          <div class="mon-kpi accent-blue"><div class="lbl">👨‍🎓 الطلاب</div><div class="val">${a.students.length}</div><div class="note">المرحلة الحالية</div></div>
+          <div class="mon-kpi accent-brand"><div class="lbl">👨‍🎓 الطلاب</div><div class="val">${a.students.length}</div><div class="note">المرحلة الحالية</div></div>
           <div class="mon-kpi"><div class="lbl">🧑‍🏫 المعلمون</div><div class="val">${a.teachers.length}</div><div class="note">المسجلون</div></div>
           <div class="mon-kpi"><div class="lbl">🏫 الفصول</div><div class="val">${a.classes.length}</div><div class="note">فصول / شعب</div></div>
           <div class="mon-kpi"><div class="lbl">📚 المواد</div><div class="val">${a.subjects.length}</div><div class="note">مقررات المرحلة</div></div>
@@ -678,7 +678,7 @@ function todayISO(){
       ? `<div class="success-box" style="margin:0">✅ تم تسجيل حضورك اليوم (${esc(iso)})</div>`
       : `<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--rasd-brand-wash);border:1px solid #86efac;border-radius:12px;padding:12px 14px">
            <button type="button" class="btn btn-success" data-action="teacherCheckInToday" data-args='${gspArgs([])}'>✅ تسجيل حضوري اليوم</button>
-           <span style="font-size:13px;color:#166534">يُحتسب حضورك في لوحة مدير المرحلة. من لا يسجّل يظهر في <b>كشف الغائبين</b>.</span>
+           <span style="font-size:13px;color:var(--rasd-brand-dark)">يُحتسب حضورك في لوحة مدير المرحلة. من لا يسجّل يظهر في <b>كشف الغائبين</b>.</span>
          </div>`;
   };
 
@@ -749,9 +749,9 @@ function todayISO(){
             <th style="border:1px solid #94a3b8;padding:8px;background:#3f7a57;color:#fff">المواد والفصول المطلوب تغطيتها احتياطياً</th>
           </tr>
         </thead>
-        <tbody>${rows || '<tr><td colspan="3" style="border:1px solid #94a3b8;text-align:center;padding:16px;color:#166534;font-weight:800">✅ لا يوجد معلمون غائبون اليوم</td></tr>'}</tbody>
+        <tbody>${rows || '<tr><td colspan="3" style="border:1px solid #94a3b8;text-align:center;padding:16px;color:var(--rasd-brand-dark);font-weight:800">✅ لا يوجد معلمون غائبون اليوم</td></tr>'}</tbody>
       </table>
-      <div style="margin-top:4mm;font-size:12px;color:#475569">عدد المعلمين الغائبين: <b>${hindi(absentees.length)}</b></div>
+      <div style="margin-top:4mm;font-size:12px;color:var(--rasd-text-muted)">عدد المعلمين الغائبين: <b>${hindi(absentees.length)}</b></div>
       ${footer}
     </div>`;
     if (typeof fitPrintPagesToA4 === 'function') fitPrintPagesToA4(area, '.grade-sheet-page, .detailed-sheet-page');
@@ -840,10 +840,10 @@ function todayISO(){
 
     const statusLabel = { present: 'حاضر', absent: 'غائب', excuse: 'عذر', unrecorded: 'لم يُرصد' };
     const statusStyle = {
-      present: 'background:#ecfdf5;color:#065f46;font-weight:800',
+      present: 'background:var(--rasd-brand-wash);color:var(--rasd-brand-dark);font-weight:800',
       absent: 'background:#fef2f2;color:#991b1b;font-weight:800',
       excuse: 'background:#fff7ed;color:#9a3412;font-weight:800',
-      unrecorded: 'background:#f8fafc;color:var(--rasd-text-muted);font-weight:700'
+      unrecorded: 'background:var(--rasd-surface-2);color:var(--rasd-text-muted);font-weight:700'
     };
 
     let lastClass = null;
@@ -851,7 +851,7 @@ function todayISO(){
       let groupRow = '';
       if (!classKey && r.classLabel !== lastClass) {
         lastClass = r.classLabel;
-        groupRow = `<tr><td colspan="5" style="border:1px solid #94a3b8;padding:6px 8px;background:#f1f5f9;font-weight:800;color:#0f172a">🏫 ${esc(r.classLabel || '—')}</td></tr>`;
+        groupRow = `<tr><td colspan="5" style="border:1px solid #94a3b8;padding:6px 8px;background:var(--rasd-surface-3);font-weight:800;color:#0f172a">🏫 ${esc(r.classLabel || '—')}</td></tr>`;
       }
       return groupRow + `<tr>
         <td style="border:1px solid #94a3b8;padding:6px;text-align:center">${hindi(i + 1)}</td>
@@ -891,15 +891,15 @@ function todayISO(){
       ? buildUnifiedFooter({ captions: ['مدير المرحلة', 'وكيل شئون الطلاب'] })
       : '';
 
-    const box = 'padding:3mm;border-radius:8px;border:1px solid #e2e8f0;background:#fff;text-align:center';
+    const box = 'padding:3mm;border-radius:8px;border:1px solid var(--rasd-border);background:#fff;text-align:center';
     area.innerHTML = `<div class="grade-sheet-page detailed-sheet-page" style="padding:8mm;font-family:'Cairo',Tahoma,sans-serif;direction:rtl;color:#0f172a">
       ${letterhead}
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:2.5mm;margin:3mm 0 5mm;font-size:12px">
         <div style="${box}"><div style="color:var(--rasd-text-muted);font-size:11px">عدد الطلاب</div><div style="font-size:20px;font-weight:900">${hindi(data.total)}</div></div>
-        <div style="${box};border-color:#86efac;background:#ecfdf5"><div style="color:#166534;font-size:11px">حاضر</div><div style="font-size:20px;font-weight:900;color:#065f46">${hindi(data.present)}</div></div>
+        <div style="${box};border-color:#86efac;background:var(--rasd-brand-wash)"><div style="color:var(--rasd-brand-dark);font-size:11px">حاضر</div><div style="font-size:20px;font-weight:900;color:var(--rasd-brand-dark)">${hindi(data.present)}</div></div>
         <div style="${box};border-color:#fca5a5;background:#fef2f2"><div style="color:#991b1b;font-size:11px">غائب</div><div style="font-size:20px;font-weight:900;color:#991b1b">${hindi(data.absent)}</div></div>
         <div style="${box};border-color:#fdba74;background:#fff7ed"><div style="color:#9a3412;font-size:11px">عذر</div><div style="font-size:20px;font-weight:900;color:#9a3412">${hindi(data.excuse)}</div></div>
-        <div style="${box}"><div style="color:var(--rasd-text-muted);font-size:11px">لم يُرصد</div><div style="font-size:20px;font-weight:900;color:#475569">${hindi(data.unrecorded)}</div></div>
+        <div style="${box}"><div style="color:var(--rasd-text-muted);font-size:11px">لم يُرصد</div><div style="font-size:20px;font-weight:900;color:var(--rasd-text-muted)">${hindi(data.unrecorded)}</div></div>
       </div>
       <div style="font-size:11.5px;color:var(--rasd-text-muted);margin:0 0 3mm;line-height:1.6;text-align:center">
         يُستخرج لحظياً من سجل المواظبة المحفوظ في النظام لتاريخ ${esc(dateISO)}.
@@ -959,7 +959,7 @@ function todayISO(){
     if (!area) return;
     if (typeof clearInactivePrintAreas==='function') clearInactivePrintAreas(area.id);
     const th = 'border:1px solid #94a3b8;padding:7px;background:#3f7a57;color:#fff;font-weight:800;text-align:center';
-    const box = 'border:1px solid #e2e8f0;border-radius:8px;padding:3.5mm;text-align:center;background:#f8fafc';
+    const box = 'border:1px solid var(--rasd-border);border-radius:8px;padding:3.5mm;text-align:center;background:var(--rasd-surface-2)';
     const printedBy = (typeof resolvePrintedByName === 'function') ? resolvePrintedByName() : 'المستخدم';
     const printDate = new Date().toLocaleDateString('ar-EG');
     const metaBarHtml = [
@@ -992,17 +992,17 @@ function todayISO(){
     const amExpected = am.expectedPct != null ? am.expectedPct : 0;
     area.innerHTML = `<div class="grade-sheet-page detailed-sheet-page" style="padding:8mm;font-family:'Cairo','Segoe UI',Tahoma,sans-serif;direction:rtl;color:#0f172a">
       ${letterhead}
-      <div style="margin:0 0 3mm;padding:2.5mm 3mm;border-radius:8px;border:1px solid #bfdbfe;background:#eff6ff;font-size:11.5px;color:#1e3a5f;font-weight:700">📅 نطاق المقارنة: ${esc(monthTitle)} — المتوقع حسب أيام الشهر التقويمي المنقضية</div>
+      <div style="margin:0 0 3mm;padding:2.5mm 3mm;border-radius:8px;border:1px solid var(--rasd-brand-soft);background:var(--rasd-brand-wash);font-size:11.5px;color:#1e3a5f;font-weight:700">📅 نطاق المقارنة: ${esc(monthTitle)} — المتوقع حسب أيام الشهر التقويمي المنقضية</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3mm;margin-bottom:5mm;font-size:12px">
         <div style="${box}"><div style="color:var(--rasd-text-muted);font-size:11px">الطلاب</div><div style="font-size:18px;font-weight:900">${hindi(a.students.length)}</div></div>
         <div style="${box}"><div style="color:var(--rasd-text-muted);font-size:11px">اكتمال الشهر النشط</div><div style="font-size:18px;font-weight:900;color:var(--rasd-brand)">${hindi(amActual)}%</div></div>
-        <div style="${box}"><div style="color:var(--rasd-text-muted);font-size:11px">المتوقع حتى اليوم</div><div style="font-size:18px;font-weight:900;color:#1d4ed8">${hindi(amExpected)}%</div></div>
+        <div style="${box}"><div style="color:var(--rasd-text-muted);font-size:11px">المتوقع حتى اليوم</div><div style="font-size:18px;font-weight:900;color:var(--rasd-brand-dark)">${hindi(amExpected)}%</div></div>
         <div style="${box}"><div style="color:var(--rasd-text-muted);font-size:11px">الفجوة عن المتوقع</div><div style="font-size:16px;font-weight:900;color:${gapColor}">${gapLabel}</div></div>
         <div style="${box}"><div style="color:var(--rasd-text-muted);font-size:11px">متوسط الدرجات</div><div style="font-size:18px;font-weight:900">${a.avgPct==null?'—':hindi(a.avgPct)+'%'}</div></div>
-        <div style="${box}"><div style="color:var(--rasd-text-muted);font-size:11px">متفوقون ≥ 95%</div><div style="font-size:18px;font-weight:900;color:#2563eb">${hindi(a.topCount)}</div></div>
+        <div style="${box}"><div style="color:var(--rasd-text-muted);font-size:11px">متفوقون ≥ 95%</div><div style="font-size:18px;font-weight:900;color:var(--rasd-brand)">${hindi(a.topCount)}</div></div>
         <div style="${box}"><div style="color:var(--rasd-text-muted);font-size:11px">تحت خط الخطر &lt; 50%</div><div style="font-size:18px;font-weight:900;color:var(--rasd-danger)">${hindi(a.dangerCount)}</div></div>
         <div style="${box}"><div style="color:var(--rasd-text-muted);font-size:11px">غائبو المعلمين اليوم</div><div style="font-size:18px;font-weight:900;color:#b45309">${hindi(a.absentTeachers.length)}</div></div>
-        <div style="${box}"><div style="color:var(--rasd-text-muted);font-size:11px">اكتمال عام (كل الشهور)</div><div style="font-size:18px;font-weight:900;color:#475569">${hindi(a.overallPct)}%</div></div>
+        <div style="${box}"><div style="color:var(--rasd-text-muted);font-size:11px">اكتمال عام (كل الشهور)</div><div style="font-size:18px;font-weight:900;color:var(--rasd-text-muted)">${hindi(a.overallPct)}%</div></div>
       </div>
       <div style="font-size:13px;font-weight:800;margin:2mm 0 2.5mm;color:#1e3a5f">مقارنة الفصول</div>
       <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:5mm;border:2px solid #3f7a57">
@@ -1060,7 +1060,7 @@ function todayISO(){
       panel = document.createElement('div');
       panel.id = 'superadminStageTreePanel';
       panel.className = 'card';
-      panel.style.cssText = 'margin-bottom:14px;border:1px solid #bfdbfe;background:linear-gradient(180deg,#fff,#f8fbff)';
+      panel.style.cssText = 'margin-bottom:14px;border:1px solid var(--rasd-brand-soft);background:linear-gradient(180deg,#fff,#f8fbff)';
       dash.insertBefore(panel, dash.firstChild);
     }
     panel.style.display = 'block';
@@ -1091,12 +1091,12 @@ function todayISO(){
       const statusHtml = monthPct == null
         ? '<span style="font-size:11px;color:var(--rasd-text-subtle)">—</span>'
         : (monthComplete
-          ? `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;background:var(--rasd-brand-soft);color:#166534;font-size:11px;font-weight:800">🟢 مكتمل 100%</span>`
+          ? `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;background:var(--rasd-brand-soft);color:var(--rasd-brand-dark);font-size:11px;font-weight:800">🟢 مكتمل 100%</span>`
           : `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;background:#fef3c7;color:#92400e;font-size:11px;font-weight:800">⏳ ${monthPct}%</span>`);
       return `<button type="button" data-action="switchToStageFromTree" data-args='${gspArgs(['esc(st.id)'])}'
         style="display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:right;
-        padding:10px 12px;margin-bottom:6px;border-radius:10px;border:1px solid ${active?'#2563eb':'var(--rasd-border)'};
-        background:${active?'#eff6ff':'#fff'};cursor:pointer;font:inherit">
+        padding:10px 12px;margin-bottom:6px;border-radius:10px;border:1px solid ${active?'var(--rasd-brand)':'var(--rasd-border)'};
+        background:${active?'var(--rasd-brand-wash)':'#fff'};cursor:pointer;font:inherit">
         <span style="font-weight:800;color:#0f172a;min-width:0">🏛️ ${esc(label)}</span>
         <span style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
           ${statusHtml}
@@ -1105,7 +1105,7 @@ function todayISO(){
       </button>`;
     }).join('') || '<div style="color:var(--rasd-text-subtle);padding:12px">لا توجد مراحل بعد.</div>';
     const summaryNote = stages.length
-      ? ` · رصد الشهر النشط: <b style="color:${completeStages===stages.length?'#166534':'#92400e'}">${completeStages}</b> / ${stages.length} مرحلة مكتملة`
+      ? ` · رصد الشهر النشط: <b style="color:${completeStages===stages.length?'var(--rasd-brand-dark)':'#92400e'}">${completeStages}</b> / ${stages.length} مرحلة مكتملة`
       : '';
     panel.innerHTML = `
       <h2 style="margin:0 0 8px;border:none;padding:0;font-size:16px">🌳 هيكل المراحل الدراسية</h2>
@@ -1159,7 +1159,7 @@ function todayISO(){
       box = document.createElement('div');
       box.id = 'monGradesGuide';
       box.className = 'card';
-      box.style.cssText = 'border:1px solid #bfdbfe;background:linear-gradient(180deg,#eff6ff,#fff);margin-bottom:14px';
+      box.style.cssText = 'border:1px solid var(--rasd-brand-soft);background:linear-gradient(180deg,var(--rasd-brand-wash),#fff);margin-bottom:14px';
       const firstCard = tab.querySelector('.card');
       if (firstCard) tab.insertBefore(box, firstCard);
       else tab.appendChild(box);
@@ -1449,7 +1449,7 @@ function todayISO(){
         <td>${i+1}</td>
         <td style="font-weight:800">
           <button type="button" data-action="openMonitorTeacherCard" data-args='${gspArgs(['tid'])}'
-            style="background:none;border:none;padding:0;margin:0;font:inherit;font-weight:800;color:#1d4ed8;cursor:pointer;text-decoration:underline;text-underline-offset:3px"
+            style="background:none;border:none;padding:0;margin:0;font:inherit;font-weight:800;color:var(--rasd-brand-dark);cursor:pointer;text-decoration:underline;text-underline-offset:3px"
             title="عرض كارت المعلم وطباعته">${esc(r.t.name||'')}</button>
         </td>
         <td style="font-size:11.5px;max-width:160px">${esc(r.subjects)}</td>
@@ -1506,22 +1506,22 @@ function todayISO(){
         </div>
       </div>
 
-      <div id="monHonorBoardBar" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;padding:12px 14px;border-radius:12px;border:1px solid #c7d2fe;background:linear-gradient(180deg,#eef2ff,#fff)">
+      <div id="monHonorBoardBar" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--rasd-brand-soft);background:linear-gradient(180deg,var(--rasd-brand-wash),#fff)">
         <div style="min-width:0;flex:1">
-          <div style="font-weight:800;color:#3730a3;font-size:14px">🏆 لوحة الشرف للمعلمين</div>
+          <div style="font-weight:800;color:var(--rasd-brand-deeper);font-size:14px">🏆 لوحة الشرف للمعلمين</div>
           <div style="font-size:12px;color:var(--rasd-text-muted);margin-top:2px;line-height:1.6">شأن داخلي بالمرحلة: عند التفعيل يرى المعلمون أسماء المتصدرين.</div>
         </div>
-        <label style="display:inline-flex;align-items:center;gap:8px;font-weight:700;color:#3730a3;cursor:pointer;white-space:nowrap">
-          <input type="checkbox" id="monHonorBoardToggle" ${db.honorBoardEnabled ? 'checked' : ''} data-event-type="change" data-event-action="toggleStageHonorBoard" data-event-arg="checked" style="width:18px;height:18px;accent-color:#4f46e5">
+        <label style="display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--rasd-brand-deeper);cursor:pointer;white-space:nowrap">
+          <input type="checkbox" id="monHonorBoardToggle" ${db.honorBoardEnabled ? 'checked' : ''} data-event-type="change" data-event-action="toggleStageHonorBoard" data-event-arg="checked" style="width:18px;height:18px;accent-color:var(--rasd-brand)">
           تفعيل لوحة الشرف
         </label>
       </div>
       <div id="monTeacherDailyAttBar" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;padding:12px 14px;border-radius:12px;border:1px solid #86efac;background:linear-gradient(180deg,#f0fdf4,#fff)">
         <div style="min-width:0;flex:1">
-          <div style="font-weight:800;color:#166534;font-size:14px">✅ الحضور اليومي للمعلمين (+25 نقطة)</div>
+          <div style="font-weight:800;color:var(--rasd-brand-dark);font-size:14px">✅ الحضور اليومي للمعلمين (+25 نقطة)</div>
           <div style="font-size:12px;color:var(--rasd-text-muted);margin-top:2px">عند الإيقاف يُخفى الزر ولا تُضاف نقاط جديدة.</div>
         </div>
-        <label style="display:inline-flex;align-items:center;gap:8px;font-weight:700;color:#166534;cursor:pointer">
+        <label style="display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--rasd-brand-dark);cursor:pointer">
           <input type="checkbox" id="monTeacherDailyAttToggle" ${db.teacherDailyAttendanceEnabled === false ? '' : 'checked'} data-event-type="change" data-event-action="toggleTeacherDailyAttendance" data-event-arg="checked" style="width:18px;height:18px;accent-color:var(--rasd-brand-light)">
           تفعيل الحضور اليومي
         </label>
@@ -1646,7 +1646,7 @@ function todayISO(){
     const t = r.t;
     const assigns = (t.assignments||[]).map(a => {
       const cls = (a.classes||[]).map(c => (typeof classSectionLabel==='function'?classSectionLabel(c):c)).join('، ');
-      return '<tr><td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-weight:700">'+esc(a.subjectName||'')+'</td><td style="padding:6px 8px;border-bottom:1px solid #e2e8f0">'+esc(cls||'—')+'</td></tr>';
+      return '<tr><td style="padding:6px 8px;border-bottom:1px solid var(--rasd-border);font-weight:700">'+esc(a.subjectName||'')+'</td><td style="padding:6px 8px;border-bottom:1px solid var(--rasd-border)">'+esc(cls||'—')+'</td></tr>';
     }).join('') || '<tr><td colspan="2" style="padding:8px;color:var(--rasd-text-subtle)">لا إسنادات</td></tr>';
     const rankTxt = r.rank + (r.rankTied ? ' (مكرر)' : '');
     const info = db.schoolInfo || {};
@@ -1660,7 +1660,7 @@ function todayISO(){
     const oldOv = document.getElementById('monTeacherCardOverlay'); if (oldOv) oldOv.remove();
     const overlay = document.createElement('div');
     overlay.id = 'monTeacherCardOverlay'; overlay.className = 'mg-modal-overlay';
-    overlay.innerHTML = '<div class="mg-modal-box" style="max-width:640px"><div class="mg-modal-header ui-modal-header ui-type-info" style="display:flex;justify-content:space-between;align-items:center"><span>🪪 كارت المعلم</span><button type="button" class="btn btn-outline btn-sm" data-close>إغلاق</button></div><div class="mg-modal-body" style="padding:16px 18px"><div style="text-align:center;margin-bottom:12px"><div style="font-size:18px;font-weight:900">'+esc(t.name||'')+'</div><div style="font-size:12.5px;color:var(--rasd-text-muted)">'+esc(stageLabel)+' · '+esc(info.schoolName||'')+'</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;font-size:12.5px"><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center"><div style="color:var(--rasd-text-muted);font-size:11px">الفصول</div><div style="font-weight:800">'+hindi(r.classCount)+'</div></div><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center"><div style="color:var(--rasd-text-muted);font-size:11px">الطلاب</div><div style="font-weight:800">'+hindi(r.studentCount)+'</div></div><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center"><div style="color:var(--rasd-text-muted);font-size:11px">حصص/أسبوع</div><div style="font-weight:800">'+hindi(r.periodCount)+'</div></div><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center"><div style="color:var(--rasd-text-muted);font-size:11px">غياب</div><div style="font-weight:800;color:#b45309">'+hindi(r.absenceDays)+'</div></div><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:10px;text-align:center"><div style="color:#065f46;font-size:11px">متوسط حضور فصوله</div><div style="font-weight:900;color:#047857">'+classAttTxt+'</div><div style="font-size:10px;color:var(--rasd-text-muted);margin-top:2px">للعرض فقط</div></div><div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px;text-align:center"><div style="color:#4338ca;font-size:11px">الترتيب</div><div style="font-weight:900;color:#3730a3">'+rankTxt+' / '+hindi(sorted.length)+'</div></div><div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:10px;padding:10px;text-align:center"><div style="color:#6b21a8;font-size:11px">النقاط</div><div style="font-weight:900">'+hindi(r.points)+'</div></div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;font-size:12.5px"><div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px;text-align:center"><div style="color:#1e40af;font-size:11px">اكتمال</div><div style="font-weight:900">'+hindi(r.completion)+'%</div></div><div style="background:var(--rasd-brand-wash);border:1px solid var(--rasd-brand-muted);border-radius:10px;padding:10px;text-align:center"><div style="color:#166534;font-size:11px">السرعة</div><div style="font-weight:900">'+hindi(r.speedPct)+'%</div></div><div style="background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:10px;text-align:center"><div style="color:#92400e;font-size:11px">الدقة</div><div style="font-weight:900">'+hindi(r.accuracy)+'%</div></div></div><div style="font-size:12.5px;color:#475569;margin-bottom:10px">رصيد: <b>'+hindi(r.basePoints||0)+'</b> · حركات: <b>'+(r.deltaPoints>0?'+':'')+hindi(r.deltaPoints||0)+'</b> · المواد: <b>'+esc(r.subjects||'—')+'</b></div><div style="font-size:13px;font-weight:800;margin-bottom:6px">المواد والفصول</div><table style="width:100%;border-collapse:collapse;font-size:13px;border:1px solid #e2e8f0"><thead><tr style="background:#f1f5f9"><th style="padding:7px 8px;text-align:right">المادة</th><th style="padding:7px 8px;text-align:right">الفصول</th></tr></thead><tbody>'+assigns+'</tbody></table></div><div class="mg-modal-footer"><button type="button" class="btn btn-outline" data-close>إغلاق</button><button type="button" class="btn btn-primary" id="monTeacherCardPrint">🖨️ طباعة</button></div></div>';
+    overlay.innerHTML = '<div class="mg-modal-box" style="max-width:640px"><div class="mg-modal-header ui-modal-header ui-type-info" style="display:flex;justify-content:space-between;align-items:center"><span>🪪 كارت المعلم</span><button type="button" class="btn btn-outline btn-sm" data-close>إغلاق</button></div><div class="mg-modal-body" style="padding:16px 18px"><div style="text-align:center;margin-bottom:12px"><div style="font-size:18px;font-weight:900">'+esc(t.name||'')+'</div><div style="font-size:12.5px;color:var(--rasd-text-muted)">'+esc(stageLabel)+' · '+esc(info.schoolName||'')+'</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;font-size:12.5px"><div style="background:var(--rasd-surface-2);border:1px solid var(--rasd-border);border-radius:10px;padding:10px;text-align:center"><div style="color:var(--rasd-text-muted);font-size:11px">الفصول</div><div style="font-weight:800">'+hindi(r.classCount)+'</div></div><div style="background:var(--rasd-surface-2);border:1px solid var(--rasd-border);border-radius:10px;padding:10px;text-align:center"><div style="color:var(--rasd-text-muted);font-size:11px">الطلاب</div><div style="font-weight:800">'+hindi(r.studentCount)+'</div></div><div style="background:var(--rasd-surface-2);border:1px solid var(--rasd-border);border-radius:10px;padding:10px;text-align:center"><div style="color:var(--rasd-text-muted);font-size:11px">حصص/أسبوع</div><div style="font-weight:800">'+hindi(r.periodCount)+'</div></div><div style="background:var(--rasd-surface-2);border:1px solid var(--rasd-border);border-radius:10px;padding:10px;text-align:center"><div style="color:var(--rasd-text-muted);font-size:11px">غياب</div><div style="font-weight:800;color:#b45309">'+hindi(r.absenceDays)+'</div></div><div style="background:var(--rasd-brand-wash);border:1px solid var(--rasd-brand-muted);border-radius:10px;padding:10px;text-align:center"><div style="color:var(--rasd-brand-dark);font-size:11px">متوسط حضور فصوله</div><div style="font-weight:900;color:var(--rasd-brand)">'+classAttTxt+'</div><div style="font-size:10px;color:var(--rasd-text-muted);margin-top:2px">للعرض فقط</div></div><div style="background:var(--rasd-brand-wash);border:1px solid var(--rasd-brand-soft);border-radius:10px;padding:10px;text-align:center"><div style="color:var(--rasd-brand-dark);font-size:11px">الترتيب</div><div style="font-weight:900;color:var(--rasd-brand-deeper)">'+rankTxt+' / '+hindi(sorted.length)+'</div></div><div style="background:var(--rasd-accent-wash);border:1px solid var(--rasd-accent-soft);border-radius:10px;padding:10px;text-align:center"><div style="color:var(--rasd-accent-dark);font-size:11px">النقاط</div><div style="font-weight:900">'+hindi(r.points)+'</div></div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;font-size:12.5px"><div style="background:var(--rasd-brand-wash);border:1px solid var(--rasd-brand-soft);border-radius:10px;padding:10px;text-align:center"><div style="color:var(--rasd-brand-dark);font-size:11px">اكتمال</div><div style="font-weight:900">'+hindi(r.completion)+'%</div></div><div style="background:var(--rasd-brand-wash);border:1px solid var(--rasd-brand-muted);border-radius:10px;padding:10px;text-align:center"><div style="color:var(--rasd-brand-dark);font-size:11px">السرعة</div><div style="font-weight:900">'+hindi(r.speedPct)+'%</div></div><div style="background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:10px;text-align:center"><div style="color:#92400e;font-size:11px">الدقة</div><div style="font-weight:900">'+hindi(r.accuracy)+'%</div></div></div><div style="font-size:12.5px;color:var(--rasd-text-muted);margin-bottom:10px">رصيد: <b>'+hindi(r.basePoints||0)+'</b> · حركات: <b>'+(r.deltaPoints>0?'+':'')+hindi(r.deltaPoints||0)+'</b> · المواد: <b>'+esc(r.subjects||'—')+'</b></div><div style="font-size:13px;font-weight:800;margin-bottom:6px">المواد والفصول</div><table style="width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--rasd-border)"><thead><tr style="background:var(--rasd-surface-3)"><th style="padding:7px 8px;text-align:right">المادة</th><th style="padding:7px 8px;text-align:right">الفصول</th></tr></thead><tbody>'+assigns+'</tbody></table></div><div class="mg-modal-footer"><button type="button" class="btn btn-outline" data-close>إغلاق</button><button type="button" class="btn btn-primary" id="monTeacherCardPrint">🖨️ طباعة</button></div></div>';
     document.body.appendChild(overlay);
     const close=function(){try{overlay.remove();}catch(e){}};
     overlay.querySelectorAll('[data-close]').forEach(b=>b.onclick=close);
@@ -1687,7 +1687,7 @@ function todayISO(){
       return '<tr><td style="border:1px solid #94a3b8;padding:6px;text-align:center">'+hindi(i+1)+'</td><td style="border:1px solid #94a3b8;padding:6px;text-align:right;font-weight:700">'+esc(a.subjectName||'')+'</td><td style="border:1px solid #94a3b8;padding:6px;text-align:right">'+esc(cls||'—')+'</td></tr>';
     }).join('')||'<tr><td colspan="3" style="border:1px solid #94a3b8;padding:10px;text-align:center">لا إسنادات</td></tr>';
     const th='border:1px solid #94a3b8;padding:7px;background:#3f7a57;color:#fff;font-weight:800;text-align:center';
-    const box='border:1px solid #e2e8f0;border-radius:8px;padding:3mm;text-align:center;background:#f8fafc';
+    const box='border:1px solid var(--rasd-border);border-radius:8px;padding:3mm;text-align:center;background:var(--rasd-surface-2)';
     const area=document.getElementById('printGradeSheetArea')||document.getElementById('printAttendanceArea');
     if(!area)return;
     if(typeof clearInactivePrintAreas==='function') clearInactivePrintAreas(area.id);

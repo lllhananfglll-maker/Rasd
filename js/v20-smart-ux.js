@@ -209,7 +209,7 @@
       let statusColor = 'var(--rasd-text-subtle)';
       if (hasAny) {
         if (pct == null) { statusLabel = 'مرصود جزئياً'; statusColor = 'var(--rasd-text-muted)'; }
-        else if (pct >= 95) { statusLabel = 'متفوق'; statusColor = '#2563eb'; }
+        else if (pct >= 95) { statusLabel = 'متفوق'; statusColor = 'var(--rasd-brand)'; }
         else if (pct < 50) { statusLabel = 'خط خطر'; statusColor = 'var(--rasd-danger)'; }
         else if (pct < 70) { statusLabel = 'يحتاج متابعة'; statusColor = '#b45309'; }
         else { statusLabel = 'جيد'; statusColor = 'var(--rasd-brand)'; }
@@ -227,7 +227,7 @@
     let overallBadge = '';
     if (overallPct != null) {
       let lab = 'جيد', col = 'var(--rasd-brand)', bg = '#ecfdf5';
-      if (overallPct >= 95) { lab = 'متفوق'; col = '#1e40af'; bg = '#eff6ff'; }
+      if (overallPct >= 95) { lab = 'متفوق'; col = 'var(--rasd-brand-dark)'; bg = 'var(--rasd-brand-wash)'; }
       else if (overallPct < 50) { lab = 'تحت خط الخطر'; col = '#991b1b'; bg = 'var(--rasd-danger-bg)'; }
       else if (overallPct < 70) { lab = 'يحتاج متابعة'; col = '#9a3412'; bg = '#fff7ed'; }
       overallBadge = `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:800;color:${col};background:${bg};border:1px solid ${col}33">${overallPct}% · ${lab}</span>`;
@@ -277,7 +277,7 @@
             danger: 'background:#fef2f2;border:1px solid #fecaca;color:#991b1b',
             warn: 'background:#fff7ed;border:1px solid #fed7aa;color:#9a3412',
             ok: 'background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46',
-            info: 'background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af'
+            info: 'background:var(--rasd-brand-wash);border:1px solid var(--rasd-brand-soft);color:var(--rasd-brand-dark)'
           };
           return `<div style="padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.7;${styles[a.k]||styles.info}">${a.t}</div>`;
         }).join('')}</div>`

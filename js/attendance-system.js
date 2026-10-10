@@ -676,7 +676,7 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
       const x = xAt(i), y = yAt(p.rate);
       if (y == null) return;
       path += (path ? ' L ' : 'M ') + x.toFixed(1) + ' ' + y.toFixed(1);
-      circles += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="#2563eb"/><text x="${x.toFixed(1)}" y="${(y-8).toFixed(1)}" text-anchor="middle" font-size="10" fill="#1e3a5f" font-weight="700">${p.rate != null ? p.rate + '%' : '—'}</text>`;
+      circles += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="var(--rasd-brand)"/><text x="${x.toFixed(1)}" y="${(y-8).toFixed(1)}" text-anchor="middle" font-size="10" fill="#1e3a5f" font-weight="700">${p.rate != null ? p.rate + '%' : '—'}</text>`;
     });
     const labels = pts.map((p, i) => {
       const x = xAt(i);
@@ -690,7 +690,7 @@ function roundToHalf(n){ if (!Number.isFinite(n)) return 0; return Math.round(n 
     return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:560px;display:block;margin:0 auto;background:#fff;border-radius:10px">
       <rect x="0" y="0" width="${W}" height="${H}" fill="#fff"/>
       ${grid}
-      ${path ? `<path d="${path}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round"/>` : ''}
+      ${path ? `<path d="${path}" fill="none" stroke="var(--rasd-brand)" stroke-width="2.5" stroke-linejoin="round"/>` : ''}
       ${circles}
       ${labels}
     </svg>`;

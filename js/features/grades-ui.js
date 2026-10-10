@@ -265,10 +265,10 @@ function subjectTermTotal(db, studentId, subjectName, term, subject) {
 // أي مرحلة أخرى (إعدادي/ثانوي/KG): يبقى نظام "ممتاز/جيد جداً/جيد/مقبول/ضعيف" كما هو دون تغيير.
 function tierColorMap(stageType) {
   return stageType === 'primary' ? {
-    'يفوق التوقعات': '#1d4ed8', 'يلبي التوقعات': '#15803d',
+    'يفوق التوقعات': 'var(--rasd-brand-dark)', 'يلبي التوقعات': '#15803d',
     'يلبي التوقعات أحياناً': '#eab308', 'أقل من المتوقع': 'var(--rasd-danger)'
   } : {
-    'ممتاز': '#1d4ed8', 'جيد جداً': '#15803d', 'جيد': '#0d9488', 'مقبول': '#eab308', 'ضعيف': 'var(--rasd-danger)'
+    'ممتاز': 'var(--rasd-brand-dark)', 'جيد جداً': '#15803d', 'جيد': '#0d9488', 'مقبول': '#eab308', 'ضعيف': 'var(--rasd-danger)'
   };
 }
 
