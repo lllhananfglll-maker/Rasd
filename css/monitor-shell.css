@@ -1,6 +1,6 @@
 /* ===== واجهة مدير المرحلة — شريط علوي جذاب ===== */
 body.monitor-shell-active {
-  background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 28%, #f1f5f9 100%);
+  background: linear-gradient(180deg, var(--rasd-brand-wash) 0%, var(--rasd-surface-2) 28%, var(--rasd-bg) 100%);
   padding: 0 !important;
 }
 body.monitor-shell-active > .container {
@@ -35,7 +35,7 @@ body.monitor-shell-active .mon-shell {
 
 /* شريط علوي موحّد */
 .mon-topbar {
-  background: linear-gradient(135deg, var(--rasd-brand-dark) 0%, var(--rasd-brand) 48%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--rasd-brand-dark) 0%, var(--rasd-brand) 48%, var(--rasd-brand) 100%);
   color: #fff;
   padding: 14px 22px 0;
   box-shadow: 0 8px 28px rgba(15, 23, 42, .22);
@@ -65,7 +65,7 @@ body.monitor-shell-active .mon-shell {
   margin: 0; font-size: 16px; font-weight: 900; color: #fff;
   border: none; padding: 0; line-height: 1.3;
 }
-.mon-brand-inline p { margin: 2px 0 0; font-size: 12px; color: #bfdbfe; }
+.mon-brand-inline p { margin: 2px 0 0; font-size: 12px; color: var(--rasd-brand-soft); }
 .mon-top-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .mon-chip {
   background: rgba(255,255,255,.14);
@@ -118,9 +118,9 @@ body.monitor-shell-active .mon-shell {
 }
 .mon-nav button:hover { color: #fff; background: rgba(255,255,255,.08); }
 .mon-nav button.active {
-  background: #f8fafc;
+  background: var(--rasd-surface-2);
   color: var(--rasd-brand);
-  box-shadow: 0 -2px 0 #f8fafc;
+  box-shadow: 0 -2px 0 var(--rasd-surface-2);
 }
 .mon-nav button.mon-pin-btn {
   margin-right: auto;
@@ -171,7 +171,7 @@ body.monitor-shell-active .mon-shell {
 .mon-kpi .lbl { font-size: 12px; color: #64748b; font-weight: 700; margin-bottom: 6px; }
 .mon-kpi .val { font-size: 24px; font-weight: 900; color: #0f172a; line-height: 1.15; }
 .mon-kpi .note { font-size: 11.5px; color: #94a3b8; margin-top: 4px; }
-.mon-kpi.accent-blue .val { color: #2563eb; }
+.mon-kpi.accent-brand .val { color: var(--rasd-brand); }
 .mon-kpi.accent-green .val { color: var(--rasd-brand); }
 .mon-kpi.accent-amber .val { color: #b45309; }
 .mon-kpi.accent-red .val { color: var(--rasd-danger); }
@@ -211,14 +211,14 @@ body.monitor-shell-active .mon-shell {
   padding: 0;
 }
 .mon-card h3 .link {
-  font-size: 12px; font-weight: 700; color: #2563eb; cursor: pointer;
+  font-size: 12px; font-weight: 700; color: var(--rasd-brand); cursor: pointer;
   background: none; border: none; font: inherit;
 }
 .mon-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 .mon-table th, .mon-table td {
-  padding: 8px 6px; border-bottom: 1px solid #f1f5f9; text-align: right;
+  padding: 8px 6px; border-bottom: 1px solid var(--rasd-surface-3); text-align: right;
 }
-.mon-table th { color: #64748b; font-weight: 700; background: #f8fafc; }
+.mon-table th { color: #64748b; font-weight: 700; background: var(--rasd-surface-2); }
 .mon-pill {
   display: inline-flex; align-items: center; border-radius: 999px;
   padding: 2px 8px; font-size: 11px; font-weight: 700;
@@ -226,21 +226,21 @@ body.monitor-shell-active .mon-shell {
 .mon-pill.ok { background: var(--rasd-brand-soft); color: #166534; }
 .mon-pill.warn { background: #fef3c7; color: #92400e; }
 .mon-pill.danger { background: #fee2e2; color: #991b1b; }
-.mon-pill.info { background: #dbeafe; color: #1e40af; }
+.mon-pill.info { background: var(--rasd-brand-soft); color: var(--rasd-brand-dark); }
 
 .mon-alert-item {
   display: flex; align-items: flex-start; gap: 10px;
-  padding: 10px 12px; border-radius: 12px; background: #f8fafc;
+  padding: 10px 12px; border-radius: 12px; background: var(--rasd-surface-2);
   border: 1px solid #e2e8f0; margin-bottom: 8px; font-size: 13px;
 }
 .mon-alert-item.danger { border-right: 4px solid #dc2626; }
 .mon-alert-item.warn { border-right: 4px solid var(--rasd-warning); }
-.mon-alert-item.info { border-right: 4px solid #2563eb; }
+.mon-alert-item.info { border-right: 4px solid var(--rasd-brand); }
 .mon-alert-item.ok { border-right: 4px solid var(--rasd-brand-light); }
 
 .mon-stat-row {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 8px 0; border-bottom: 1px dashed #f1f5f9; font-size: 13px;
+  padding: 8px 0; border-bottom: 1px dashed var(--rasd-surface-3); font-size: 13px;
 }
 .mon-stat-row:last-child { border-bottom: none; }
 .mon-stat-row strong { color: #0f172a; }
@@ -259,7 +259,7 @@ body.monitor-shell-active .mon-shell {
   transition: .15s;
 }
 .mon-action-btn:hover {
-  border-color: #2563eb; box-shadow: 0 6px 16px rgba(37,99,235,.12);
+  border-color: var(--rasd-brand); box-shadow: 0 6px 16px rgba(90, 107, 58, 0.18);
   transform: translateY(-1px);
 }
 .mon-action-btn .ic { display: block; font-size: 20px; margin-bottom: 6px; }
@@ -345,14 +345,14 @@ body.role-monitor #monGradesGuide { display: block; }
   text-align: right;
 }
 .mon-guide-card:hover {
-  border-color: #2563eb;
-  box-shadow: 0 4px 14px rgba(37,99,235,.12);
+  border-color: var(--rasd-brand);
+  box-shadow: 0 4px 14px rgba(90, 107, 58, 0.18);
 }
 .mon-guide-card .g-title { font-weight: 800; font-size: 13px; color: #0f172a; margin-bottom: 4px; }
 .mon-guide-card .g-note { font-size: 12px; color: #64748b; line-height: 1.6; }
 .mon-guide-card.warn { border-right: 4px solid var(--rasd-warning); }
 .mon-guide-card.danger { border-right: 4px solid #dc2626; }
-.mon-guide-card.info { border-right: 4px solid #2563eb; }
+.mon-guide-card.info { border-right: 4px solid var(--rasd-brand); }
 
 /* لوحة معلمي المراقب */
 #monTeachersPanel { display: none; }
@@ -395,7 +395,7 @@ body.role-monitor #tab-teachers > .card:not(#monTeachersPanel) { display: none !
 .mon-t-list-card.worst h4 { color: var(--rasd-danger); }
 .mon-t-list-card ol { margin: 0; padding: 0 18px 0 0; }
 .mon-t-list-card li {
-  padding: 6px 0; border-bottom: 1px dashed #f1f5f9; font-size: 13px;
+  padding: 6px 0; border-bottom: 1px dashed var(--rasd-surface-3); font-size: 13px;
   display: flex; justify-content: space-between; gap: 8px;
 }
 .mon-t-table-wrap {
@@ -407,8 +407,8 @@ body.role-monitor #tab-teachers > .card:not(#monTeachersPanel) { display: none !
   background: var(--rasd-brand); color: #fff; padding: 10px 8px; text-align: right; font-weight: 800;
   position: sticky; top: 0; white-space: nowrap;
 }
-.mon-t-table td { padding: 9px 8px; border-bottom: 1px solid #f1f5f9; text-align: right; vertical-align: middle; }
-.mon-t-table tr:hover td { background: #f8fafc; }
+.mon-t-table td { padding: 9px 8px; border-bottom: 1px solid var(--rasd-surface-3); text-align: right; vertical-align: middle; }
+.mon-t-table tr:hover td { background: var(--rasd-surface-2); }
 .mon-t-like {
   display: inline-flex; gap: 6px; align-items: center;
 }
@@ -416,7 +416,7 @@ body.role-monitor #tab-teachers > .card:not(#monTeachersPanel) { display: none !
   border: 1px solid #e2e8f0; background: #fff; border-radius: 8px;
   padding: 4px 8px; cursor: pointer; font-size: 14px; line-height: 1;
 }
-.mon-t-like button:hover { border-color: #2563eb; }
+.mon-t-like button:hover { border-color: var(--rasd-brand); }
 .mon-t-like button.mon-btn-exceptional {
   background: var(--rasd-brand) !important;
   color: #ffffff !important;

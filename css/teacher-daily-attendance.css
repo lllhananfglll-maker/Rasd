@@ -18,17 +18,17 @@
 }
 .tda-head {
   display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
-  padding:16px 18px; border-bottom:1px solid #e2e8f0; background:linear-gradient(180deg,#eff6ff,#fff);
+  padding:16px 18px; border-bottom:1px solid #e2e8f0; background:linear-gradient(180deg,var(--rasd-brand-wash),#fff);
   flex-shrink:0;
 }
 .tda-head strong { font-size:18px; color:#0f172a; }
 .tda-sub { font-size:12.5px; color:#64748b; margin-top:4px; line-height:1.7; }
 .tda-close {
-  border:0; background:#f1f5f9; width:36px; height:36px; border-radius:10px;
+  border:0; background:var(--rasd-surface-3); width:36px; height:36px; border-radius:10px;
   cursor:pointer; font-size:18px; font-weight:800; color:#334155; flex-shrink:0;
 }
 .tda-toolbar {
-  padding:12px 18px; border-bottom:1px solid #e2e8f0; background:#f8fafc;
+  padding:12px 18px; border-bottom:1px solid #e2e8f0; background:var(--rasd-surface-2);
   flex-shrink:0;
 }
 /* زر الملخص يظهر فقط على الموبايل */
@@ -58,7 +58,7 @@
 .tda-filter-summary-chevron {
   font-size: 11.5px;
   font-weight: 800;
-  color: #1e40af;
+  color: var(--rasd-brand-dark);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -75,7 +75,7 @@
 }
 .tda-banner.warn { background:#fff7ed; border:1px solid #fdba74; color:#9a3412; }
 .tda-banner.danger { background:#fef2f2; border:1px solid #fca5a5; color:#991b1b; }
-.tda-banner.info { background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; }
+.tda-banner.info { background:var(--rasd-brand-wash); border:1px solid var(--rasd-brand-soft); color:var(--rasd-brand-dark); }
 .tda-bulk { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
 .tda-status { font-size:12.5px; color:#64748b; margin-right:6px; }
 .tda-cards {
@@ -89,7 +89,7 @@
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
   gap:12px;
-  background:#f1f5f9;
+  background:var(--rasd-surface-3);
   align-content:start;
 }
 .tda-card {
@@ -97,7 +97,7 @@
   box-shadow:0 2px 8px rgba(15,23,42,.05);
 }
 .tda-card.is-g { border-color:#fca5a5; background:#fff5f5; }
-.tda-card.is-e { border-color:#93c5fd; background:#eff6ff; }
+.tda-card.is-e { border-color:var(--rasd-brand-muted); background:var(--rasd-brand-wash); }
 .tda-card.is-p { border-color:#86efac; background:var(--rasd-brand-wash); }
 .tda-card-name { font-weight:800; color:#0f172a; font-size:14px; margin-bottom:4px; }
 .tda-card-meta { font-size:11.5px; color:#64748b; margin-bottom:10px; }
@@ -109,7 +109,7 @@
 .tda-card-actions button:disabled { opacity:.45; cursor:not-allowed; }
 .tda-card-actions button.active-p { background:var(--rasd-brand-light); color:#fff; border-color:var(--rasd-brand-light); }
 .tda-card-actions button.active-g { background:#dc2626; color:#fff; border-color:#dc2626; }
-.tda-card-actions button.active-e { background:#2563eb; color:#fff; border-color:#2563eb; }
+.tda-card-actions button.active-e { background:var(--rasd-brand); color:#fff; border-color:var(--rasd-brand); }
 .tda-foot {
   display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;
   padding:12px 18px; border-top:1px solid #e2e8f0; background:#fff;

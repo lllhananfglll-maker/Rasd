@@ -15,7 +15,7 @@
 .att-legend-details summary::-webkit-details-marker { display: none; }
 .att-day-chip {
   display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px;
-  border:1px solid #e2e8f0; background:#f8fafc; font-size:13px; font-weight:700; cursor:pointer;
+  border:1px solid #e2e8f0; background:var(--rasd-surface-2); font-size:13px; font-weight:700; cursor:pointer;
 }
 .att-day-chip input { width:16px; height:16px; accent-color:var(--rasd-brand); }
 @media (max-width: 700px) {
@@ -33,7 +33,7 @@
     color: #fff;
   }
   #attGridTable td:nth-child(1) {
-    background: #f8fafc;
+    background: var(--rasd-surface-2);
     color: #0f172a;
     font-weight: 700;
   }
@@ -68,9 +68,9 @@
 #attGridTable { width:100%; border-collapse:collapse; font-size:13px; min-width:900px; }
 #attGridTable th, #attGridTable td { border:1px solid #e2e8f0; padding:4px 6px; text-align:center; }
 #attGridTable thead th { background:var(--rasd-brand); color:#fff; position:sticky; top:0; z-index:2; font-weight:700; }
-#attGridTable td.att-name { text-align:right; font-weight:600; white-space:nowrap; background:#f8fafc; }
+#attGridTable td.att-name { text-align:right; font-weight:600; white-space:nowrap; background:var(--rasd-surface-2); }
 #attGridTable td.att-off {
-  background: repeating-linear-gradient(-45deg, #f1f5f9, #f1f5f9 4px, #e2e8f0 4px, #e2e8f0 8px) !important;
+  background: repeating-linear-gradient(-45deg, var(--rasd-surface-3), var(--rasd-surface-3) 4px, #e2e8f0 4px, #e2e8f0 8px) !important;
   color:#94a3b8;
 }
 #attGridTable td.att-holiday { background:#fef3c7 !important; color:#92400e; font-weight:700; }
@@ -83,18 +83,18 @@
 }
 #attGridTable th .att-col-actions button {
   font-size:10px; line-height:1.2; padding:2px 4px; border-radius:4px; border:1px solid #cbd5e1;
-  background:#f8fafc; cursor:pointer; font-weight:700; min-width:18px;
+  background:var(--rasd-surface-2); cursor:pointer; font-weight:700; min-width:18px;
 }
 #attGridTable th .att-col-actions button.att-q-p { color:#065f46; border-color:#6ee7b7; }
 #attGridTable th .att-col-actions button.att-q-g { color:var(--rasd-danger); border-color:#fca5a5; }
-#attGridTable th .att-col-actions button.att-q-e { color:#1d4ed8; border-color:#93c5fd; }
+#attGridTable th .att-col-actions button.att-q-e { color:var(--rasd-brand-dark); border-color:var(--rasd-brand-muted); }
 #attGridTable th .att-col-actions button:hover { background:#e2e8f0; }
 #attGridTable th.att-week-head .att-week-actions {
   display:flex; gap:4px; justify-content:center; margin-top:4px; flex-wrap:wrap;
 }
 #attGridTable th.att-week-head .att-week-actions button {
   font-size:10px; padding:2px 6px; border-radius:4px; border:1px solid #cbd5e1;
-  background:#eff6ff; cursor:pointer; font-weight:700;
+  background:var(--rasd-brand-wash); cursor:pointer; font-weight:700;
 }
 #attQuickBar {
   display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px;
@@ -103,7 +103,7 @@
 #attQuickBar select { padding:4px 8px; border-radius:6px; border:1px solid #cbd5e1; }
 
 #attGridTable input.att-mark.is-g { background:#fef2f2; border-color:#f87171; color:var(--rasd-danger); }
-#attGridTable input.att-mark.is-e { background:#eff6ff; border-color:#60a5fa; color:#1d4ed8; }
+#attGridTable input.att-mark.is-e { background:var(--rasd-brand-wash); border-color:var(--rasd-brand-muted); color:var(--rasd-brand-dark); }
 #attGridTable td.att-score { font-weight:800; background:#ecfdf5; color:#065f46; }
 #attGridTable td.att-abs-count { font-weight:700; background:#fff7ed; color:#9a3412; }
 .att-print-page {
@@ -128,19 +128,19 @@
   print-color-adjust: exact !important;
 }
 /* صف أسماء الأسابيع */
-.att-print-table thead th.att-week-1 { background: #0f766e !important; }
-.att-print-table thead th.att-week-2 { background: #1d4ed8 !important; }
-.att-print-table thead th.att-week-3 { background: #7c3aed !important; }
+.att-print-table thead th.att-week-1 { background: var(--rasd-brand-light) !important; }
+.att-print-table thead th.att-week-2 { background: var(--rasd-brand-dark) !important; }
+.att-print-table thead th.att-week-3 { background: var(--rasd-accent) !important; }
 .att-print-table thead th.att-week-4 { background: #b45309 !important; }
 /* صف أيام الأسبوع */
 .att-print-table thead th.att-day-1 { background: #14b8a6 !important; color: #042f2e !important; }
-.att-print-table thead th.att-day-2 { background: #60a5fa !important; color: #1e3a8a !important; }
-.att-print-table thead th.att-day-3 { background: #c4b5fd !important; color: #4c1d95 !important; }
+.att-print-table thead th.att-day-2 { background: var(--rasd-brand-muted) !important; color: var(--rasd-brand-deeper) !important; }
+.att-print-table thead th.att-day-3 { background: var(--rasd-accent-soft) !important; color: var(--rasd-accent-dark) !important; }
 .att-print-table thead th.att-day-4 { background: #fdba74 !important; color: #7c2d12 !important; }
 /* صف التواريخ */
 .att-print-table thead th.att-date-1 { background: #ccfbf1 !important; color: #115e59 !important; }
-.att-print-table thead th.att-date-2 { background: #dbeafe !important; color: #1e40af !important; }
-.att-print-table thead th.att-date-3 { background: #ede9fe !important; color: #5b21b6 !important; }
+.att-print-table thead th.att-date-2 { background: var(--rasd-brand-soft) !important; color: var(--rasd-brand-dark) !important; }
+.att-print-table thead th.att-date-3 { background: var(--rasd-accent-wash) !important; color: var(--rasd-accent-dark) !important; }
 .att-print-table thead th.att-date-4 { background: #ffedd5 !important; color: #9a3412 !important; }
 /* أعمدة ثابتة: م / الاسم — خلفية بلا لون وكتابة سوداء */
 .att-print-table thead th.att-fixed {
@@ -150,7 +150,7 @@
 }
 /* أعمدة الملخص */
 .att-print-table thead th.att-sum-abs { background: var(--rasd-danger) !important; color: #fff !important; width: 7.5mm; }
-.att-print-table thead th.att-sum-rate { background: #1d4ed8 !important; color: #fff !important; width: 7.5mm; }
+.att-print-table thead th.att-sum-rate { background: var(--rasd-brand-dark) !important; color: #fff !important; width: 7.5mm; }
 .att-print-table thead th.att-sum-score { background: #047857 !important; color: #fff !important; width: 7.5mm; }
 .att-print-table thead .att-v {
   writing-mode: vertical-rl;
@@ -171,9 +171,9 @@
   print-color-adjust: exact !important;
 }
 .att-print-table td.att-rate {
-  background: #eff6ff !important;
+  background: var(--rasd-brand-wash) !important;
   font-weight: 700;
-  color: #1e40af;
+  color: var(--rasd-brand-dark);
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
