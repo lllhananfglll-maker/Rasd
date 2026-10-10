@@ -135,7 +135,7 @@ function tdaStatus(msg, ok){
   const el = document.getElementById('tdaSaveStatus');
   if (!el) return;
   el.textContent = msg || '';
-  el.style.color = ok === false ? '#b91c1c' : '#0b5e42';
+  el.style.color = ok === false ? 'var(--rasd-danger)' : 'var(--rasd-brand)';
 }
 function tdaMarkSymbol(val){
   if (val === 'غ') return 'غ';

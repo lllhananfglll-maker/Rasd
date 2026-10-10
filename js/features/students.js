@@ -130,7 +130,7 @@ function renderMasterRosterReview(plan) {
 
     html += `<div class="card" style="background:#f8fafc; margin-bottom:12px;"><h3 style="margin-bottom:8px;">${escHtml(sp.stageName)} — ${sp.sectionLabel}</h3>`;
     if (sp.added.length) html += `<div style="color:#15803d; margin-bottom:6px;">➕ إضافة (${sp.added.length}): ${sp.added.slice(0, 20).map(s => escHtml(s.name)).join('، ')}${sp.added.length > 20 ? ' ...' : ''}</div>`;
-    if (sp.removed.length) html += `<div style="color:#b91c1c; margin-bottom:6px;">➖ حذف نهائي مع كل درجاته المرصودة (${sp.removed.length}): ${sp.removed.slice(0, 20).map(s => escHtml(s.name)).join('، ')}${sp.removed.length > 20 ? ' ...' : ''}</div>`;
+    if (sp.removed.length) html += `<div style="color:var(--rasd-danger); margin-bottom:6px;">➖ حذف نهائي مع كل درجاته المرصودة (${sp.removed.length}): ${sp.removed.slice(0, 20).map(s => escHtml(s.name)).join('، ')}${sp.removed.length > 20 ? ' ...' : ''}</div>`;
     if (sp.transfers.length) html += `<div style="color:#7c3aed; margin-bottom:6px;">🔄 نقل خارج هذه المرحلة (${sp.transfers.length}): ${sp.transfers.map(t => `${escHtml(t.name)} ← إلى ${escHtml(t.toStage)}`).join('، ')}</div>`;
     if (sp.transfersIn.length) html += `<div style="color:#7c3aed; margin-bottom:6px;">🔄 نقل داخل من مرحلة أخرى (${sp.transfersIn.length}): ${sp.transfersIn.map(t => `${escHtml(t.name)} ← من ${escHtml(t.fromStage)}`).join('، ')}</div>`;
     if (sp.changed.length) html += `<div style="color:#b45309; margin-bottom:6px;">✏️ تعديل بيانات (${sp.changed.length}): ${sp.changed.slice(0, 20).map(c => `${escHtml(c.oldName)}${c.oldName !== c.newName ? ' → ' + escHtml(c.newName) : ''}${c.oldGrade !== c.newGrade ? ' (الصف: ' + escHtml(c.oldGrade || '-') + ' ← ' + escHtml(c.newGrade || '-') + ')' : ''}`).join('، ')}${sp.changed.length > 20 ? ' ...' : ''}</div>`;
@@ -267,7 +267,7 @@ function renderMasterStudentSearch(query) {
   }
   const shown = list.slice(0, 50);
   if (!shown.length) {
-    body.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:16px;">${q ? 'لا يوجد طالب مطابق' : 'لا توجد تعارضات حالياً — اكتب في مربع البحث لعرض أي طالب'}</td></tr>`;
+    body.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--rasd-text-subtle); padding:16px;">${q ? 'لا يوجد طالب مطابق' : 'لا توجد تعارضات حالياً — اكتب في مربع البحث لعرض أي طالب'}</td></tr>`;
     return;
   }
   body.innerHTML = shown.map(({ stageId, stageLabel, student: s }) => `
@@ -276,7 +276,7 @@ function renderMasterStudentSearch(query) {
       <td>${escHtml(s.name)}</td>
       <td>${escHtml(s.grade || '—')}</td>
       <td>${escHtml(stageLabel)}</td>
-      <td>${s.conflictFlag ? '<span style="color:#b91c1c; font-weight:700;">⚠️ ' + escHtml(s.conflictFlag) + '</span>' : '—'}</td>
+      <td>${s.conflictFlag ? '<span style="color:var(--rasd-danger); font-weight:700;">⚠️ ' + escHtml(s.conflictFlag) + '</span>' : '—'}</td>
       <td><button class="btn btn-outline btn-sm" data-action="openMasterEditStudentModal" data-args='${gspArgs(['stageId','s.id'])}'>✏️ تعديل</button></td>
     </tr>`).join('');
 }

@@ -1,7 +1,6 @@
-/** features/print-sheets.js — مدمج من part01–04 (المرحلة C) */
-/* print-sheets.part01.js — generated from print-sheets.js; execution order is significant. */
-/** features/print-sheets.js */
+/** features/print-sheets.js — مدمج بالكامل (المرحلة C) — لا أجزاء part* متبقية */
 'use strict';
+
 
 
 
@@ -63,7 +62,7 @@ function pcRenderClassChecks(containerId) {
   const db = loadDB();
   const classes = (db.classes || []).slice().sort((a, b) => String(a).localeCompare(String(b), 'ar'));
   if (!classes.length) {
-    box.innerHTML = '<div style="color:#94a3b8;font-size:13px">لا توجد فصول بعد.</div>';
+    box.innerHTML = '<div style="color:var(--rasd-text-subtle);font-size:13px">لا توجد فصول بعد.</div>';
     return;
   }
   box.innerHTML = classes.map(cls => {
@@ -84,7 +83,7 @@ function pcRenderSubjectChecks(containerId) {
   const db = loadDB();
   const subjects = (db.subjects || []).filter(s => (s.name || '').trim() && (s.name || '').trim() !== 'نوع');
   if (!subjects.length) {
-    box.innerHTML = '<div style="color:#94a3b8;font-size:13px">لا توجد مواد بعد.</div>';
+    box.innerHTML = '<div style="color:var(--rasd-text-subtle);font-size:13px">لا توجد مواد بعد.</div>';
     return;
   }
   box.innerHTML = subjects.map((s, i) => {
@@ -444,7 +443,6 @@ function canAccessTermTotalsPrint() {
     || currentAccountType === 'stageadmin'
     || currentAccountType === 'monitor';
 }
-/* print-sheets.part02.js — generated from print-sheets.js; execution order is significant. */
 
 
 // طباعة كشف أعمال سنة متتالٍ: م / رقم الجلوس / الاسم / مجموع كل مادة
@@ -632,7 +630,7 @@ async function printTermTotalsSheet(term) {
       }
 
       const pageNo = pages.length > 1
-        ? `<div style="text-align:center;font-size:8.5px;color:#64748b;margin:0 0 1mm">صفحة ${hindi(pageIdx + 1)} من ${hindi(pages.length)}</div>`
+        ? `<div style="text-align:center;font-size:8.5px;color:var(--rasd-text-muted);margin:0 0 1mm">صفحة ${hindi(pageIdx + 1)} من ${hindi(pages.length)}</div>`
         : '';
 
       // فئة مخصّصة فقط — بدون grade-sheet-page/detailed-sheet-page لتجنّب تعارض page-break
@@ -865,7 +863,6 @@ function resolvePrintedByName() {
 
 
 GSP.resolvePrintedByName = resolvePrintedByName;
-/* print-sheets.part03.js — generated from print-sheets.js; execution order is significant. */
 
 
 /** تصغير الصفحة المطبوعة لتسع في A4 واحدة إن لزم، مع منع الصفحات الفارغة/المقطوعة */
@@ -1339,7 +1336,6 @@ function getGradingFormMode(db, term, month) {
   const v = ensureStageSettings(db).gradingFormModeByMonth[gradingModeKey(term, month)];
   return (v === 'weekly_form') ? 'weekly_form' : 'monthly';
 }
-/* print-sheets.part04.js — generated from print-sheets.js; execution order is significant. */
 
 function countCompletedFormWeeks(term, month, asOfDate) {
   const asOf = asOfDate || new Date();

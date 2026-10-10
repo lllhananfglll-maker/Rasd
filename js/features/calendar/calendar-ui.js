@@ -64,7 +64,7 @@
     let html = '';
     (c.months || []).forEach(function (m, i) {
       const name = String(m.name || '').replace(/"/g, '&quot;');
-      html += '<div class="card" style="padding:12px;margin-bottom:10px;border:1px solid #bbf7d0;background:#fff" data-cal-i="' + i + '">';
+      html += '<div class="card" style="padding:12px;margin-bottom:10px;border:1px solid var(--rasd-brand-muted);background:#fff" data-cal-i="' + i + '">';
       html += '<div style="display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:10px;align-items:end">';
       html += '<div class="form-group"><label>اسم الفترة ' + (i + 1) + '</label>';
       html += '<input data-cal-field="name" data-cal-i="' + i + '" value="' + name + '"></div>';
@@ -78,7 +78,7 @@
       html += '<input type="checkbox" data-cal-field="hasExam" data-cal-i="' + i + '"' + (m.hasExam ? ' checked' : '') + '> يوجد اختبار شهر</label>';
       html += '</div>';
     });
-    box.innerHTML = html || '<p style="color:#64748b">لا توجد فترات — اضغط «إضافة فترة».</p>';
+    box.innerHTML = html || '<p style="color:var(--rasd-text-muted)">لا توجد فترات — اضغط «إضافة فترة».</p>';
 
     (c.months || []).forEach(function (m, i) {
       const startSel = box.querySelector('select[data-cal-field="startWeek"][data-cal-i="' + i + '"]');
@@ -161,7 +161,7 @@
 
     const msg = document.getElementById('termCalendarMsg');
     if (msg) {
-      msg.style.color = '#0b5e42';
+      msg.style.color = 'var(--rasd-brand)';
       msg.textContent = '✅ تم حفظ الروزنامة محلياً (IndexedDB + خزنة دائمة). ستبقى بعد الخروج حتى لو فشلت مزامنة السحابة.';
     }
     // تأكيد كتابة الخزنة
@@ -201,7 +201,7 @@
     const end = Math.min((c.totalWeeks || 16), start + 3);
     if (start > (c.totalWeeks || 16)) {
       const msg = document.getElementById('termCalendarMsg');
-      if (msg) { msg.style.color = '#b91c1c'; msg.textContent = '⚠️ لا يمكن إضافة فترة: تم استهلاك كل أسابيع الفصل.'; }
+      if (msg) { msg.style.color = 'var(--rasd-danger)'; msg.textContent = '⚠️ لا يمكن إضافة فترة: تم استهلاك كل أسابيع الفصل.'; }
       return;
     }
     c.months.push({

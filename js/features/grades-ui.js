@@ -1,7 +1,6 @@
-/** features/grades-ui.js — مدمج من part01–04 (المرحلة C) */
-/* grades-ui.part01.js — generated from grades-ui.js; execution order is significant. */
-/** features/grades-ui.js */
+/** features/grades-ui.js — مدمج بالكامل (المرحلة C) — لا أجزاء part* متبقية */
 'use strict';
+
 
 
 
@@ -267,9 +266,9 @@ function subjectTermTotal(db, studentId, subjectName, term, subject) {
 function tierColorMap(stageType) {
   return stageType === 'primary' ? {
     'يفوق التوقعات': '#1d4ed8', 'يلبي التوقعات': '#15803d',
-    'يلبي التوقعات أحياناً': '#eab308', 'أقل من المتوقع': '#b91c1c'
+    'يلبي التوقعات أحياناً': '#eab308', 'أقل من المتوقع': 'var(--rasd-danger)'
   } : {
-    'ممتاز': '#1d4ed8', 'جيد جداً': '#15803d', 'جيد': '#0d9488', 'مقبول': '#eab308', 'ضعيف': '#b91c1c'
+    'ممتاز': '#1d4ed8', 'جيد جداً': '#15803d', 'جيد': '#0d9488', 'مقبول': '#eab308', 'ضعيف': 'var(--rasd-danger)'
   };
 }
 
@@ -539,7 +538,6 @@ function toggleGlobalLock() {
    alert('⚠️ حدث خطأ أثناء تغيير حالة القفل العام.\n' + (e && e.message ? e.message : e));
  }
 }
-/* grades-ui.part02.js — generated from grades-ui.js; execution order is significant. */
 
 
 function toggleTermLock(term) {
@@ -646,7 +644,7 @@ function updateGlobalLockUI() {
   const badge = document.getElementById('globalLockStatusBadge');
   if (badge) {
     badge.textContent = locked ? '🔒 مقفول لجميع المعلمين' : '🔓 مفتوح للجميع';
-    badge.style.background = locked ? '#b91c1c' : '#0b5e42';
+    badge.style.background = locked ? 'var(--rasd-danger)' : 'var(--rasd-brand)';
     badge.style.color = '#fff';
   }
   const btn = document.getElementById('globalLockToggleBtn');
@@ -730,7 +728,6 @@ function handleGradeInputKeydown(e) {
   targetInput.focus();
   if (targetInput.tagName === 'INPUT' && typeof targetInput.select === 'function') targetInput.select();
 }
-/* grades-ui.part03.js — generated from grades-ui.js; execution order is significant. */
 
 
 function markGradeInputAbsentFromButton(button) {
@@ -755,7 +752,7 @@ function loadGradesUI() {
   // تحديث شارات الفصل والشهر والأسبوع
   const termBadge = document.getElementById('gradeTermBadge');
   termBadge.textContent = `الفصل ${term === 'first' ? 'الأول' : 'الثاني'}`;
-  termBadge.style.background = term === 'first' ? '#0b5e42' : '#b45309';
+  termBadge.style.background = term === 'first' ? 'var(--rasd-brand)' : '#b45309';
   const monthLabels = getMonthLabels(term);
   document.getElementById('gradeMonthBadge').textContent = monthLabels[month - 1] || `الشهر ${month}`;
   const weekBadge = document.getElementById('gradeWeekBadge');
@@ -783,7 +780,7 @@ function loadGradesUI() {
   if (!canAccessGrade(subjectName, cls)) {
     document.getElementById('gradeEntryArea').style.display = 'none';
     document.getElementById('gradesStatus').textContent = '🚫 غير مصرح لك بالوصول لهذه المادة أو الفصل';
-    document.getElementById('gradesStatus').style.color = '#b91c1c';
+    document.getElementById('gradesStatus').style.color = 'var(--rasd-danger)';
     return;
   }
   let students = db.students.filter(s => classSectionKey(s.class, s.section) === cls);
@@ -952,7 +949,7 @@ function loadGradesUI() {
     ` — ⚠️ يوجد ${missingCount} خانة لم تُرصد بعد لهذا الشهر (مظللة بالأحمر أدناه)` : ' — ✅ كل الخانات مرصودة لهذا الشهر';
   document.getElementById('gradesStatus').textContent =
     `تم تحميل ${students.length} طالب - ${monthLabels[month - 1] || ''} (🧮 = مكون امتحان، يُجمع بين الشهور المُدخلة بدل حساب المتوسط)${missingBadge}`;
-  document.getElementById('gradesStatus').style.color = missingCount > 0 ? '#b45309' : '#0b5e42';
+  document.getElementById('gradesStatus').style.color = missingCount > 0 ? '#b45309' : 'var(--rasd-brand)';
   // تمييز فوري لأي درجات محفوظة مسبقاً تتجاوز الحد + تحديث شريط التنبيه أعلى الجدول
   document.querySelectorAll('#gradesTableBody .grade-input').forEach(inp => validateGradeInput(inp));
   updateInvalidGradesBanner();
@@ -1037,7 +1034,6 @@ function toggleGradesTabPerformancePanel() {
   if (area.style.display === 'none') { renderGradesTabPerformancePanel();
     area.style.display = 'block'; } else { area.style.display = 'none'; }
 }
-/* grades-ui.part04.js — generated from grades-ui.js; execution order is significant. */
 
 
 function renderGradesTabPerformancePanel() {
@@ -1054,7 +1050,7 @@ function renderGradesTabPerformancePanel() {
 
   let students = db.students.filter(s => classSectionKey(s.class, s.section) === cls);
   students = filterStudentsForTeacherLanguage(students, subjectName, cls);
-  if (!students.length) { area.innerHTML = '<div style="color:#94a3b8; font-size:13px;">لا يوجد طلاب في هذا الفصل.</div>'; return; }
+  if (!students.length) { area.innerHTML = '<div style="color:var(--rasd-text-subtle); font-size:13px;">لا يوجد طلاب في هذا الفصل.</div>'; return; }
 
   const tierOrder = gradeTierOrder(stageType);
   const colors = tierColorMap(stageType);
@@ -1168,7 +1164,7 @@ async function bulkFillFullMarks() {
     const status = document.getElementById('gradesStatus');
     if (status) {
       status.textContent = '✅ تم رصد ' + result.filled + ' خانة (تخطي موجود: ' + result.skippedExisting + ')';
-      status.style.color = '#0b5e42';
+      status.style.color = 'var(--rasd-brand)';
     }
     loadGradesUI();
     return;
@@ -1213,7 +1209,7 @@ async function bulkFillFullMarks() {
   loadGradesUI();
   const status = document.getElementById('gradesStatus');
   status.textContent = `✅ تم رصد الدرجة النهائية تلقائياً في ${filled} خانة، وتم ترك ${skippedExisting} خانة كانت مُدخَلة مسبقاً كما هي`;
-  status.style.color = '#0b5e42';
+  status.style.color = 'var(--rasd-brand)';
 
  } catch (e) {
    console.error('bulkFillFullMarks failed:', e);
@@ -1272,7 +1268,7 @@ async function bulkFillMonthlyExamMarks() {
   const status = document.getElementById('gradesStatus');
   if (status) {
     status.textContent = `✅ تم رصد درجة الاختبار/التقييم الشهري في ${filled} خانة، وتُرك ${skippedExisting} مُدخَلة مسبقاً`;
-    status.style.color = '#0b5e42';
+    status.style.color = 'var(--rasd-brand)';
   }
 
  } catch (e) {
@@ -1308,7 +1304,7 @@ async function bulkClearClassGrades() {
     const status = document.getElementById('gradesStatus');
     if (status) {
       status.textContent = '🧹 تم حذف ' + result.removed + ' درجة لهذا الفصل/المادة/الشهر';
-      status.style.color = '#64748b';
+      status.style.color = 'var(--rasd-text-muted)';
     }
     return;
   }
@@ -1330,7 +1326,7 @@ async function bulkClearClassGrades() {
   loadGradesUI();
   const status = document.getElementById('gradesStatus');
   status.textContent = `🧹 تم حذف ${toDeleteCount} درجة لهذا الفصل/المادة/الشهر`;
-  status.style.color = '#64748b';
+  status.style.color = 'var(--rasd-text-muted)';
 
  } catch (e) {
    console.error('bulkClearClassGrades failed:', e);
@@ -1383,7 +1379,7 @@ async function bulkFillComponent(ci) {
   status.textContent = isPF ?
     `✅ تم رصد "اجتاز" في "${comp.name}" لـ${filled} طالب، وتُرك ${skippedExisting} كانوا مُحدَّدين مسبقاً كما هم` :
     `✅ تم رصد الدرجة النهائية في "${comp.name}" لـ${filled} طالب، وتُرك ${skippedExisting} كانوا مُدخَلين مسبقاً كما هم`;
-  status.style.color = '#0b5e42';
+  status.style.color = 'var(--rasd-brand)';
 
  } catch (e) {
    console.error('bulkFillComponent failed:', e);
@@ -1420,7 +1416,7 @@ async function bulkClearComponent(ci) {
   loadGradesUI();
   const status = document.getElementById('gradesStatus');
   status.textContent = `🧹 تم حذف ${toDeleteCount} درجة من مكوّن "${comp.name}"`;
-  status.style.color = '#64748b';
+  status.style.color = 'var(--rasd-text-muted)';
 
  } catch (e) {
    console.error('bulkClearComponent failed:', e);
@@ -1481,7 +1477,7 @@ async function saveStudentRow(studentId) {
   const student = (db0.students || []).find(s => String(s.id) === String(studentId));
   if (!student || (typeof canAccessStudentGrade === 'function' && !canAccessStudentGrade(subjectName, student))) {
     const statusEl = document.getElementById('gradesStatus');
-    if (statusEl) { statusEl.textContent = '🚫 غير مصرح لك بتعديل درجات هذا الطالب'; statusEl.style.color = '#b91c1c'; }
+    if (statusEl) { statusEl.textContent = '🚫 غير مصرح لك بتعديل درجات هذا الطالب'; statusEl.style.color = 'var(--rasd-danger)'; }
     return;
   }
   const lockClass = (typeof classSectionKey === 'function')
@@ -1501,7 +1497,7 @@ async function saveStudentRow(studentId) {
     });
     if (!ctx.ok) {
       const statusEl = document.getElementById('gradesStatus');
-      if (statusEl) { statusEl.textContent = ctx.reason || 'تعذر الحفظ'; statusEl.style.color = '#b91c1c'; }
+      if (statusEl) { statusEl.textContent = ctx.reason || 'تعذر الحفظ'; statusEl.style.color = 'var(--rasd-danger)'; }
       return;
     }
     const subject = ctx.subject;
@@ -1530,7 +1526,7 @@ async function saveStudentRow(studentId) {
       status.textContent = built.skipped
         ? ('✅ تم حفظ ' + result.saved + ' درجة، وتم تجاهل ' + built.skipped + ' قيمة غير صحيحة (تحقق من الحد الأقصى أو القيم السالبة)')
         : ('✅ تم حفظ ' + result.saved + ' درجة');
-      status.style.color = built.skipped ? '#b45309' : '#0b5e42';
+      status.style.color = built.skipped ? '#b45309' : 'var(--rasd-brand)';
     }
     if (built.skipped) alert('⚠️ لم يتم حفظ ' + built.skipped + ' درجة لأنها تتجاوز الحد الأقصى المسموح به أو سالبة:\n' + built.skippedDetails.join('\n'));
     return;
@@ -1542,7 +1538,7 @@ async function saveStudentRow(studentId) {
   if (!subject) return;
   if (isGradeEntryLocked(db, student.class, subjectName, term, month)) {
     document.getElementById('gradesStatus').textContent = '🔒 إدخال الدرجات مقفول حالياً، لا يمكن الحفظ';
-    document.getElementById('gradesStatus').style.color = '#b91c1c';
+    document.getElementById('gradesStatus').style.color = 'var(--rasd-danger)';
     return;
   }
 
@@ -1601,7 +1597,7 @@ async function saveStudentRow(studentId) {
   status.textContent = skipped ?
     ('✅ تم حفظ ' + saved + ' درجة، وتم تجاهل ' + skipped + ' قيمة غير صحيحة (تحقق من الحد الأقصى أو القيم السالبة)') :
     ('✅ تم حفظ ' + saved + ' درجة');
-  status.style.color = skipped ? '#b45309' : '#0b5e42';
+  status.style.color = skipped ? '#b45309' : 'var(--rasd-brand)';
   if (skipped) alert('⚠️ لم يتم حفظ ' + skipped + ' درجة لأنها تتجاوز الحد الأقصى المسموح به أو سالبة:\n' + skippedDetails.join('\n'));
 
  } catch (e) {
@@ -1629,7 +1625,7 @@ async function saveAllGrades() {
     const ctx = saveSvc.validateContext({ subjectName, cls, term, month });
     if (!ctx.ok) {
       const statusEl = document.getElementById('gradesStatus');
-      if (statusEl) { statusEl.textContent = ctx.reason || 'تعذر الحفظ'; statusEl.style.color = '#b91c1c'; }
+      if (statusEl) { statusEl.textContent = ctx.reason || 'تعذر الحفظ'; statusEl.style.color = 'var(--rasd-danger)'; }
       return;
     }
     const db = ctx.db;
@@ -1663,7 +1659,7 @@ async function saveAllGrades() {
       status.textContent = built.skipped
         ? ('✅ تم حفظ ' + result.saved + ' درجة، وتم تجاهل ' + built.skipped + ' قيمة غير صحيحة')
         : ('✅ تم حفظ ' + result.saved + ' درجة (الفصل ' + (term === 'first' ? 'الأول' : 'الثاني') + ')');
-      status.style.color = built.skipped ? '#b45309' : '#0b5e42';
+      status.style.color = built.skipped ? '#b45309' : 'var(--rasd-brand)';
     }
     if (built.skipped) {
       const maxToShow = 15;
@@ -1678,12 +1674,12 @@ async function saveAllGrades() {
   if (!subject) return;
   if (!canAccessGrade(subjectName, cls)) {
     document.getElementById('gradesStatus').textContent = '🚫 غير مصرح لك بتعديل درجات هذا الفصل';
-    document.getElementById('gradesStatus').style.color = '#b91c1c';
+    document.getElementById('gradesStatus').style.color = 'var(--rasd-danger)';
     return;
   }
   if (isGradeEntryLocked(db, cls, subjectName, term, month)) {
     document.getElementById('gradesStatus').textContent = '🔒 إدخال الدرجات مقفول حالياً، لا يمكن الحفظ';
-    document.getElementById('gradesStatus').style.color = '#b91c1c';
+    document.getElementById('gradesStatus').style.color = 'var(--rasd-danger)';
     return;
   }
 
@@ -1698,7 +1694,7 @@ async function saveAllGrades() {
     );
     if (!go) {
       document.getElementById('gradesStatus').textContent = '⏸️ تم إلغاء الحفظ — صحّح الدرجات الحمراء أولاً';
-      document.getElementById('gradesStatus').style.color = '#b91c1c';
+      document.getElementById('gradesStatus').style.color = 'var(--rasd-danger)';
       return;
     }
   }
@@ -1755,7 +1751,7 @@ async function saveAllGrades() {
   status.textContent = skipped ?
     `✅ تم حفظ ${saved} درجة، وتم تجاهل ${skipped} قيمة غير صحيحة` :
     `✅ تم حفظ ${saved} درجة (الفصل ${term === 'first' ? 'الأول' : 'الثاني'})`;
-  status.style.color = skipped ? '#b45309' : '#0b5e42';
+  status.style.color = skipped ? '#b45309' : 'var(--rasd-brand)';
   if (skipped) {
     const maxToShow = 15;
     const shown = skippedDetails.slice(0, maxToShow).join('\n');

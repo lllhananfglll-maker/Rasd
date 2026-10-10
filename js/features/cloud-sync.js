@@ -127,12 +127,12 @@ function setConnBadge(text, kind) {
   _lastBadgeAt = now;
   if (!cloudAvailable) {
     badge.textContent = '⚪ وضع محلي فقط — عميل Supabase غير متاح';
-    badge.style.background = '#64748b';
+    badge.style.background = 'var(--rasd-text-muted)';
     return;
   }
   if (!isOnline) {
     badge.textContent = '🔴 غير متصل بالإنترنت — يعمل النظام محلياً حالياً';
-    badge.style.background = '#b91c1c';
+    badge.style.background = 'var(--rasd-danger)';
     return;
   }
   if (cloudSessionState.checked && !cloudSessionState.authenticated) {
@@ -157,7 +157,7 @@ function setConnBadge(text, kind) {
     }
   }
   badge.textContent = '🟢 متصل بالإنترنت' + (text ? ' — ' + text : '');
-  badge.style.background = '#0b5e42';
+  badge.style.background = 'var(--rasd-brand)';
 }
 
 function markCloudSyncSuccess() {
@@ -397,7 +397,7 @@ function renderConflictLog() {
   const body = document.getElementById('conflictLogBody');
   if (!body) return;
   const rows = getConflictStore();
-  if (!rows.length) { body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:16px">لا توجد تعارضات مسجّلة</td></tr>'; return; }
+  if (!rows.length) { body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--rasd-text-subtle);padding:16px">لا توجد تعارضات مسجّلة</td></tr>'; return; }
   const esc = (typeof escapeHtml === 'function')
     ? escapeHtml
     : (typeof escHtml === 'function' ? escHtml : function (s) {
@@ -463,8 +463,8 @@ function showGradeConflictModal(conflicts, subjectName) {
       <tr>
         <td style="padding:6px 8px;border-bottom:1px solid #f1f5f9;">${esc(c.studentName || '')}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #f1f5f9;">${esc(c.componentName || '')}</td>
-        <td style="padding:6px 8px;border-bottom:1px solid #f1f5f9;color:#0b5e42;font-weight:700;">${c.newScore === null || c.newScore === undefined ? '—' : esc(String(c.newScore))}</td>
-        <td style="padding:6px 8px;border-bottom:1px solid #f1f5f9;color:#b91c1c;font-weight:700;">${c.remoteScore === null || c.remoteScore === undefined ? 'غير مسجّلة' : esc(String(c.remoteScore))}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #f1f5f9;color:var(--rasd-brand);font-weight:700;">${c.newScore === null || c.newScore === undefined ? '—' : esc(String(c.newScore))}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #f1f5f9;color:var(--rasd-danger);font-weight:700;">${c.remoteScore === null || c.remoteScore === undefined ? 'غير مسجّلة' : esc(String(c.remoteScore))}</td>
       </tr>`).join('');
 
     body.innerHTML = `
@@ -477,10 +477,10 @@ function showGradeConflictModal(conflicts, subjectName) {
             <th style="text-align:right;padding:6px 8px;border-bottom:1px solid #e2e8f0;">قيمتك</th>
             <th style="text-align:right;padding:6px 8px;border-bottom:1px solid #e2e8f0;">قيمة السحابة</th>
           </tr></thead>
-          <tbody>${rows || '<tr><td colspan="4" style="padding:12px;text-align:center;color:#64748b;">لا توجد تفاصيل إضافية</td></tr>'}</tbody>
+          <tbody>${rows || '<tr><td colspan="4" style="padding:12px;text-align:center;color:var(--rasd-text-muted);">لا توجد تفاصيل إضافية</td></tr>'}</tbody>
         </table>
       </div>
-      <p style="margin-top:12px;font-size:12px;color:#64748b;line-height:1.8;">اختر بوعي: «اعتماد قيمي» يستبدل قيم الطرف الآخر على السحابة. «اعتماد نسخة السحابة» يلغي حفظك الحالي ويعيد تحميل القيم الحديثة.</p>`;
+      <p style="margin-top:12px;font-size:12px;color:var(--rasd-text-muted);line-height:1.8;">اختر بوعي: «اعتماد قيمي» يستبدل قيم الطرف الآخر على السحابة. «اعتماد نسخة السحابة» يلغي حفظك الحالي ويعيد تحميل القيم الحديثة.</p>`;
 
     overlay.classList.remove('hidden');
     overlay.style.setProperty('display', 'flex', 'important');
@@ -1378,14 +1378,14 @@ async function analyzeCloudOrphans() {
 async function previewCloudCleanup() {
   const msg = document.getElementById('cloudCleanupMsg');
   if (currentAccountType !== 'superadmin') {
-    if (msg) { msg.style.color = '#b91c1c'; msg.textContent = '🔒 متاح لرئيس الكنترول فقط.'; }
+    if (msg) { msg.style.color = 'var(--rasd-danger)'; msg.textContent = '🔒 متاح لرئيس الكنترول فقط.'; }
     return;
   }
   if (!cloudAvailable || !isOnline) {
-    if (msg) { msg.style.color = '#b91c1c'; msg.textContent = '⚠️ يلزم اتصال بالإنترنت وتهيئة Supabase.'; }
+    if (msg) { msg.style.color = 'var(--rasd-danger)'; msg.textContent = '⚠️ يلزم اتصال بالإنترنت وتهيئة Supabase.'; }
     return;
   }
-  if (msg) { msg.style.color = '#64748b'; msg.textContent = '⏳ جاري فحص السحابة...'; }
+  if (msg) { msg.style.color = 'var(--rasd-text-muted)'; msg.textContent = '⏳ جاري فحص السحابة...'; }
   try {
     const r = await analyzeCloudOrphans();
     const lines = [
@@ -1406,11 +1406,11 @@ async function previewCloudCleanup() {
     // fix accidental double-escaped newlines from construction above
     const textOut = lines.join('\n').replace(/\\n/g, '\n');
     if (msg) {
-      msg.style.color = (r.orphanRows.length || r.orphanFiles.length) ? '#9a3412' : '#0b5e42';
+      msg.style.color = (r.orphanRows.length || r.orphanFiles.length) ? '#9a3412' : 'var(--rasd-brand)';
       msg.textContent = textOut;
     }
   } catch (e) {
-    if (msg) { msg.style.color = '#b91c1c'; msg.textContent = '❌ فشل الفحص: ' + (e.message || e); }
+    if (msg) { msg.style.color = 'var(--rasd-danger)'; msg.textContent = '❌ فشل الفحص: ' + (e.message || e); }
   }
 }
 
@@ -1418,19 +1418,19 @@ async function cleanupCloudStorage() {
   const msg = document.getElementById('cloudCleanupMsg');
   const btn = document.getElementById('cloudCleanupBtn');
   if (currentAccountType !== 'superadmin') {
-    if (msg) { msg.style.color = '#b91c1c'; msg.textContent = '🔒 متاح لرئيس الكنترول فقط.'; }
+    if (msg) { msg.style.color = 'var(--rasd-danger)'; msg.textContent = '🔒 متاح لرئيس الكنترول فقط.'; }
     return;
   }
   if (!cloudAvailable || !isOnline) {
-    if (msg) { msg.style.color = '#b91c1c'; msg.textContent = '⚠️ يلزم اتصال بالإنترنت وتهيئة Supabase.'; }
+    if (msg) { msg.style.color = 'var(--rasd-danger)'; msg.textContent = '⚠️ يلزم اتصال بالإنترنت وتهيئة Supabase.'; }
     return;
   }
-  if (msg) { msg.style.color = '#64748b'; msg.textContent = '⏳ جاري فحص ما يمكن حذفه...'; }
+  if (msg) { msg.style.color = 'var(--rasd-text-muted)'; msg.textContent = '⏳ جاري فحص ما يمكن حذفه...'; }
   if (btn) btn.disabled = true;
   try {
     const r = await analyzeCloudOrphans();
     if (!r.orphanRows.length && !r.orphanFiles.length) {
-      if (msg) { msg.style.color = '#0b5e42'; msg.textContent = '✅ السحابة نظيفة — لا توجد بيانات يتيمة للحذف.'; }
+      if (msg) { msg.style.color = 'var(--rasd-brand)'; msg.textContent = '✅ السحابة نظيفة — لا توجد بيانات يتيمة للحذف.'; }
       return;
     }
     const summary = `سيتم حذف:\n` +
@@ -1438,7 +1438,7 @@ async function cleanupCloudStorage() {
       (r.orphanFiles.length ? `• ${r.orphanFiles.length} ملف Excel يتيم من Storage\n` : '') +
       `\nلن تُمس المراحل والبيانات النشطة. هل تريد المتابعة؟`;
     if (!(await showConfirm(summary.replace(/\n/g, '\n')))) {
-      if (msg) { msg.style.color = '#64748b'; msg.textContent = 'تم إلغاء التنظيف.'; }
+      if (msg) { msg.style.color = 'var(--rasd-text-muted)'; msg.textContent = 'تم إلغاء التنظيف.'; }
       return;
     }
     if (msg) msg.textContent = '⏳ جاري التنظيف...';
@@ -1496,9 +1496,9 @@ async function cleanupCloudStorage() {
     out += `\n• ملفات محذوفة: ${deletedFiles}`;
     if (r.orphanFiles.length) out += ` من ${r.orphanFiles.length}`;
     if (rowErrors.length) out += `\n⚠️ أخطاء صفوف:\n` + rowErrors.slice(0, 8).join('\n');
-    if (msg) { msg.style.color = rowErrors.length ? '#9a3412' : '#0b5e42'; msg.textContent = out.replace(/\n/g, '\n'); }
+    if (msg) { msg.style.color = rowErrors.length ? '#9a3412' : 'var(--rasd-brand)'; msg.textContent = out.replace(/\n/g, '\n'); }
   } catch (e) {
-    if (msg) { msg.style.color = '#b91c1c'; msg.textContent = '❌ فشل التنظيف: ' + (e.message || e); }
+    if (msg) { msg.style.color = 'var(--rasd-danger)'; msg.textContent = '❌ فشل التنظيف: ' + (e.message || e); }
   } finally {
     if (btn) btn.disabled = false;
   }

@@ -1,7 +1,6 @@
-/** features/import-export.js — مدمج من part01–04 (المرحلة C) */
-/* import-export.part01.js — generated from import-export.js; execution order is significant. */
-/** features/import-export.js */
+/** features/import-export.js — مدمج بالكامل (المرحلة C) — لا أجزاء part* متبقية */
 'use strict';
+
 
 
 
@@ -305,10 +304,10 @@ document.getElementById('fileInput').addEventListener('change', function() {
       document.getElementById('sheetRow').style.display = wb.SheetNames.length > 1 ? 'grid' : 'none';
       document.getElementById('processBtn').disabled = false;
       status.textContent = `📎 تم اختيار الملف: ${file.name} (${wb.SheetNames.length} ورقة)`;
-      status.style.color = '#0b5e42';
+      status.style.color = 'var(--rasd-brand)';
     } catch (err) {
       status.textContent = '❌ تعذر قراءة الملف: ' + err.message;
-      status.style.color = '#b91c1c';
+      status.style.color = 'var(--rasd-danger)';
     }
   };
   reader.onerror = function() { status.textContent = '❌ حدث خطأ أثناء قراءة الملف'; };
@@ -390,7 +389,6 @@ function diffStudentFields(os, ns) {
   if ((os.gender || '') !== (ns.gender || '')) changed.push('gender');
   return changed;
 }
-/* import-export.part02.js — generated from import-export.js; execution order is significant. */
 
 
 // يبني مقارنة كاملة بين كشف الطلاب القديم (المحفوظ) والجديد (المستخرج من الملف المرفوع حديثاً)
@@ -510,7 +508,6 @@ function toggleUploadSection(sectionId, navBtn) {
     try { sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
   }
 }
-/* import-export.part03.js — generated from import-export.js; execution order is significant. */
 
 
 async function processMainFile() {
@@ -524,7 +521,7 @@ async function processMainFile() {
   const importGrade = document.getElementById('importGrade').value;
   if (!importSection || !importStage || !importGrade) {
     status.textContent = '⚠️ يرجى اختيار القسم والمرحلة والصف أولاً قبل معالجة الملف';
-    status.style.color = '#b91c1c';
+    status.style.color = 'var(--rasd-danger)';
     return;
   }
 
@@ -533,25 +530,25 @@ async function processMainFile() {
     const allowedSections = getStageAdminAllowedImportSections();
     if (!allowedSections.includes(importSection)) {
       status.textContent = '⚠️ غير مصرح لك برفع ملفات لهذا القسم. النطاق مقصور على مرحلتك.';
-      status.style.color = '#b91c1c';
+      status.style.color = 'var(--rasd-danger)';
       return;
     }
     const stageRec = typeof getStageRecord === 'function' ? getStageRecord(currentStageId) : null;
     if (stageRec && stageRec.section && importSection !== stageRec.section) {
       status.textContent = '⚠️ القسم المختار لا يطابق قسم المرحلة الحالية.';
-      status.style.color = '#b91c1c';
+      status.style.color = 'var(--rasd-danger)';
       return;
     }
     const inferred = stageRec ? inferEducationalStageTypeFromName(stageRec.name) : null;
     if (inferred && importStage !== inferred) {
       status.textContent = '⚠️ لا يمكنك رفع ملفات لنوع مرحلة غير مرحلتك («' + (stageRec.name || '') + '»).';
-      status.style.color = '#b91c1c';
+      status.style.color = 'var(--rasd-danger)';
       return;
     }
     const assigned = currentStageAdmin.stageIds || [];
     if (currentStageId && assigned.length && !assigned.includes(currentStageId)) {
       status.textContent = '⚠️ غير مصرح لك بالرفع في هذه المرحلة التنظيمية.';
-      status.style.color = '#b91c1c';
+      status.style.color = 'var(--rasd-danger)';
       return;
     }
   }
@@ -584,7 +581,7 @@ async function processMainFile() {
       if (!parsedReport.ok) {
         bar.style.width = '0%';
         status.textContent = '❌ فشل التحقق من صحة بيانات الملف — لم يتم تطبيق أي تغيير.';
-        status.style.color = '#b91c1c';
+        status.style.color = 'var(--rasd-danger)';
         if (typeof importValidation.formatReportHtml === 'function') {
           messages.innerHTML = importValidation.formatReportHtml(parsedReport);
         } else {
@@ -617,7 +614,7 @@ async function processMainFile() {
       if (!proceed) {
         bar.style.width = '0%';
         status.textContent = '⏸️ تم إلغاء التحديث، لم يتم تغيير أي بيانات.';
-        status.style.color = '#64748b';
+        status.style.color = 'var(--rasd-text-muted)';
         return;
       }
     }
@@ -732,7 +729,7 @@ async function processMainFile() {
         } catch (rollbackError) { console.error('STEP 44 merge validation rollback failed:', rollbackError); }
         bar.style.width = '0%';
         status.textContent = '❌ فشل التحقق من خطة الدمج — تم إلغاء الاستيراد بالكامل.';
-        status.style.color = '#b91c1c';
+        status.style.color = 'var(--rasd-danger)';
         if (typeof importValidation.formatReportHtml === 'function') {
           messages.innerHTML = importValidation.formatReportHtml(mergeReport);
         } else {
@@ -757,7 +754,7 @@ async function processMainFile() {
       }
       bar.style.width = '0%';
       status.textContent = '❌ فشل الحفظ النهائي — تم إلغاء الاستيراد بالكامل ولم يتم اعتماد التغييرات.';
-      status.style.color = '#b91c1c';
+      status.style.color = 'var(--rasd-danger)';
       return;
     }
     bar.style.width = '100%';
@@ -768,7 +765,7 @@ async function processMainFile() {
     try {
       recordAudit('رفع Excel', 'صف: ' + importGrade + ' | قسم: ' + importSection + ' | طلاب: ' + result.students.length + ' | مواد: ' + result.subjects.length + ' | ملف: ' + (uploadedFileName || ''));
     } catch (eAudit) {}
-    status.style.color = '#0b5e42';
+    status.style.color = 'var(--rasd-brand)';
 
     const rosterDiffReportHtml = buildStudentRosterDiffReportHtml(rosterDiff);
     if (rosterDiffReportHtml) messages.innerHTML += rosterDiffReportHtml;
@@ -816,7 +813,7 @@ async function processMainFile() {
         <div class="card stat-card"><div class="stat-num">${result.subjects.length}</div><div class="stat-label">مواد</div></div>
         <div class="card stat-card"><div class="stat-num">${result.classes.length}</div><div class="stat-label">فصول</div></div>
       </div>
-      <div style="margin-top:8px; font-size:13px; color:#64748b;">الفصول: ${result.classes.join('، ')}</div>
+      <div style="margin-top:8px; font-size:13px; color:var(--rasd-text-muted);">الفصول: ${result.classes.join('، ')}</div>
     `;
 
     loadStudentsUI();
@@ -843,7 +840,7 @@ async function processMainFile() {
       messages.innerHTML = `<div class="error-box">❌ خطأ أثناء المعالجة: ${escapeHtml(err.message)}</div>`;
       status.textContent = '❌ خطأ أثناء المعالجة';
     }
-    status.style.color = '#b91c1c';
+    status.style.color = 'var(--rasd-danger)';
     console.error(err);
   }
 }
@@ -866,7 +863,6 @@ let _exportWorkerReqId = 0;
 
 
 const _exportWorkerPending = new Map();
-/* import-export.part04.js — generated from import-export.js; execution order is significant. */
 
 
 function getExportWorker() {
