@@ -98,7 +98,7 @@
 }
 .tda-card.is-g { border-color:#fca5a5; background:#fff5f5; }
 .tda-card.is-e { border-color:#93c5fd; background:#eff6ff; }
-.tda-card.is-p { border-color:#86efac; background:#f0fdf4; }
+.tda-card.is-p { border-color:#86efac; background:var(--rasd-brand-wash); }
 .tda-card-name { font-weight:800; color:#0f172a; font-size:14px; margin-bottom:4px; }
 .tda-card-meta { font-size:11.5px; color:#64748b; margin-bottom:10px; }
 .tda-card-actions { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
@@ -107,7 +107,7 @@
   font-size:12px; font-weight:800; cursor:pointer; transition:.15s;
 }
 .tda-card-actions button:disabled { opacity:.45; cursor:not-allowed; }
-.tda-card-actions button.active-p { background:#16a34a; color:#fff; border-color:#16a34a; }
+.tda-card-actions button.active-p { background:var(--rasd-brand-light); color:#fff; border-color:var(--rasd-brand-light); }
 .tda-card-actions button.active-g { background:#dc2626; color:#fff; border-color:#dc2626; }
 .tda-card-actions button.active-e { background:#2563eb; color:#fff; border-color:#2563eb; }
 .tda-foot {

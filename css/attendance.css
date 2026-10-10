@@ -1,7 +1,7 @@
 .att-mobile-daily-bar {
   margin-bottom: 14px;
   padding: 12px;
-  background: linear-gradient(180deg, #ecfdf5, #f0fdf4);
+  background: linear-gradient(180deg, #ecfdf5, var(--rasd-brand-wash));
   border: 1px solid #86efac;
   border-radius: 14px;
 }
@@ -17,7 +17,7 @@
   display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px;
   border:1px solid #e2e8f0; background:#f8fafc; font-size:13px; font-weight:700; cursor:pointer;
 }
-.att-day-chip input { width:16px; height:16px; accent-color:#0b5e42; }
+.att-day-chip input { width:16px; height:16px; accent-color:var(--rasd-brand); }
 @media (max-width: 700px) {
   #attGridWrap {
     max-height: 65vh;
@@ -29,7 +29,7 @@
     position: sticky;
     right: 0;
     z-index: 2;
-    background: #0b5e42;
+    background: var(--rasd-brand);
     color: #fff;
   }
   #attGridTable td:nth-child(1) {
@@ -42,7 +42,7 @@
     position: sticky;
     right: 28px;
     z-index: 2;
-    background: #0b5e42;
+    background: var(--rasd-brand);
     color: #fff;
     min-width: 110px;
     max-width: 140px;
@@ -63,11 +63,11 @@
   border:1px solid #fecaca; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:700;
 }
 .att-holiday-tag button {
-  border:0; background:transparent; color:#b91c1c; cursor:pointer; font-weight:800; font-size:14px;
+  border:0; background:transparent; color:var(--rasd-danger); cursor:pointer; font-weight:800; font-size:14px;
 }
 #attGridTable { width:100%; border-collapse:collapse; font-size:13px; min-width:900px; }
 #attGridTable th, #attGridTable td { border:1px solid #e2e8f0; padding:4px 6px; text-align:center; }
-#attGridTable thead th { background:#0b5e42; color:#fff; position:sticky; top:0; z-index:2; font-weight:700; }
+#attGridTable thead th { background:var(--rasd-brand); color:#fff; position:sticky; top:0; z-index:2; font-weight:700; }
 #attGridTable td.att-name { text-align:right; font-weight:600; white-space:nowrap; background:#f8fafc; }
 #attGridTable td.att-off {
   background: repeating-linear-gradient(-45deg, #f1f5f9, #f1f5f9 4px, #e2e8f0 4px, #e2e8f0 8px) !important;
@@ -86,7 +86,7 @@
   background:#f8fafc; cursor:pointer; font-weight:700; min-width:18px;
 }
 #attGridTable th .att-col-actions button.att-q-p { color:#065f46; border-color:#6ee7b7; }
-#attGridTable th .att-col-actions button.att-q-g { color:#b91c1c; border-color:#fca5a5; }
+#attGridTable th .att-col-actions button.att-q-g { color:var(--rasd-danger); border-color:#fca5a5; }
 #attGridTable th .att-col-actions button.att-q-e { color:#1d4ed8; border-color:#93c5fd; }
 #attGridTable th .att-col-actions button:hover { background:#e2e8f0; }
 #attGridTable th.att-week-head .att-week-actions {
@@ -98,11 +98,11 @@
 }
 #attQuickBar {
   display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px;
-  padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;
+  padding:10px 12px; background:var(--rasd-brand-wash); border:1px solid #86efac; border-radius:8px;
 }
 #attQuickBar select { padding:4px 8px; border-radius:6px; border:1px solid #cbd5e1; }
 
-#attGridTable input.att-mark.is-g { background:#fef2f2; border-color:#f87171; color:#b91c1c; }
+#attGridTable input.att-mark.is-g { background:#fef2f2; border-color:#f87171; color:var(--rasd-danger); }
 #attGridTable input.att-mark.is-e { background:#eff6ff; border-color:#60a5fa; color:#1d4ed8; }
 #attGridTable td.att-score { font-weight:800; background:#ecfdf5; color:#065f46; }
 #attGridTable td.att-abs-count { font-weight:700; background:#fff7ed; color:#9a3412; }
@@ -114,7 +114,7 @@
   box-sizing: border-box;
 }
 .att-print-page:last-child { page-break-after: auto; }
-.att-print-header { text-align:center; border-bottom:1.5px solid #064e3b; padding-bottom:2mm; margin-bottom:2mm; }
+.att-print-header { text-align:center; border-bottom:1.5px solid var(--rasd-brand-dark); padding-bottom:2mm; margin-bottom:2mm; }
 .att-print-title { font-size:13px; font-weight:800; margin-bottom:1mm; }
 .att-print-meta { font-size:10px; color:#334155; line-height:1.5; margin-bottom:1.5mm; }
 .att-print-table { width:100%; border-collapse:collapse; font-size:8.5px; table-layout:fixed; }
@@ -145,11 +145,11 @@
 /* أعمدة ثابتة: م / الاسم — خلفية بلا لون وكتابة سوداء */
 .att-print-table thead th.att-fixed {
   background: #fff !important;
-  color: #064e3b !important;
+  color: var(--rasd-brand-dark) !important;
   border: 1px solid #64748b !important;
 }
 /* أعمدة الملخص */
-.att-print-table thead th.att-sum-abs { background: #b91c1c !important; color: #fff !important; width: 7.5mm; }
+.att-print-table thead th.att-sum-abs { background: var(--rasd-danger) !important; color: #fff !important; width: 7.5mm; }
 .att-print-table thead th.att-sum-rate { background: #1d4ed8 !important; color: #fff !important; width: 7.5mm; }
 .att-print-table thead th.att-sum-score { background: #047857 !important; color: #fff !important; width: 7.5mm; }
 .att-print-table thead .att-v {
@@ -194,7 +194,7 @@
 .att-print-footer .sign .line { margin-top:7mm; border-top:1px dotted #64748b; }
 .att-agg-table { width:100%; border-collapse:collapse; font-size:12px; }
 .att-agg-table th, .att-agg-table td { border:1px solid #64748b; padding:6px 8px; text-align:center; }
-.att-agg-table thead th { background:#0b5e42 !important; color:#fff !important; }
+.att-agg-table thead th { background:var(--rasd-brand) !important; color:#fff !important; }
 .att-agg-table td.right { text-align:right; font-weight:600; }
 .att-agg-table tr.total-row td { background:#ecfdf5; font-weight:800; }
 @media print {
