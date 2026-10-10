@@ -109,7 +109,7 @@ function populateMonitorLoginSelect() {
 }
 async function submitMonitorAuth() {
   const msg = document.getElementById('monitorAuthMsg');
-  msg.style.color = '#b91c1c';
+  msg.style.color = 'var(--rasd-danger)';
   const id = document.getElementById('monitorLoginSelect').value;
   const pin = document.getElementById('monitorPinInput').value;
   if (!id) { msg.textContent = '⚠️ اختر اسمك'; return; }
@@ -152,7 +152,7 @@ async function ensureSuperAdminPasswordHash() { /* V24: لا يوجد إعداد
 async function submitAdminSetup() {
  try {
   const msg = document.getElementById('adminSetupMsg');
-  msg.style.color = '#b91c1c';
+  msg.style.color = 'var(--rasd-danger)';
   const p1 = document.getElementById('adminSetupPass1').value;
   const p2 = document.getElementById('adminSetupPass2').value;
   if (!p1 || !p2) { msg.textContent = '⚠️ يرجى تعبئة الحقلين'; return; }
@@ -174,7 +174,7 @@ async function submitAdminSetup() {
 
 async function submitAdminAuth() {
   const msg = document.getElementById('adminAuthMsg');
-  msg.style.color = '#b91c1c';
+  msg.style.color = 'var(--rasd-danger)';
   const throttle = checkAuthThrottle('admin');
   if (throttle.blocked) { msg.textContent = formatWaitMessage(throttle.waitMs, throttle.attempts); return; }
   const emailEl = document.getElementById('adminEmailInput');
@@ -191,7 +191,7 @@ async function submitAdminAuth() {
       // Stageadmin has its own login surface and must not inherit root access.
       if (result.profile.role !== 'superadmin') {
         await cloudSignOut();
-        msg.style.color = '#b91c1c';
+        msg.style.color = 'var(--rasd-danger)';
         msg.textContent = '❌ هذا الحساب ليس حساب رئيس الكنترول.';
         return;
       }
@@ -200,7 +200,7 @@ async function submitAdminAuth() {
       applyCloudProfileLogin(result.profile);
       return;
     }
-    msg.style.color = '#b91c1c';
+    msg.style.color = 'var(--rasd-danger)';
     msg.textContent = '❌ الدخول السحابي: ' + (result.error || 'فشل') +
       (online ? ' — للدخول المحلي الاحتياطي اترك حقل البريد فارغًا (بدون اتصال يُفضّل).' : '');
     // لا نكمل للمحلي تلقائيًا عند فشل سحابي مع وجود بريد (حتى لا يختلط المساران)
@@ -234,7 +234,7 @@ async function changeAdminPassword() {
   const newPass = document.getElementById('changeAdminNewPass').value;
   const newPass2 = document.getElementById('changeAdminNewPass2').value;
   const msg = document.getElementById('changeAdminPassMsg');
-  msg.style.color = '#b91c1c';
+  msg.style.color = 'var(--rasd-danger)';
 
   if (!oldPass || !newPass || !newPass2) { msg.textContent = '⚠️ يرجى تعبئة جميع الحقول';
     return; }
@@ -253,7 +253,7 @@ async function changeAdminPassword() {
   document.getElementById('changeAdminOldPass').value = '';
   document.getElementById('changeAdminNewPass').value = '';
   document.getElementById('changeAdminNewPass2').value = '';
-  msg.style.color = '#0b5e42';
+  msg.style.color = 'var(--rasd-brand)';
   msg.textContent = '✅ تم تغيير كلمة سر رئيس الكنترول بنجاح. استخدم كلمة السر الجديدة عند الدخول القادم.';
 
  } catch (e) {
@@ -401,11 +401,11 @@ function updateSystemClosureBadge() {
   const c = getSystemClosure();
   if (c.enabled) {
     badge.textContent = 'الحالة: مغلق 🔒';
-    badge.style.background = '#b91c1c';
+    badge.style.background = 'var(--rasd-danger)';
     badge.style.color = '#fff';
   } else {
     badge.textContent = 'الحالة: مفتوح 🔓';
-    badge.style.background = '#0b5e42';
+    badge.style.background = 'var(--rasd-brand)';
     badge.style.color = '#fff';
   }
 }
@@ -448,7 +448,7 @@ function saveSystemClosure() {
     const enabled = !!(enEl && enEl.checked);
     const message = String((msgEl && msgEl.value) || '').trim();
     if (enabled && !message) {
-      if (status) { status.style.color = '#b91c1c'; status.textContent = '⚠️ اكتب رسالة تظهر للمستخدمين عند الإغلاق.'; }
+      if (status) { status.style.color = 'var(--rasd-danger)'; status.textContent = '⚠️ اكتب رسالة تظهر للمستخدمين عند الإغلاق.'; }
       else alert('اكتب رسالة تظهر للمستخدمين عند الإغلاق.');
       return;
     }
@@ -468,7 +468,7 @@ function saveSystemClosure() {
       .then(function(r) {
         if (status) {
           if (r && r.ok) {
-            status.style.color = '#0b5e42';
+            status.style.color = 'var(--rasd-brand)';
             status.textContent = enabled
               ? '✅ تم تفعيل الإغلاق العام ومزامنته مع السحابة.'
               : '✅ تم فتح النظام ومزامنته مع السحابة.';

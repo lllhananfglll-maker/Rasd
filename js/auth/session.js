@@ -61,11 +61,11 @@ function formatPinOnceHtml(pin, personName, extraHtml) {
   return '✅ تم توليد الرقم السري' + label + ': <strong style="font-size:16px; letter-spacing:3px; background:#f1f5f9; padding:3px 12px; border-radius:6px; color:#0f172a;">' + safePin + '</strong> '
     + '<button type="button" class="btn btn-outline btn-sm" style="margin-right:8px;" data-action="copyPinFromButton" data-with-element data-pin="' + safePin + '">📋 نسخ</button>'
     + (extraHtml || '')
-    + '<span style="display:block; margin-top:6px; font-size:12px; color:#64748b;">⚠️ يُعرض هذا الرقم <b>مرة واحدة فقط</b> ولن يُحفظ كنص صريح في النظام. انسخه أو اطبع البطاقة الآن — لإعادة الطباعة لاحقاً يجب توليد رقم جديد.</span>';
+    + '<span style="display:block; margin-top:6px; font-size:12px; color:var(--rasd-text-muted);">⚠️ يُعرض هذا الرقم <b>مرة واحدة فقط</b> ولن يُحفظ كنص صريح في النظام. انسخه أو اطبع البطاقة الآن — لإعادة الطباعة لاحقاً يجب توليد رقم جديد.</span>';
 }
 
 function maskedPinHtml() {
-  return '<span style="font-family:monospace; font-weight:700; letter-spacing:2px; background:#f1f5f9; padding:3px 10px; border-radius:6px; color:#64748b;" title="مخفي لأسباب أمنية — الرقم لا يُخزَّن كنص صريح. استخدم «رقم جديد» ثم اطبع فوراً">••••••</span>';
+  return '<span style="font-family:monospace; font-weight:700; letter-spacing:2px; background:#f1f5f9; padding:3px 10px; border-radius:6px; color:var(--rasd-text-muted);" title="مخفي لأسباب أمنية — الرقم لا يُخزَّن كنص صريح. استخدم «رقم جديد» ثم اطبع فوراً">••••••</span>';
 }
 
 // ⚠️ ملاحظة أمان صادقة: هذا الثروتل من جهة العميل فقط (sessionStorage) — يمكن لأي مستخدم تجاوزه

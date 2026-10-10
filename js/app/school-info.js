@@ -88,12 +88,12 @@
       try {
         if (currentAccountType !== 'superadmin') {
           msg.textContent = '🔒 تعديل بيانات المدرسة متاح لرئيس الكنترول فقط.';
-          msg.style.color = '#b91c1c';
+          msg.style.color = 'var(--rasd-danger)';
           return;
         }
         if (!currentStageId) {
           msg.textContent = '⚠️ يرجى اختيار مرحلة دراسية أولاً قبل حفظ بيانات المدرسة';
-          msg.style.color = '#b91c1c';
+          msg.style.color = 'var(--rasd-danger)';
           return;
         }
         const db = loadDB();
@@ -222,7 +222,7 @@
         msg.textContent = (propagated
           ? ('✅ تم حفظ بيانات المدرسة وضبط الفترات على جميع المراحل (' + (propagated + 1) + ' مرحلة) — توحيد الطباعة والرصد')
           : '✅ تم حفظ بيانات المدرسة وضبط الفترات بنجاح') + (examRemoved ? (' — تم حذف ' + examRemoved + ' مكوّن تقييم شهري/امتحان من المواد') : '');
-        msg.style.color = '#0b5e42';
+        msg.style.color = 'var(--rasd-brand)';
         updateSchoolInfoDisplay();
         populateMonthSelects();
         renderMonthlyExportButtons();
@@ -234,7 +234,7 @@
               forceFullCloudSync({ reason: 'after-school-info-save' }).then(function (r) {
                 if (r && r.ok) {
                   msg.textContent = msg.textContent.replace(' — جارٍ رفع نسخة سحابية...', '') + ' — ✅ تم التأكيد السحابي (' + r.count + ' صف)';
-                  msg.style.color = '#0b5e42';
+                  msg.style.color = 'var(--rasd-brand)';
                 } else {
                   msg.textContent = msg.textContent.replace(' — جارٍ رفع نسخة سحابية...', '') + ' — ⚠️ الحفظ محلي فقط (المزامنة: ' + ((r && r.reason) || 'فشلت') + ')';
                   msg.style.color = '#b45309';
@@ -248,7 +248,7 @@
       } catch (e) {
         console.error('saveSchoolInfo error:', e);
         msg.textContent = '❌ حدث خطأ أثناء الحفظ: ' + e.message;
-        msg.style.color = '#b91c1c';
+        msg.style.color = 'var(--rasd-danger)';
       }
     }
 
@@ -398,7 +398,7 @@
       const list = draft[term];
       const canEdit = currentAccountType === 'superadmin';
       if (!list.length) {
-        box.innerHTML = '<div style="color:#94a3b8;font-size:13px">لا توجد فترات. اضغط «إضافة فترة رصد».</div>';
+        box.innerHTML = '<div style="color:var(--rasd-text-subtle);font-size:13px">لا توجد فترات. اضغط «إضافة فترة رصد».</div>';
         return;
       }
       box.innerHTML = list.map((p, idx) => {
@@ -406,7 +406,7 @@
         return `<div class="card" style="padding:12px;border:1px solid #e2e8f0;background:#f8fafc">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <strong style="color:#1e3a5f">الفترة ${idx + 1}</strong>
-            ${canEdit ? `<button type="button" class="btn btn-outline btn-sm" data-action="removeRecordingPeriod" data-args='${gspArgs([idx])}' style="color:#b91c1c">🗑️ حذف</button>` : ''}
+            ${canEdit ? `<button type="button" class="btn btn-outline btn-sm" data-action="removeRecordingPeriod" data-args='${gspArgs([idx])}' style="color:var(--rasd-danger)">🗑️ حذف</button>` : ''}
           </div>
           <div class="grid-3">
             <div class="form-group">
@@ -425,7 +425,7 @@
                   </label>`;
                 }).join('')}
               </div>
-              <div style="font-size:12px;color:#64748b;margin-top:4px">اتركها فارغة إن كانت الأسابيع الأربعة كلها داخل الرصد. يمكن استبعاد أي أسبوع من البداية أو الوسط أو النهاية.</div>
+              <div style="font-size:12px;color:var(--rasd-text-muted);margin-top:4px">اتركها فارغة إن كانت الأسابيع الأربعة كلها داخل الرصد. يمكن استبعاد أي أسبوع من البداية أو الوسط أو النهاية.</div>
             </div>
             <div class="form-group">
               <label>تاريخ بداية الأسبوع الأول</label>
@@ -568,7 +568,7 @@
      } catch (e) {
        console.error('loadSchoolInfoFormUI error:', e);
        const msg = document.getElementById('schoolInfoMsg');
-       if (msg) { msg.style.color = '#b91c1c'; msg.textContent = '⚠️ حدث خطأ أثناء تحميل بيانات المدرسة. جرّب إعادة تحميل الصفحة، وإن استمرت المشكلة أرسل نص الخطأ من Console للدعم الفني.'; }
+       if (msg) { msg.style.color = 'var(--rasd-danger)'; msg.textContent = '⚠️ حدث خطأ أثناء تحميل بيانات المدرسة. جرّب إعادة تحميل الصفحة، وإن استمرت المشكلة أرسل نص الخطأ من Console للدعم الفني.'; }
      }
     }
 

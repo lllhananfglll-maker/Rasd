@@ -1,5 +1,4 @@
 /** app/student-roster.js — مدمج (المرحلة C) */
-/* student-roster.part01.js — generated from student-roster.js; execution order is significant. */
 /**
  * js/app/students.js — الجزء 3/9 من app.js السابق (بعد التقسيم لتحسين قابلية الصيانة)
  * المحتوى: قاعدة بيانات الطلاب الرسمية (Master Student Roster) — رئيس الكنترول
@@ -239,7 +238,7 @@
       const editingId = document.getElementById('editingStageId').value;
       const sectionEl = document.querySelector('input[name="newStageSection"]:checked');
       const section = sectionEl ? sectionEl.value : '';
-      msg.style.color = '#b91c1c';
+      msg.style.color = 'var(--rasd-danger)';
       msg.textContent = '⚠️ المراحل الدراسية ثابتة (ثماني كيانات أساسية) ولا يمكن إضافتها أو تعديل أسمائها من الواجهة.';
       return;
       if (!name) { msg.textContent = '⚠️ يرجى إدخال اسم المرحلة'; return; }
@@ -258,7 +257,7 @@
         st.name = name;
         if (section) st.section = section;
         saveRootDB(root);
-        msg.style.color = '#0b5e42';
+        msg.style.color = 'var(--rasd-brand)';
         msg.textContent = `✅ تم تحديث المرحلة إلى "${stageDisplayLabel(st)}".`;
         cancelStageEdit();
         loadStagesMgmtUI();
@@ -281,7 +280,7 @@
       saveRootDB(root);
       document.getElementById('newStageName').value = '';
       document.querySelectorAll('input[name="newStageSection"]').forEach(r => r.checked = false);
-      msg.style.color = '#0b5e42';
+      msg.style.color = 'var(--rasd-brand)';
       msg.textContent = `✅ تمت إضافة "${stageDisplayLabel({ name, section })}".`;
       if (!currentStageId) { currentStageId = id;
         saveSession({ accountType: 'superadmin', stageId: id }); }
@@ -367,7 +366,6 @@
       loadStagesMgmtUI();
       applyRoleUI();
     }
-/* student-roster.part02.js — generated from student-roster.js; execution order is significant. */
 
 
     
@@ -403,7 +401,7 @@
       const stageIds = getCheckedStageMonitorStageIds();
       const msg = document.getElementById('stageMonitorFormMsg');
       const editingId = ((document.getElementById('editingStageMonitorId') || {}).value || '');
-      if (msg) msg.style.color = '#b91c1c';
+      if (msg) msg.style.color = 'var(--rasd-danger)';
       if (!name) { if (msg) msg.textContent = '⚠️ أدخل الاسم'; return; }
       if (!stageIds.length) { if (msg) msg.textContent = '⚠️ اختر مرحلة واحدة على الأقل'; return; }
       if (editingId) {
@@ -411,7 +409,7 @@
         if (!a) { if (msg) msg.textContent = '⚠️ الحساب غير موجود'; return; }
         a.name = name; a.stageIds = stageIds;
         saveRootDB(root);
-        if (msg) { msg.style.color = '#0b5e42'; msg.textContent = '✅ تم التحديث'; }
+        if (msg) { msg.style.color = 'var(--rasd-brand)'; msg.textContent = '✅ تم التحديث'; }
         cancelStageMonitorEdit(); loadStagesMgmtUI(); return;
       }
       const pin = generateRandomPin(DEFAULT_PIN_LENGTH);
@@ -420,7 +418,7 @@
       root.stageMonitors.push({ id: newId, name, stageIds, pinHash });
       saveRootDB(root);
       if (msg) {
-        msg.style.color = '#0b5e42';
+        msg.style.color = 'var(--rasd-brand)';
         const printHint = ' <button type="button" class="btn btn-primary btn-sm" style="margin-right:8px;" data-action="printStageMonitorCardWithPin" data-args=\'' + (typeof gspArgs === 'function' ? gspArgs([newId, pin]) : JSON.stringify([newId, pin])) + '\'>🖨️ طباعة البطاقة الآن</button>';
         msg.innerHTML = formatPinOnceHtml(pin, name, printHint);
       }
@@ -466,7 +464,7 @@
       loadStagesMgmtUI();
       const msg = document.getElementById('stageMonitorFormMsg');
       if (msg) {
-        msg.style.color = '#0b5e42';
+        msg.style.color = 'var(--rasd-brand)';
         const printHint = ' <button type="button" class="btn btn-primary btn-sm" style="margin-right:8px;" data-action="printStageMonitorCardWithPin" data-args=\'' + (typeof gspArgs === 'function' ? gspArgs([a.id, pin]) : JSON.stringify([a.id, pin])) + '\'>🖨️ طباعة البطاقة الآن</button>';
         msg.innerHTML = formatPinOnceHtml(pin, a.name, printHint);
       }
@@ -498,7 +496,7 @@
       loadStagesMgmtUI();
       const msg = document.getElementById('stageMonitorFormMsg');
       if (msg) {
-        msg.style.color = '#0b5e42';
+        msg.style.color = 'var(--rasd-brand)';
         const printHint = ' <button type="button" class="btn btn-primary btn-sm" style="margin-right:8px;" data-action="printStageMonitorCardWithPin" data-args=\'' + (typeof gspArgs === 'function' ? gspArgs([a.id, trimmed]) : JSON.stringify([a.id, trimmed])) + '\'>🖨️ طباعة البطاقة الآن</button>';
         msg.innerHTML = formatPinOnceHtml(trimmed, a.name, printHint);
       }
@@ -674,7 +672,6 @@
       document.addEventListener('click', closeAllStageMoreMenus);
       GSP._stageMoreMenuBound = true;
     }
-/* student-roster.part03.js — generated from student-roster.js; execution order is significant. */
 
 
     function stageAdminActionFromButton(button, action, id) {
@@ -716,7 +713,7 @@ function loadStagesMgmtUI() {
             ? '<span class="stage-sec-badge stage-sec-lang">لغات</span>'
             : '<span class="stage-sec-badge stage-sec-ar">عربي</span>';
           const isCur = s.id === currentStageId
-            ? ' <span class="badge" style="background:#0b5e42; color:#fff;">الحالية</span>'
+            ? ' <span class="badge" style="background:var(--rasd-brand); color:#fff;">الحالية</span>'
             : '';
           return `
             <tr>
@@ -732,7 +729,7 @@ function loadStagesMgmtUI() {
                 </div>
               </td>
             </tr>`;
-        }).join('') || '<tr><td colspan="6" style="color:#64748b;">لا توجد مراحل بعد. اضغط «إضافة مرحلة» للبدء.</td></tr>';
+        }).join('') || '<tr><td colspan="6" style="color:var(--rasd-text-muted);">لا توجد مراحل بعد. اضغط «إضافة مرحلة» للبدء.</td></tr>';
       }
 
       const stagesBox = document.getElementById('newStageAdminStagesBox');
@@ -741,7 +738,7 @@ function loadStagesMgmtUI() {
           Array.from(stagesBox.querySelectorAll('input[type="checkbox"]:checked')).map(el => el.value)
         );
         if (!root.stages.length) {
-          stagesBox.innerHTML = '<span style="color:#94a3b8; font-size:13px;">لا توجد مراحل بعد</span>';
+          stagesBox.innerHTML = '<span style="color:var(--rasd-text-subtle); font-size:13px;">لا توجد مراحل بعد</span>';
         } else {
           stagesBox.innerHTML = root.stages.map(s => `
             <label style="display:flex; align-items:center; gap:6px; font-weight:400; font-size:14px; padding:4px 0;">
@@ -760,13 +757,13 @@ function loadStagesMgmtUI() {
             return st ? escapeHtml(stageDisplayLabel(st)) : null;
           }).filter(Boolean);
           const stagesText = stageNames.length ? stageNames.join('، ') :
-            '<span style="color:#b91c1c;">⚠️ لا توجد مرحلة صالحة</span>';
+            '<span style="color:var(--rasd-danger);">⚠️ لا توجد مرحلة صالحة</span>';
           const sectionsText = (a.sections || []).map(sc => sectionLabels[sc] || sc).join('، ') || '-';
           return `
             <tr>
               <td>${idx + 1}</td>
               <td>${escapeHtml(a.name)}</td>
-              <td>${stagesText}<br><span style="font-size:12px; color:#64748b;">🗂️ ${sectionsText}</span></td>
+              <td>${stagesText}<br><span style="font-size:12px; color:var(--rasd-text-muted);">🗂️ ${sectionsText}</span></td>
               <td>${maskedPinHtml()}</td>
               <td>
                 <div class="stage-actions">
@@ -783,7 +780,7 @@ function loadStagesMgmtUI() {
                 </div>
               </td>
             </tr>`;
-        }).join('') || '<tr><td colspan="5" style="color:#64748b;">لا يوجد مسؤولو حاسب بعد.</td></tr>';
+        }).join('') || '<tr><td colspan="5" style="color:var(--rasd-text-muted);">لا يوجد مسؤولو حاسب بعد.</td></tr>';
       }
 
       const monStagesBox = document.getElementById('newStageMonitorStagesBox');
@@ -792,7 +789,7 @@ function loadStagesMgmtUI() {
           Array.from(monStagesBox.querySelectorAll('input[type="checkbox"]:checked')).map(el => el.value)
         );
         if (!root.stages.length) {
-          monStagesBox.innerHTML = '<span style="color:#94a3b8; font-size:13px;">لا توجد مراحل بعد</span>';
+          monStagesBox.innerHTML = '<span style="color:var(--rasd-text-subtle); font-size:13px;">لا توجد مراحل بعد</span>';
         } else {
           monStagesBox.innerHTML = root.stages.map(s => `
             <label style="display:flex; align-items:center; gap:6px; font-weight:400; font-size:14px; padding:4px 0;">
@@ -810,7 +807,7 @@ function loadStagesMgmtUI() {
             return st ? escapeHtml(stageDisplayLabel(st)) : null;
           }).filter(Boolean);
           const stagesText = stageNames.length ? stageNames.join('، ') :
-            '<span style="color:#b91c1c;">⚠️ لا توجد مرحلة صالحة</span>';
+            '<span style="color:var(--rasd-danger);">⚠️ لا توجد مرحلة صالحة</span>';
           return `
             <tr>
               <td>${idx + 1}</td>
@@ -827,7 +824,7 @@ function loadStagesMgmtUI() {
                 </div>
               </td>
             </tr>`;
-        }).join('') || '<tr><td colspan="5" style="color:#64748b;">لا يوجد مديرو مرحلة بعد.</td></tr>';
+        }).join('') || '<tr><td colspan="5" style="color:var(--rasd-text-muted);">لا يوجد مديرو مرحلة بعد.</td></tr>';
       }
     }
 
@@ -881,7 +878,7 @@ function loadStagesMgmtUI() {
       const sections = getCheckedStageAdminSections();
       const msg = document.getElementById('stageAdminFormMsg');
       const editingId = document.getElementById('editingStageAdminId').value;
-      msg.style.color = '#b91c1c';
+      msg.style.color = 'var(--rasd-danger)';
       if (!name) { msg.textContent = '⚠️ يرجى إدخال اسم مسؤول الحاسب'; return; }
       if (!stageIds.length) { msg.textContent = '⚠️ يرجى اختيار مرحلة واحدة على الأقل يديرها'; return; }
       if (!sections.length) { msg.textContent = '⚠️ يرجى اختيار قسم واحد على الأقل مسموح به'; return; }
@@ -896,7 +893,7 @@ function loadStagesMgmtUI() {
         a.permissions = getCheckedStageAdminPermissions();
         delete a.pin;
         saveRootDB(root);
-        msg.style.color = '#0b5e42';
+        msg.style.color = 'var(--rasd-brand)';
         msg.textContent = `✅ تم تحديث بيانات مسؤول الحاسب "${name}" بنجاح.`;
         cancelStageAdminEdit();
         loadStagesMgmtUI();
@@ -909,7 +906,7 @@ function loadStagesMgmtUI() {
       root.stageAdmins.push({ id: newId, name, stageIds, sections, permissions: getCheckedStageAdminPermissions(), pinHash });
       saveRootDB(root);
       document.getElementById('newStageAdminName').value = '';
-      msg.style.color = '#0b5e42';
+      msg.style.color = 'var(--rasd-brand)';
       const printHint = ' <button type="button" class="btn btn-primary btn-sm" style="margin-right:8px;" data-action="printStageAdminCardWithPin" data-args=\'' + (typeof gspArgs === 'function' ? gspArgs([newId, pin]) : JSON.stringify([newId, pin])) + '\'>🖨️ طباعة البطاقة الآن</button>';
       msg.innerHTML = formatPinOnceHtml(pin, name, printHint);
       const cloudRes = await provisionCloudAccount({
@@ -977,7 +974,7 @@ function loadStagesMgmtUI() {
       saveRootDB(root);
       loadStagesMgmtUI();
       const msg = document.getElementById('stageAdminFormMsg');
-      msg.style.color = '#0b5e42';
+      msg.style.color = 'var(--rasd-brand)';
       const printHint = ' <button type="button" class="btn btn-primary btn-sm" style="margin-right:8px;" data-action="printStageAdminCardWithPin" data-args=\'' + (typeof gspArgs === 'function' ? gspArgs([a.id, pin]) : JSON.stringify([a.id, pin])) + '\'>🖨️ طباعة البطاقة الآن</button>';
       msg.innerHTML = formatPinOnceHtml(pin, a.name, printHint);
       const cloudRes = await provisionCloudAccount({
@@ -1011,7 +1008,7 @@ function loadStagesMgmtUI() {
       saveRootDB(root);
       loadStagesMgmtUI();
       const msg = document.getElementById('stageAdminFormMsg');
-      msg.style.color = '#0b5e42';
+      msg.style.color = 'var(--rasd-brand)';
       const printHint = ' <button type="button" class="btn btn-primary btn-sm" style="margin-right:8px;" data-action="printStageAdminCardWithPin" data-args=\'' + (typeof gspArgs === 'function' ? gspArgs([a.id, trimmed]) : JSON.stringify([a.id, trimmed])) + '\'>🖨️ طباعة البطاقة الآن</button>';
       msg.innerHTML = formatPinOnceHtml(trimmed, a.name, printHint);
       const cloudRes = await provisionCloudAccount({
@@ -1061,7 +1058,7 @@ function loadStagesMgmtUI() {
           </div>
           <div class="id-card-row"><strong>الاسم:</strong> ${escapeHtml(a.name)}</div>
           <div class="id-card-row"><strong>المرحلة:</strong> ${escapeHtml(stageName || '-')}</div>
-          <div class="id-card-row" style="font-size:13px;color:#0b5e42;"><strong>الصلاحيات:</strong> تشغيل وإدارة المرحلة (طلاب، معلمون، رصد، إعدادات)</div>
+          <div class="id-card-row" style="font-size:13px;color:var(--rasd-brand);"><strong>الصلاحيات:</strong> تشغيل وإدارة المرحلة (طلاب، معلمون، رصد، إعدادات)</div>
           <div class="id-card-pin">
             <span class="pin-label">الرقم السري</span>
             <span class="pin-value">${a.pin || '-----'}</span>

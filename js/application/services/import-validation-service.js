@@ -377,7 +377,7 @@
     if (report.summary) {
       const s = report.summary;
       lines.push(
-        '<div style="font-size:13px;color:#64748b;margin-top:6px;">ملخص: طلاب ' +
+        '<div style="font-size:13px;color:var(--rasd-text-muted);margin-top:6px;">ملخص: طلاب ' +
           (s.studentCount != null ? s.studentCount : '—') +
           ' · درجات ' + (s.gradeCount != null ? s.gradeCount : '—') +
           ' · مواد ' + (s.subjectCount != null ? s.subjectCount : '—') +

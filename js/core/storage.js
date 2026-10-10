@@ -308,7 +308,7 @@ function showStorageWarning(msg) {
   if (!el) {
     el = document.createElement('div');
     el.id = 'storageWarningBanner';
-    el.style.cssText = 'position:fixed; top:0; right:0; left:0; z-index:9999; background:#b91c1c; color:#fff; padding:10px 16px; text-align:center; font-size:14px; font-weight:600;';
+    el.style.cssText = 'position:fixed; top:0; right:0; left:0; z-index:9999; background:var(--rasd-danger); color:#fff; padding:10px 16px; text-align:center; font-size:14px; font-weight:600;';
     document.body.prepend(el);
   }
   el.textContent = msg;
@@ -585,7 +585,7 @@ function saveDB(data, protectKeys) {
       if (!existing) {
         const toast = document.createElement('div');
         toast.id = '__noStageWarningToast';
-        toast.style.cssText = 'position:fixed;top:16px;right:50%;transform:translateX(50%);z-index:99999;background:#b91c1c;color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.25);direction:rtl;';
+        toast.style.cssText = 'position:fixed;top:16px;right:50%;transform:translateX(50%);z-index:99999;background:var(--rasd-danger);color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.25);direction:rtl;';
         toast.textContent = '⚠️ لا توجد مرحلة دراسية محددة — لم يتم حفظ البيانات. يرجى اختيار مرحلة أولاً.';
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 4000);

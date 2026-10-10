@@ -316,12 +316,12 @@ var APP_VERSION = GSP.APP_VERSION;
       const msg = document.getElementById('teacherFormMsg');
       const { subjectName, classes, isSecondLang, languageType } = getCurrentAssignmentFields();
       if (!subjectName) { msg.textContent = '⚠️ يرجى اختيار المادة أولاً';
-        msg.style.color = '#b91c1c'; return; }
+        msg.style.color = 'var(--rasd-danger)'; return; }
       if (classes.length === 0) { msg.textContent = '⚠️ يرجى اختيار فصل واحد على الأقل';
-        msg.style.color = '#b91c1c'; return; }
+        msg.style.color = 'var(--rasd-danger)'; return; }
       if (isSecondLang && !languageType) {
         msg.textContent = '⚠️ يرجى تحديد نوع اللغة الأجنبية لهذا التخصيص';
-        msg.style.color = '#b91c1c'; return;
+        msg.style.color = 'var(--rasd-danger)'; return;
       }
       // إن وُجد تخصيص سابق بنفس المادة ونفس نوع اللغة، يتم دمج الفصول الجديدة معه بدل تكراره
       const existing = teacherAssignmentsDraft.find(a => a.subjectName === subjectName && (a.languageType || '') === (
@@ -335,7 +335,7 @@ var APP_VERSION = GSP.APP_VERSION;
       renderTeacherAssignmentsDraft();
       msg.textContent =
         '✅ تمت إضافة التخصيص. يمكنك اختيار مادة أخرى وإضافتها أيضاً، أو الضغط على زر الحفظ أسفل الصفحة لإنهاء إضافة هذا المعلم.';
-      msg.style.color = '#0b5e42';
+      msg.style.color = 'var(--rasd-brand)';
     }
 
     function removeAssignmentFromDraft(index) {
